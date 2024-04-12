@@ -1,0 +1,15 @@
+# Add a service for each of the two AI 
+
+services:
+    main:
+        build: ./main
+        ports:
+          - "80:5000"
+    aione:
+        build: ./client
+        expose:
+          - "5001"
+    aitwo:
+        build: ./logichub
+        expose:
+          - "5002"
