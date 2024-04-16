@@ -1,6 +1,7 @@
 from linparse import *
 import random
 from datetime import datetime
+from score import calculate_score
 '''
 table_id to Table object
 '''
@@ -15,11 +16,12 @@ class Game:
         if not seed:
             seed = int(datetime.now().timestamp())
         self.game_random = random.Random(seed)
-        self.hand = BridgeHand(players, dealer, hands = {}, bids = [], play, contract, declarer, doubled, vuln, made = None, claimed = None)
+        self.current_hand = BridgeHand(players, dealer = None, hands = {}, bids = [], play = None, contract = None, declarer = None, doubled = None, vuln = None, made = None, claimed = None)
         self.game_phase = "AUCTION"
         self.id = None
 
         self.deal()
+        self.set_dealer()
 
     def deal(self):
         full_hand = full_hand()
@@ -29,7 +31,7 @@ class Game:
         S_hand = full_hand.cards[26:39]
         W_hand = full_hand.cards[39:52]
 
-        self.hand.hands = {
+        self.current_hand.hands = {
             'N': N_hand,
             'E': E_hand,
             'S': S_hand,
@@ -62,14 +64,14 @@ class Game:
         '''
         pass
 
-    def get_dealer(table_id):
+    def set_dealer(self, table_id):
         '''
         Get who the dealer should be based on how many hands have been played so far.
         '''
         players = ['N', 'E', 'S', 'W']
-        return players[running_tables[table_id].game_count % 4]
+        self.current_hand.dealer = players[running_tables[table_id].game_count % 4]
 
-    def get_vulnerability(table_id):
+    def get_vulnerability(self, table_id):
         '''
         Get the vulnerability for the current board.
         '''
@@ -77,10 +79,10 @@ class Game:
                            'NS', 'EW', 'both', 'none',
                            'EW', 'both', 'none', 'NS',
                            'both', 'none', 'NS', 'EW']
-        return vulnerabilities[running_tables[table_id].game_count % 16]
+        self.current_hand.vuln = vulnerabilities[running_tables[table_id].game_count % 16]
     
-    def get_score(vulnerability, contract, result):
-        pass
+    def get_score(vulerable, contract, result):
+        return calculate_score(contract[0][0], contract[0][1], contract[1], result)
 
 
 class Table:
@@ -109,7 +111,7 @@ class Table:
         pass
 
 if __name__=="__main__": 
-
+    pass
     my_game = Game()
-    my_game.deal()
-    print(parse_linfile("example.lin").bids)
+    # my_game.deal()
+    # print(parse_linfile("example.lin").bids)
