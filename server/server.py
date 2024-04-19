@@ -10,28 +10,38 @@ game_counter = 0
 
 def update_game_state():
     '''
-    Call after most functions to send an updatated game state to the fromt-end.
+    Call after most functions to send an updatated game state to the front-end.
     '''
     pass
 
 class Game:
     '''
-        
+        players: dict {positions: usernames}
+        table_id: int, the table id that this game is at
+        seed: int, to get the same deal for multiple games
     '''
-
     def __init__(self, players: dict, table_id: int, seed: int = None):
+        # sets seed to the current time if not included, seed used for the deal
         if seed == None:
             seed = int(datetime.now().timestamp())
         self.game_random = random.Random(seed)
-        self.current_hand = BridgeHand(players, dealer = None, hands = {}, bids = [], play = None, contract = None, declarer = None, doubled = None, vuln = None, made = None, claimed = None)
-        self.game_phase = "AUCTION"
-        self.game_id = None
+        
+        # creates a new BridgeHand object that is continually updated as play progresses
+        self.current_bridgehand = BridgeHand(players, dealer = None, hands = {}, bids = [], play = None, contract = None, declarer = None, doubled = None, vuln = None, made = 0, claimed = 0)
+        
+
         self.table_id = table_id
+        self.game_phase = "AUCTION"
+        
         self.deal()
         self.set_dealer()
-        self.current_player = self.current_hand.dealer
+        self.set_vulnerability()
+        self.current_player = self.current_bridgehand.dealer
 
     def deal(self):
+        '''
+            creates Hand objects for each player and adds them to self.current_bridgehand
+        '''
         total_hand = full_hand()
         self.game_random.shuffle(total_hand.cards)
         N_hand = Hand(total_hand.cards[0:13]).sort()
@@ -39,26 +49,19 @@ class Game:
         S_hand = Hand(total_hand.cards[26:39]).sort()
         W_hand = Hand(total_hand.cards[39:52]).sort()
 
-        self.current_hand.hands = {
+        self.current_bridgehand.hands = {
             'N': N_hand,
             'E': E_hand,
             'S': S_hand,
             'W': W_hand
         }
-        
-    def new_game(self, North = None, East = None, South = None, West = None):
-        '''
-        Get a new game id.
-        Create player global game_counter dictionary.
-        Set the dealer and vulnerability.
-        '''
 
                 
     def begin_play_phase(self):
         self.game_phase = "PLAY"
-        self.current_hand.play = []
+        self.current_bridgehand.play = []
 
-    def update_current_player(self):
+    def update_current_player(self) -> None:
         ''' 
         Check that the card is in the players hand.
         Make sure it is the players turn.
@@ -69,32 +72,38 @@ class Game:
         Update game state.
         '''
         # Check if the game is over
-        if len(self.current_hand.play) == 13 and len(self.current_hand.play[-1]) == 5:
+        if len(self.current_bridgehand.play) == 13 and len(self.current_bridgehand.play[-1]) == 5:
             self.current_player = None
             # Tell front end that game is over
-            return
-        
+
         # Check if this is the opening lead
-        if len(self.current_hand.play) == 0:
-            self.current_player = self.get_left_player(self.current_hand.declarer)
-            return
+        elif len(self.current_bridgehand.play) == 0:
+            self.current_player = self.get_left_player(self.current_bridgehand.declarer)
 
         # check if a trick is in progress
-        if len(self.current_hand.play[-1]) < 5:
+        elif len(self.current_bridgehand.play[-1]) < 5:
             self.current_player = self.get_left_player(self.current_player)
-            return
         
-        # if we are starting a new trick, see who won the last trick
-        last_trick = self.current_hand.play[-1]
-        trick = {}
-        trick['N'] = last_trick['N']
-        trick['E'] = last_trick['E']
-        trick['S'] = last_trick['S']
-        trick['W'] = last_trick['W']
-        self.current_player = get_trick_winner(trick, last_trick['lead'], trump=self.current_hand.contract[1])
+        else:
+            # if we are starting a new trick, see who won the last trick
+            last_trick = self.current_bridgehand.play[-1]
+            trick = {}
+            trick['N'] = last_trick['N']
+            trick['E'] = last_trick['E']
+            trick['S'] = last_trick['S']
+            trick['W'] = last_trick['W']
+            self.current_player = get_trick_winner(trick, last_trick['lead'], trump=self.current_bridgehand.contract[1])[0]
+                
         return
 
-    def get_left_player(self, player):
+    def get_left_player(self, player: str) -> str:
+        '''
+            returns the player to the left of player
+            inputs:
+                player: str 
+            outputs:
+                left_player: str
+        '''
         return PLAYERS[(PLAYER_MAP[player] + 1) % 4]
 
     def play_card(self, player: str, card: Card):
@@ -106,29 +115,47 @@ class Game:
             returns True of card is successfully played, False otherwise
         '''
         # check if the card is in the players hand
-        if not self.current_hand.hands[player].has(card):
+        if not self.current_bridgehand.hands[player].has(card):
             return False
         if not player == self.current_player:
             return False
 
         # start a new trick
-        if len(self.current_hand.play) == 0 or len(self.current_hand.play[-1] == 5):
-            self.current_hand.hands[player].pop_card(self.current_hand.hands[player].cards.index(card))
+        if len(self.current_bridgehand.play) == 0 or len(self.current_bridgehand.play[-1]) == 5:
+            self.current_bridgehand.hands[player].pop_card(self.current_bridgehand.hands[player].cards.index(card))
             new_trick = {}
             new_trick['lead'] = player
             new_trick[player] = card
-            self.current_hand.play.append(new_trick)
+            self.current_bridgehand.play.append(new_trick)
             return True
         
-        lead_suit = self.current_hand.play[-1]['lead'][1]
-        if self.hand_contains_suit(self.current_hand.hands[player], lead_suit):
-            if not card[1] == lead_suit:
+        leader = self.current_bridgehand.play[-1]['lead']
+        lead_suit = self.current_bridgehand.play[-1][leader].suitname
+        if self.hand_contains_suit(self.current_bridgehand.hands[player], lead_suit):
+            if not card.suitname == lead_suit:
                 return False
             
-        self.current_hand.hands[player].pop_card(self.current_hand.hands[player].index(card))
+        self.current_bridgehand.hands[player].pop_card(self.current_bridgehand.hands[player].cards.index(card))
         
         # add to most recent trick
-        self.current_hand.play[-1][player] = card
+        self.current_bridgehand.play[-1][player] = card
+
+        # if a trick just ended, check update the number of tricks declarer has taken
+        if len(self.current_bridgehand.play[-1]) == 5:
+            last_trick = self.current_bridgehand.play[-1]
+            trick = {}
+            trick['N'] = last_trick['N']
+            trick['E'] = last_trick['E']
+            trick['S'] = last_trick['S']
+            trick['W'] = last_trick['W']
+            
+            last_winner = get_trick_winner(trick, last_trick['lead'], trump=self.current_bridgehand.contract[1])[0]
+
+            if (self.current_bridgehand.declarer == 'N' or self.current_bridgehand.declarer == 'S') and (last_winner == 'N' or last_winner == 'S'):
+                self.current_bridgehand.made += 1
+            if (self.current_bridgehand.declarer == 'E' or self.current_bridgehand.declarer == 'W') and (last_winner == 'E' or last_winner == 'W'):
+                self.current_bridgehand.made += 1
+
         return True
 
     def hand_contains_suit(self, hand: Hand, suit: str):
@@ -140,7 +167,7 @@ class Game:
                 
         return contains
 
-    def make_bid(self, player, bid):
+    def make_bid(self, player: str, bid: str):
         '''
         Check if the bid is valid.
         If so, update the BridgeHand auction state.
@@ -159,25 +186,38 @@ class Game:
         '''
         Get who the dealer should be based on how many hands have been played so far.
         '''
-        players = ['N', 'E', 'S', 'W']
-        self.current_hand.dealer = players[running_tables[self.table_id].game_count % 4]
+        players = ['E', 'S', 'W', 'N']
+        self.current_bridgehand.dealer = players[running_tables[self.table_id].game_count % 4]
 
-    def get_vulnerability(self, table_id):
+    def set_vulnerability(self):
         '''
-        Get the vulnerability for the current board.
+        sets the vulnerability for the current board.
         '''
         vulnerabilities = ['none', 'NS', 'EW', 'both',
                            'NS', 'EW', 'both', 'none',
                            'EW', 'both', 'none', 'NS',
                            'both', 'none', 'NS', 'EW']
-        self.current_hand.vuln = vulnerabilities[running_tables[table_id].game_count % 16]
+        self.current_bridgehand.vuln = vulnerabilities[running_tables[self.table_id].game_count % 16]
     
     def get_score(self):
-        level = self.current_hand.contract[0][0]
-        suit = self.current_hand.contract[0][1]
-        doubled = self.current_hand.contract[1]
-        result = self.current_hand.made
-        return calculate_score(level, suit, doubled, result)
+        level = self.current_bridgehand.contract[0]
+        suit = self.current_bridgehand.contract[1]
+        doubled = self.current_bridgehand.doubled
+        result = self.current_bridgehand.made
+        vulnerable = self.current_bridgehand.vuln
+        if vulnerable == 'both':
+            vulnerable = True
+        else:
+            if (self.current_bridgehand.declarer == 'N' or self.current_bridgehand.declarer == 'S') \
+                  and vulnerable == 'NS':
+                vulnerable = True
+            elif (self.current_bridgehand.declarer == 'E' or self.current_bridgehand.declarer == 'W') \
+                  and vulnerable == 'EW':
+                vulnerable = True
+            else:
+                vulnerable = False
+    
+        return calculate_score(int(level), suit, doubled, result, vulnerable)
 
 
 class Table:
@@ -199,42 +239,38 @@ class Table:
         running_tables[self.table_id] = self
 
     def new_game(self):
-        game_id = self.game_id = math.trunc(int(datetime.now().timestamp()))
+        '''
+            creates a new game at this table
+            gives it a game_id based on the global game_counter variable 
+                (should be replaced by something with regards to the database so game_ids are not repeated)
+            
+        '''
+        global game_counter
+        game_counter += 1
+        game_id = game_counter
+        
+        num_games = len(self.game_id_list)
+        self.current_game = Game(self.players, self.table_id, seed = self.seed + num_games)
         self.game_id_list.append(game_id)
-        self.current_game = Game(self.players, game_id, seed = self.seed)
     
-    def join_table(self, player, ):
+    def join_table(self, player: str):
         pass
 
     def update_score(self):
         pass
 
 if __name__=="__main__": 
-    # pass
+    pass
     # my_game = Game(["1", "2", "3", "4"], 0)
     # bridge_hand = parse_linfile("example.lin")
     # print(bridge_hand.players)
     # print(bridge_hand.play)
     # print(bridge_hand.hands)
     # my_game.get_score(bridge_hand.vuln, bridge_hand.contract, bridge_hand.made)
-    players = {'E': 'user0', 'S': 'user1', 'W': 'user2', 'N': 'user3'}
-    
-    table = Table(players, seed = 0)
-    table.new_game()
-    table.current_game.current_hand.contract = '2S'
-    table.current_game.current_hand.declarer = 'N'
-    table.current_game.begin_play_phase()
-    print(table.current_game.current_hand.players)
-    print(table.current_game.current_hand.play)
-    print(table.current_game.current_hand.hands)
-    table.current_game.update_current_player()
-    print("current player", table.current_game.current_player)
 
-    print(table.current_game.current_hand.hands['E'][0])
-    table.current_game.play_card('E', table.current_game.current_hand.hands['E'][0])
-    print(table.current_game.current_hand.hands)
-    print(table.current_game.current_hand.play)
-
-    table.current_game.update_current_player()
-    print("current player", table.current_game.current_player)
-
+    # print(table.current_game.current_bridgehand.hands)
+    # print("current player", table.current_game.current_player)
+    # print(table.current_game.current_bridgehand.hands['E'][0])
+    # print(table.current_game.current_bridgehand.hands)
+    # print(table.current_game.current_bridgehand.play)
+    # print("current player", table.current_game.current_player)
