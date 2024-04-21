@@ -1,5 +1,11 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-<p1> Table created for player {{ playerID }} </p1>
+<p> Table created for player {{ playerID }} </p>
+
+<div id="players"> </div>
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}

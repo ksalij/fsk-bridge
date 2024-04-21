@@ -20,6 +20,7 @@ app_data = {
     "keywords": "flask, webapp, template, basic",
 }
 
+
 @app.route('/')
 def homepage():
     return render_template("home.html", app_data=app_data)
@@ -34,4 +35,4 @@ def watchgame(tableID, seat):
 
 if __name__ == '__main__':
     my_port = 5000
-    app.run(host='0.0.0.0', port = my_port) 
+    app.run(host='0.0.0.0', port = my_port, debug=True)
