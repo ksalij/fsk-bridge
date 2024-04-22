@@ -2,6 +2,8 @@ from linparse import *
 import random, math
 from datetime import datetime
 from score import calculate_score
+
+
 '''
 table_id to Table object
 '''

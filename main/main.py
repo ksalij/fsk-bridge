@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import render_template
+from flask_socketio import SocketIO, emit
 from _thread import *
 import random
 import json
@@ -9,7 +10,9 @@ import threading
 import sys
 import urllib
 
+
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 app_data = {
     "name": "Peter's Starter Template for a Flask Web App",
@@ -32,6 +35,11 @@ def openTable(playerID):
 def watchgame(tableID, seat):
     return json.dumps("{} is ready to start!".format(seat))
 
+@socketio.on('message')
+def handle_message(message):
+    send(message)
+    print('Received Message', file=sys.stdout)
+
+
 if __name__ == '__main__':
-    my_port = 5000
-    app.run(host='0.0.0.0', port = my_port) 
+    socketio.run(app, host='127.0.0.1', port=5000, debug = True)
