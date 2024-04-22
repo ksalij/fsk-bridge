@@ -100,8 +100,12 @@ class Table:
         self.EW_score = 0
         self.current_game = None
         self.game_id_list = []
+        self.new_game()
 
-    def new_game():
+    def new_game(self):
+        if self.seed:
+            gameSeed = self.seed.pop(0)
+        game = Game(self.players, gameSeed)
         pass
     
     def join_table(self):
