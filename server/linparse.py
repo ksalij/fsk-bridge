@@ -16,6 +16,7 @@ from collections import deque
 from functools import cmp_to_key
 
 PLAYERS = {0:'E', 1:'S', 2:'W', 3:'N'}
+PLAYER_MAP = {'E': 0, 'S': 1, 'W': 2, 'N': 3}
 SUITMAP = {'C':0, 'D':1, 'H':2, 'S':3}
 CARDMAP = {'2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, 'T':10, 'J':11, 'Q':12, 'K':13, 'A':14}
 
