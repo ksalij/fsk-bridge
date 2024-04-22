@@ -7,6 +7,7 @@ table_id to Table object
 '''
 running_tables = {}
 game_counter = 0
+finished_bridgehands = {}
 
 def update_game_state():
     '''
@@ -28,7 +29,6 @@ class Game:
         
         # creates a new BridgeHand object that is continually updated as play progresses
         self.current_bridgehand = BridgeHand(players, dealer = None, hands = {}, bids = [], play = None, contract = None, declarer = None, doubled = None, vuln = None, made = 0, claimed = 0)
-        
 
         self.table_id = table_id
         self.game_phase = "AUCTION"
@@ -155,6 +155,10 @@ class Game:
                 self.current_bridgehand.made += 1
             if (self.current_bridgehand.declarer == 'E' or self.current_bridgehand.declarer == 'W') and (last_winner == 'E' or last_winner == 'W'):
                 self.current_bridgehand.made += 1
+        
+            # if 13 tricks have been played end the game
+            if len(self.current_bridgehand.play) == 13:
+                running_tables[self.table_id].end_game()
 
         return True
 
@@ -175,29 +179,26 @@ class Game:
         '''
         pass
 
-    def end_game(self):
-        '''
-        Distroy stored game state.
-        Calculate and output score.
-        '''
-        pass
 
     def set_dealer(self):
         '''
         Get who the dealer should be based on how many hands have been played so far.
         '''
+        game_count = len(running_tables[self.table_id].game_id_list)
         players = ['E', 'S', 'W', 'N']
-        self.current_bridgehand.dealer = players[running_tables[self.table_id].game_count % 4]
+        self.current_bridgehand.dealer = players[game_count % 4]
 
     def set_vulnerability(self):
         '''
         sets the vulnerability for the current board.
         '''
+        global running_tables
+        game_count = len(running_tables[self.table_id].game_id_list)
         vulnerabilities = ['none', 'NS', 'EW', 'both',
                            'NS', 'EW', 'both', 'none',
                            'EW', 'both', 'none', 'NS',
                            'both', 'none', 'NS', 'EW']
-        self.current_bridgehand.vuln = vulnerabilities[running_tables[self.table_id].game_count % 16]
+        self.current_bridgehand.vuln = vulnerabilities[game_count % 16]
     
     def get_score(self):
         level = self.current_bridgehand.contract[0]
@@ -230,12 +231,13 @@ class Table:
     def __init__(self, players: dict, seed: int = None):
         self.players = players
         self.seed = seed
-        self.game_count = 0
         self.NS_score = 0
         self.EW_score = 0
         self.current_game = None
         self.game_id_list = []
         self.table_id = math.trunc(int(datetime.now().timestamp()))
+
+        global running_tables
         running_tables[self.table_id] = self
 
     def new_game(self):
@@ -252,6 +254,30 @@ class Table:
         num_games = len(self.game_id_list)
         self.current_game = Game(self.players, self.table_id, seed = self.seed + num_games)
         self.game_id_list.append(game_id)
+
+    def end_game(self):
+        '''
+        Distroy stored game state.
+        Calculate and output score.
+        '''
+        # calculate the score
+        score = self.current_game.get_score()
+        # add the score
+        declarer = self.current_game.current_bridgehand.declarer
+        if declarer == 'N' or declarer == 'S':
+            if score > 0:
+                self.NS_score += score
+            else:
+                self.EW_score -= score
+        else:
+            if score > 0:
+                self.EW_score += score
+            else:
+                self.NS_score -= score
+        # set current_game to none
+        self.current_game = None
+        # store the finished game somewhere (lin format eventually)
+        pass
     
     def join_table(self, player: str):
         pass
