@@ -1,6 +1,6 @@
 from flask import Flask
 from flask import render_template
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, send
 from _thread import *
 import random
 import json
@@ -37,7 +37,7 @@ def watchgame(tableID, seat):
 
 @socketio.on('message')
 def handle_message(message):
-    send(message)
+    send(message + "this is from flask")
     print('Received Message', file=sys.stdout)
 
 
