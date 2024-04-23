@@ -24,49 +24,46 @@ jsonData = {
     "whoseTurn": 0
 }
 
-// var gameInfoDiv = document.getElementById('players');
-// gameInfoDiv.innerHTML = (
-//     "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
-//     + "<br>"
-//     + "<button onclick=displayPlayers()>Click me!</button>"
-//     // put game display stuff here!
-    
-// );
+var gameInfoDiv = document.getElementById('players');
+gameInfoDiv.innerHTML = (
+    "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
+    + "<br>"
+    + "<button onclick=displayPlayers()>Click me to display players!</button>"
+    // put game display stuff here!
+    + "<button onclick=displayAllCards()>Click me to display cards!</button>"
+);
 
-// function displayPlayers() {
-//     var gameInfoDiv = document.getElementById('players');
-//     gameInfoDiv.innerHTML = (
-//         "<p>Clicked!</p>"
-//     );
-// }
+function displayPlayers() {
+    var gameInfoDiv = document.getElementById('players');
+    gameInfoDiv.innerHTML = (
+        "<p>Clicked!</p>"
+    );
+}
 
+// Executed when the user says that they're ready to play.
+// As of 4/23/24, fills the div with id "game" with some default text-based hands for four players.
 function readyUp() {
     const gameDiv = document.getElementById("game");
 
+    // remove the start button
     const start_button = document.getElementById("start-button");
     start_button.remove();
 
+    // the client_team div contains elements for the user and their partner
     const client_team = document.createElement("div");
     client_team.id = "client_team";
+    // the opp_team div contains elements for the user's two opponents
     const opp_team = document.createElement("div");
     opp_team.id = "opp_team";
     
+    // fill the user's hand
     const client_hand = document.createElement("p");
     client_hand.id = "client_hand";
     const client_cards = document.createTextNode(jsonData.yourHand.join(" | "));
     client_hand.appendChild(client_cards);
     client_team.appendChild(client_hand);
 
-    const opp1_hand = document.createElement("p");
-    opp1_hand.id = "opp1_hand";
-    const hand = [];
-    for (let i = 0; i < jsonData.handSizes[1]; i++) {
-        hand[i] = "??"
-    }
-    const opp1_cards = document.createTextNode(hand.join(" | "));
-    opp1_hand.appendChild(opp1_cards);
-    opp_team.appendChild(opp1_hand);
-
+    // fill the user's partner's hand
     const partner_hand = document.createElement("p");
     partner_hand.id = "partner_hand";
     hand.length = 0; // resets array
@@ -77,6 +74,18 @@ function readyUp() {
     partner_hand.appendChild(partner_cards);
     client_team.appendChild(partner_hand);
 
+    // fill the left opponent's hand
+    const opp1_hand = document.createElement("p");
+    opp1_hand.id = "opp1_hand";
+    const hand = [];
+    for (let i = 0; i < jsonData.handSizes[1]; i++) {
+        hand[i] = "??"
+    }
+    const opp1_cards = document.createTextNode(hand.join(" | "));
+    opp1_hand.appendChild(opp1_cards);
+    opp_team.appendChild(opp1_hand);
+
+    // fill the right opponent's hand
     const opp3_hand = document.createElement("p");
     opp3_hand.id = "opp3_hand";
     hand.length = 0; // resets array
@@ -87,20 +96,35 @@ function readyUp() {
     opp3_hand.appendChild(opp3_cards);
     opp_team.appendChild(opp3_hand);
 
+    // put the new divs in the existing "game" div
     gameDiv.appendChild(client_team);
     gameDiv.appendChild(opp_team);
 }
 
-// function readyUp() {
-//     const hand = document.createElement("p");
-//     const node = document.createTextNode(jsonData.yourHand.join(" | "));
-//     hand.appendChild(node);
+// Function to preload images, called by fetchImages below
+function preloadImages(imageUrls) {
+    imageUrls.forEach(url => {
+      const fullUrl = `/getimages/${url}`;
 
-//     const gameDiv = document.getElementById("game");
-//     gameDiv.appendChild(hand);
-// }
+      const img = new Image(); // Create an image object
+      img.src = fullUrl;
+      //img.style.display = 'none'; // Hide the image
+      document.body.appendChild(img); // Append to body to trigger loading
+    });
+}
+  
+function fetchImages(){
+    fetch('/getimages')
+        .then(response => response.json())
+        .then(data => {
+        // Preload the images
+        preloadImages(data);
+        })
+        .catch(error => {
+        console.error('Error fetching image URLs:', error);
+        });
+}
 
-
-// Add more lines like these to display other information
-
-
+    
+// Call the fetchImages function when the page loads
+window.onload = fetchImages();
