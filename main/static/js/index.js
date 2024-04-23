@@ -24,14 +24,17 @@ jsonData = {
     "whoseTurn": 0
 }
 
-var gameInfoDiv = document.getElementById('players');
-gameInfoDiv.innerHTML = (
-    "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
-    + "<br>"
-    + "<button onclick=displayPlayers()>Click me to display players!</button>"
-    // put game display stuff here!
-    + "<button onclick=displayAllCards()>Click me to display cards!</button>"
-);
+function loadPlayerDiv() {
+    var gameInfoDiv = document.getElementById('players');
+    gameInfoDiv.innerHTML = (
+        "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
+        + "<button onclick=displayPlayers()>Click me to display players!</button>"
+        // put game display stuff here!
+        + "<button id=show-cards-button onclick=showAllCards()>Click me to display cards!</button>"
+    );
+}
+
+window.addEventListener("load", (event) => { loadPlayerDiv(); });
 
 function displayPlayers() {
     var gameInfoDiv = document.getElementById('players');
@@ -66,7 +69,7 @@ function readyUp() {
     // fill the user's partner's hand
     const partner_hand = document.createElement("p");
     partner_hand.id = "partner_hand";
-    hand.length = 0; // resets array
+    const hand = [];
     for (let i = 0; i < jsonData.handSizes[1]; i++) {
         hand[i] = "??"
     }
@@ -77,7 +80,7 @@ function readyUp() {
     // fill the left opponent's hand
     const opp1_hand = document.createElement("p");
     opp1_hand.id = "opp1_hand";
-    const hand = [];
+    hand.length = 0; // resets array
     for (let i = 0; i < jsonData.handSizes[1]; i++) {
         hand[i] = "??"
     }
@@ -107,8 +110,9 @@ function preloadImages(imageUrls) {
       const fullUrl = `/getimages/${url}`;
 
       const img = new Image(); // Create an image object
+      img.className = "card";
       img.src = fullUrl;
-      //img.style.display = 'none'; // Hide the image
+      img.style.display = 'none'; // Hide the image
       document.body.appendChild(img); // Append to body to trigger loading
     });
 }
@@ -125,6 +129,29 @@ function fetchImages(){
         });
 }
 
-    
+function showAllCards() {
+    const allCards = document.getElementsByClassName("card");
+    for (let i = 0; i < allCards.length; i++) {
+        allCards[i].style.display = 'inline';
+    }
+
+    const button = document.getElementById("show-cards-button");
+    button.id = "hide-cards-button";
+    button.setAttribute("onclick", "hideAllCards()");
+    button.innerHTML = ("Click me to hide cards!");
+}
+
+function hideAllCards() {
+    const allCards = document.getElementsByClassName("card");
+    for (let i = 0; i < allCards.length; i++) {
+        allCards[i].style.display = 'none';
+    }
+
+    const button = document.getElementById("hide-cards-button");
+    button.id = "show-cards-button";
+    button.setAttribute("onclick", "showAllCards()");
+    button.innerHTML = ("Click me to display cards!");
+}
+
 // Call the fetchImages function when the page loads
-window.onload = fetchImages();
+window.addEventListener("load", (event) => { fetchImages(); });

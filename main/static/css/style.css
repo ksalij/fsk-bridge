@@ -1,21 +1,41 @@
 body {
-    background-color: darkgreen;
+    background-color: darkslategray;
+}
+
+body p {
+    margin: 5% auto;
+    text-align: center;
+    color: bisque;
+}
+
+div p {
+    margin: 10px auto;
+}
+
+button {
+    position: relative;
+    margin: 15px auto;
+    display: block;
 }
 
 #game {
     width: 75vw;
     height: 75vw;
     border: 1px black solid;
+    background-color: darkgreen;
     position: relative;
     padding: 0 0 0 0;
+    margin: 25px 0;
     left: 12.5%;
 }
 
+#game p {
+    font-size: calc(0.03* 75vw);
+}
+
 #start-button {
-    position: relative;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateY(calc(-50% - 15px));
 }
 
 #client_team {
@@ -47,9 +67,4 @@ body {
 
 #partner_hand {
     transform: rotate(180deg);
-}
-
-body p {
-    margin: 5% auto;
-    text-align: center;
 }
