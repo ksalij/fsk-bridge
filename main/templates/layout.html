@@ -21,12 +21,19 @@
 	
     <button type="button" id="playcard">Play a Card</button>
     <button type="button" id="gamestate">Game State</button>
+    <input type="text" id="username">
     <p id="clients">Clients: 0</p>
 
     <main role="main" class="container">
       <div class="container">
         <div class="starter-template">
           <hr style="padding-top: 100px;">
+          <input type="text" id="textInput" name="textInput">
+          <button type="button" id="send">Send</button>
+	  <div id="chat">
+	    <p>Chat:</p>
+	  </div>
+
           {% block body %}
           {% endblock %}:
         </div>
