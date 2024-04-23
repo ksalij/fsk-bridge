@@ -33,15 +33,7 @@ def openTable(playerID):
 def watchgame(tableID, seat):
     return json.dumps("{} is ready to start!".format(seat))
 
-@app.route('/get_image_list')
-def get_image_list():
-    print('Getting image list!', file=sys.stderr)
-    image_folder = 'static/cardimages/'  # Your image folder path
-    image_list = os.listdir(image_folder)
-    print("Image list: " + str(image_list), file=sys.stderr)
-    return jsonify(image_list)
-
-@app.route('/your-flask-endpoint')
+@app.route('/getimages')
 def get_image_urls():
     image_folder = 'static/cardimages/'  # Your image folder path
     image_list = os.listdir(image_folder)
@@ -50,10 +42,13 @@ def get_image_urls():
     image_urls = [url_for('static', filename=filename) for filename in image_list]
     return jsonify(image_urls)
 
-
-@app.route('/your-flask-endpoint/static/<path:filename>')
+@app.route('/getimages/static/<path:filename>')
 def get_image(filename):
     return send_from_directory('static', 'cardimages/' + filename)
+
+@app.route('/favicon.ico')
+def give_favicon():
+    return send_from_directory('static', 'favicon/favicon.ico')
 
 
 if __name__ == '__main__':

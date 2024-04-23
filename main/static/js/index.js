@@ -40,104 +40,12 @@ function displayPlayers() {
     );
 }
 
-// function displayAllCards() {
-//     var logPrintingDiv = document.getElementById('logPrinting');
-
-//     // $.ajax({
-//     //     url: '/get_image_list',
-//     //     success: function(data) {
-//     //         $.each(data, function(index, filename) {
-//     //             $("#allCards").append("<img src='/static/cardimages/" + filename + "'>");
-//     //         });
-//     //     }
-//     // });
-
-//     logPrintingDiv.innerHTML = (
-//         "<p>DisplayAllCards called!</p>"
-//     );
-
-//     $.get('/static/cardimages', function(data) {
-//         $(data).find("a").attr("href", function(i, val) {
-//             $("allCards").append("<img src='/static/cardimages/" + val + "'>");
-//         });
-//     });
-
-//     logPrintingDiv.innerHTML += (
-//         "<p>DisplayAllCards successful!</p>"
-//     );
-
-//     // var folder = "{{url_for('static', filename='cardimages')}}";
-
-//     // $.ajax({
-//     //     url: folder,
-//     //     success: function(data) {
-//     //         $(data).find("a").attr("href", function(i, val) {
-//     //             $("body").append("<img src='" + folder + '/' + val + "'>");
-//     //         });
-//     //     }
-//     // });
-// }
-
-
-
-// Function to fetch JSON data from the Flask endpoint
-// function displayAllCards() {
-//     fetch('/get_image_list')
-//     .then(response => response.json())
-//     .then(data => {
-//         // Call function to append images to HTML div
-//         appendImages(data.images);
-//     })
-//     .catch(error => {
-//         console.error('Error fetching images:', error);
-//     });
-// }
-
-// // Function to append images to HTML div
-// function appendImages(imageList) {
-//     const div = document.getElementById('allCards');
-
-//     imageList.forEach(imageFilename => {
-//         const img = document.createElement('img');
-//         img.src = imageFilename;
-//         div.appendChild(img);
-//     });
-// }
-
-// // Fetch the JSON data from the Flask endpoint
-// function displayAllCards() {
-//     fetch('/get_image_list')
-//     .then(response => response.json())
-//     .then(data => {
-//         // Select the HTML div where you want to append the images
-//         const div = document.getElementById('allCards');
-
-//         // Loop through each image filename in the JSON data
-//         data.forEach(filename => {
-//         // Create a new <img> element
-//         const img = document.createElement('img');
-
-//         // Set the src attribute of the <img> element to the filename
-//         img.src = "{{url_for('static', filename='" + filename + "')}}"
-
-//         // Append the <img> element to the HTML div
-//         div.appendChild(img);
-//         });
-//     })
-//     .catch(error => {
-//         console.error('Error fetching JSON:', error);
-//     });
-// }
-
-
-// Function to preload images
+// Function to preload images, called by fetchImages below
 function preloadImages(imageUrls) {
     imageUrls.forEach(url => {
-      const fullUrl = `/your-flask-endpoint/${url}`;
+      const fullUrl = `/getimages/${url}`;
 
-      console.log("whyyyy")
-
-      const img = new Image();
+      const img = new Image(); // Create an image object
       img.src = fullUrl;
       //img.style.display = 'none'; // Hide the image
       document.body.appendChild(img); // Append to body to trigger loading
@@ -145,8 +53,7 @@ function preloadImages(imageUrls) {
 }
   
 function fetchImages(){
-    // Fetch the image URLs from the Flask endpoint
-    fetch('/your-flask-endpoint')
+    fetch('/getimages')
         .then(response => response.json())
         .then(data => {
         // Preload the images
@@ -158,5 +65,5 @@ function fetchImages(){
 }
 
     
-// // Call the fetchImages function when the page loads
+// Call the fetchImages function when the page loads
 window.onload = fetchImages();
