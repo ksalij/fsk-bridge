@@ -23,4 +23,4 @@ COPY . .
 #
 # CMD is almost always used to start a program that
 #    runs indefinitely and listens over the network for requests
-CMD ["python3", "connect4-server.py"]
+CMD ["python3", "logichub.py"]
