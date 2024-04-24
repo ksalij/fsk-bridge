@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 services:
     main:
         build: ./main
@@ -7,3 +8,14 @@ services:
 #        build: ./server
 #        expose:
 #          - "5001"
+=======
+services:
+    main:
+        build: ./main
+        ports:
+          - "80:5000"
+    server:
+        build: ./server
+        expose:
+          - "5001"
+>>>>>>> da23787bf35a50ceffefc80fe76747bca90cd2df
