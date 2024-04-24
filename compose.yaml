@@ -7,7 +7,3 @@ services:
         build: ./server
         expose:
           - "5001"
-    logichub:
-        build: ./logichub
-        expose:
-          - "5002"
