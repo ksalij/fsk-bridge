@@ -4,7 +4,7 @@ FROM python:3.7-alpine
 
 # The WORKDIR command both creates a directory in the container 
 # and sets that directory to be the current directory for all further commands
-WORKDIR /server
+WORKDIR /logichub
 
 # We install Flask and requests in the container using Pip
 RUN pip install flask
@@ -23,4 +23,5 @@ COPY . .
 #
 # CMD is almost always used to start a program that
 #    runs indefinitely and listens over the network for requests
-CMD ["python3", "server.py"]
+CMD ["python3", "logichub.py"]
+

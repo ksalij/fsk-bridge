@@ -5,11 +5,11 @@ services:
         build: ./main
         ports:
           - "80:5000"
-    aione:
-        build: ./client
+    server:
+        build: ./server
         expose:
           - "5001"
-    aitwo:
+    logichub:
         build: ./logichub
         expose:
           - "5002"
