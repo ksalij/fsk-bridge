@@ -46,9 +46,22 @@ def handle_message(message):
     send(str(data))
     print('Received Message', file=sys.stdout)
 
+# json = {
+# 	cardsPlayed: ((int, int) or null)[4]
+# 	yourHand: ((int, int) or null)[13]
+# 	handSizes: int[4]
+# 	dummyHand: ((int, int) or null)[13] or null
+# 	auctionValue: [int, int]
+# 	playerNames: string[4]
+# 	yourDirection: int
+# 	dummyDirection: int or null
+# 	whoseTurn: int
+# }
+
 @socketio.on('gameState')
 def broadcast_gamestate(message):
-    emit('gameState', 'Test Message', broadcast=True)
+    gamestates = []
+    send('gameState', 'Test Message', broadcast=True)
 
 @socketio.on('sendMessage')
 def send_message(user, message):
