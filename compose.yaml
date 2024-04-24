@@ -1,15 +1,13 @@
-# Add a service for each of the two AI 
-
 services:
     main:
         build: ./main
         ports:
           - "80:5000"
-    server:
-        build: ./server
-        expose:
-          - "5001"
-    logichub:
-        build: ./logichub
-        expose:
-          - "5002"
+#    server:
+#        build: ./server
+#        expose:
+#          - "5001"
+#    logichub:
+#        build: ./logichub
+#        expose:
+#          - "5002"
