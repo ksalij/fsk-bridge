@@ -50,8 +50,8 @@ def broadcast_gamestate(message):
     emit('gameState', 'Test Message', broadcast=True)
 
 @socketio.on('sendMessage')
-def send_message(message):
-    emit('updateChat', message, broadcast=True)
+def send_message(user, message):
+    emit('updateChat', (user, message), broadcast=True)
 
 # Count the number of connected clients
 @socketio.on('connect')
