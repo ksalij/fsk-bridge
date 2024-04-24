@@ -23,6 +23,7 @@ app_data = {
 }
 
 count = 0
+message_history = {}
 
 @app.route('/')
 def homepage():
@@ -51,6 +52,8 @@ def broadcast_gamestate(message):
 
 @socketio.on('sendMessage')
 def send_message(user, message):
+    global message_history
+    message_history[user] = message
     emit('updateChat', (user, message), broadcast=True)
 
 # Count the number of connected clients
@@ -59,6 +62,8 @@ def connect():
     global count
     count += 1
     emit('updateCount', {'count' : count}, broadcast=True)
+    for key, value in message_history.items():
+        emit('updateChat', (key, value), broadcast=True)
 
 @socketio.on('disconnect')
 def disconnect():
