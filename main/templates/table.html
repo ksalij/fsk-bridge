@@ -1,5 +1,23 @@
 {% extends 'layout.html' %}
 
+{% block css %}
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}
+
 {% block body %}
-<p1> Table created for player {{ playerID }} </p1>
+<p> Table created for player {{ playerID }}. </p>
+
+<div id="players"> </div>
+
+<div id="allCards"> </div>
+
+<div id="logPrinting"> </div>
+
+<div id="game">
+    <button id="start-button" onclick=readyUp()>Ready Up!</button>
+</div>
 {% endblock %}
