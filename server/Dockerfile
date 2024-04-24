@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Alpine is a very small/lightweight Linux distribution
 # We are starting from an alpine image with Python 3 installed
 FROM python:3.7-alpine
