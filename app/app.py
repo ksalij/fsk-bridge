@@ -29,9 +29,9 @@ message_history = {}
 def homepage():
     return render_template("home.html", app_data=app_data)
 
-@app.route('/chat', app_data=app_data)
+@app.route('/chat')
 def chat():
-    return render_template("chat.html")
+    return render_template("chat.html", app_data=app_data)
 
 @app.route('/openTable/<playerID>')
 def openTable(playerID):

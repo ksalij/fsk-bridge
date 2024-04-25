@@ -22,4 +22,4 @@ COPY . .
 #
 # CMD is almost always used to start a program that
 #    runs indefinitely and listens over the network for requests
-CMD ["python3", "main.py"]
+CMD ["python3", "app.py"]
