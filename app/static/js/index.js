@@ -155,3 +155,13 @@ function hideAllCards() {
 
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
+
+var socket = io.connect('http://localhost:80');
+socket.on('connect', (arg, callback) => {
+  console.log('Socket Connected');
+});
+
+socket.on('userJoined', (response) => {
+  players = document.getElementById("currentPlayers");
+  players.innerHTML = "Current Users: " + response;
+});

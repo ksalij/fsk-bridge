@@ -1,5 +1,5 @@
-from server import *
-from linparse import *
+from bridge.server import *
+from bridge.linparse import *
 
 def play_full_hand():
     players = {'E': 'user0', 'S': 'user1', 'W': 'user2', 'N': 'user3'}
