@@ -128,6 +128,7 @@ class Game:
             new_trick['lead'] = player
             new_trick[player] = card
             self.current_bridgehand.play.append(new_trick)
+            self.update_current_player()
             return True
         
         leader = self.current_bridgehand.play[-1]['lead']
@@ -162,7 +163,23 @@ class Game:
                 running_tables[self.table_id].end_game()
         self.update_current_player()
         return True
-
+    
+    def get_playable_cards(self):
+        '''
+        return all playable cards that the current player could play
+        '''
+        if self.game_phase == "PLAY":
+            # starting a new trick
+            if len(self.current_bridgehand.play) == 0 or len(self.current_bridgehand.play[-1]) == 5:
+                return self.current_bridgehand.hands[self.current_player].cards
+            # following suit on a trick
+            leader = self.current_bridgehand.play[-1]['lead']
+            lead_suit = self.current_bridgehand.play[-1][leader].suitname
+            if self.hand_contains_suit(self.current_bridgehand.hands[self.current_player], lead_suit):
+                return [card for card in self.current_bridgehand.hands[self.current_player] if card.suitname == lead_suit]
+            else:
+                return self.current_bridgehand.hands[self.current_player].cards
+        
     def hand_contains_suit(self, hand: Hand, suit: str):
         contains = False
         for card in hand.cards:
@@ -180,14 +197,24 @@ class Game:
         '''
         if not bid in self.valid_bids:
             return False
+        
+        if not player == self.current_player:
+            return False
+        
         # handle X
+        
+        if ((len(self.current_bridgehand.bids) > 0 and not self.current_bridgehand.bids[-1] in ['p', 'd', 'r']) 
+            or (len(self.current_bridgehand.bids) > 2 and True)):
+            pass
+
         # handle XX
         # handle regular bids
+        
         i = self.valid_bids.index(bid)
         self.valid_bids = self.valid_bids[i+1:]
         print("new valid bids", self.valid_bids)
         self.current_bridgehand.bids.append(bid)
-        pass    
+        return True    
 
 
     def set_dealer(self):
@@ -284,6 +311,11 @@ class Table:
                 self.EW_score += score
             else:
                 self.NS_score -= score
+
+        print("tricks played", len(self.current_game.current_bridgehand.play))
+        print("Tricks made", self.current_game.current_bridgehand.made)
+        print("Final Score", score)
+
         # set current_game to none
         self.current_game = None
         # store the finished game somewhere (lin format eventually)
