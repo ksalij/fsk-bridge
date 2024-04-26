@@ -17,9 +17,9 @@ def update_game_state():
 
 class Game:
     '''
-        players: dict {positions: usernames}
-        table_id: int, the table id that this game is at
-        seed: int, to get the same deal for multiple games
+    players: dict {positions: usernames}
+    table_id: int, the table id that this game is at
+    seed: int, to get the same deal for multiple games
     '''
     def __init__(self, players: dict, table_id: int, seed: int = None):
         # sets seed to the current time if not included, seed used for the deal
@@ -37,10 +37,11 @@ class Game:
         self.set_dealer()
         self.set_vulnerability()
         self.current_player = self.current_bridgehand.dealer
+        self.valid_bids = [str(num) + suit for num in range(1, 8) for suit in ['C', 'D', 'H', 'S']]
 
     def deal(self):
         '''
-            creates Hand objects for each player and adds them to self.current_bridgehand
+        creates Hand objects for each player and adds them to self.current_bridgehand
         '''
         total_hand = full_hand()
         self.game_random.shuffle(total_hand.cards)
@@ -71,6 +72,8 @@ class Game:
         Remove that card from their hand. 
         Update game state.
         '''
+        if self.game_phase == "AUCTION":
+            self.current_player = self.get_left_player()
         # Check if the game is over
         if len(self.current_bridgehand.play) == 13 and len(self.current_bridgehand.play[-1]) == 5:
             self.current_player = None
@@ -78,11 +81,11 @@ class Game:
 
         # Check if this is the opening lead
         elif len(self.current_bridgehand.play) == 0:
-            self.current_player = self.get_left_player(self.current_bridgehand.declarer)
+            self.current_player = self.get_left_player()
 
         # check if a trick is in progress
         elif len(self.current_bridgehand.play[-1]) < 5:
-            self.current_player = self.get_left_player(self.current_player)
+            self.current_player = self.get_left_player()
         
         else:
             # if we are starting a new trick, see who won the last trick
@@ -96,15 +99,13 @@ class Game:
                 
         return
 
-    def get_left_player(self, player: str) -> str:
+    def get_left_player(self) -> str:
         '''
-            returns the player to the left of player
-            inputs:
-                player: str 
-            outputs:
-                left_player: str
+        returns the player to the left of the current player
+        outputs:
+            left_player: str
         '''
-        return PLAYERS[(PLAYER_MAP[player] + 1) % 4]
+        return PLAYERS[(PLAYER_MAP[self.current_player] + 1) % 4]
 
     def play_card(self, player: str, card: Card):
         '''
@@ -159,7 +160,7 @@ class Game:
             # if 13 tricks have been played end the game
             if len(self.current_bridgehand.play) == 13:
                 running_tables[self.table_id].end_game()
-
+        self.update_current_player()
         return True
 
     def hand_contains_suit(self, hand: Hand, suit: str):
@@ -177,7 +178,16 @@ class Game:
         If so, update the BridgeHand auction state.
         Return all valid bids for the next player.
         '''
-        pass
+        if not bid in self.valid_bids:
+            return False
+        # handle X
+        # handle XX
+        # handle regular bids
+        i = self.valid_bids.index(bid)
+        self.valid_bids = self.valid_bids[i+1:]
+        print("new valid bids", self.valid_bids)
+        self.current_bridgehand.bids.append(bid)
+        pass    
 
 
     def set_dealer(self):
@@ -242,17 +252,17 @@ class Table:
 
     def new_game(self):
         '''
-            creates a new game at this table
-            gives it a game_id based on the global game_counter variable 
-                (should be replaced by something with regards to the database so game_ids are not repeated)
-            
+        creates a new game at this table
+        gives it a game_id based on the global game_counter variable 
+        (should be replaced by something with regards to the database so game_ids are not repeated)
+        
         '''
         global game_counter
         game_counter += 1
         game_id = game_counter
         
         num_games = len(self.game_id_list)
-        self.current_game = Game(self.players, self.table_id, seed = self.seed)
+        self.current_game = Game(self.players, self.table_id, seed = self.seed + num_games)
         self.game_id_list.append(game_id)
 
     def end_game(self):
@@ -277,26 +287,17 @@ class Table:
         # set current_game to none
         self.current_game = None
         # store the finished game somewhere (lin format eventually)
-        pass
     
-    def join_table(self, player: str):
-        pass
-
-    def update_score(self):
-        pass
+    def join_table(self, playername: str, direction: str):
+        '''
+        "asks" to join the table if there is space at that direction
+        returns false if no space at table
+        '''
+        if not direction in self.players:
+            self.players[direction] = playername
+            return True
+        return 
+    
 
 if __name__=="__main__": 
     pass
-    # my_game = Game(["1", "2", "3", "4"], 0)
-    # bridge_hand = parse_linfile("example.lin")
-    # print(bridge_hand.players)
-    # print(bridge_hand.play)
-    # print(bridge_hand.hands)
-    # my_game.get_score(bridge_hand.vuln, bridge_hand.contract, bridge_hand.made)
-
-    # print(table.current_game.current_bridgehand.hands)
-    # print("current player", table.current_game.current_player)
-    # print(table.current_game.current_bridgehand.hands['E'][0])
-    # print(table.current_game.current_bridgehand.hands)
-    # print(table.current_game.current_bridgehand.play)
-    # print("current player", table.current_game.current_player)
