@@ -1,5 +1,5 @@
-from bridge.server import *
-from bridge.linparse import *
+from server import *
+from linparse import *
 
 def play_full_hand():
     players = {'E': 'user0', 'S': 'user1', 'W': 'user2', 'N': 'user3'}
@@ -15,14 +15,13 @@ def play_full_hand():
     for i in range(52):
         # table.current_game.update_current_player()
         print("current_player", table.current_game.current_player)
-        print("cards", table.current_game.current_bridgehand.hands[table.current_game.current_player])
+        print("Hand", table.current_game.current_bridgehand.hands[table.current_game.current_player])
+        print("playable cards", table.current_game.get_playable_cards())
+        print("Play", table.current_game.current_bridgehand.play)
         for j in range(len(table.current_game.current_bridgehand.hands[table.current_game.current_player].cards)):
             if table.current_game.play_card(table.current_game.current_player, table.current_game.current_bridgehand.hands[table.current_game.current_player][j]):
                 break
-        print(table.current_game.current_bridgehand.play)
-    print("tricks played", len(table.current_game.current_bridgehand.play))
-    print("Tricks made", table.current_game.current_bridgehand.made)
-    print("Final Score", table.current_game.get_score())
+    
 
 def test_lin_file():
     bridge_hand = parse_linfile("example.lin")
@@ -39,5 +38,5 @@ def test_auction():
 
 
 if __name__=="__main__": 
-    # play_full_hand()
-    test_auction()
+    play_full_hand()
+    # test_auction()
