@@ -1,7 +1,7 @@
-from linparse import *
+from bridge.linparse import *
 import random, math
 from datetime import datetime
-from score import calculate_score
+from bridge.score import calculate_score
 '''
 table_id to Table object
 '''
@@ -252,7 +252,7 @@ class Table:
         game_id = game_counter
         
         num_games = len(self.game_id_list)
-        self.current_game = Game(self.players, self.table_id, seed = self.seed + num_games)
+        self.current_game = Game(self.players, self.table_id, seed = self.seed)
         self.game_id_list.append(game_id)
 
     def end_game(self):

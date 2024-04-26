@@ -1,4 +1,4 @@
-from server import *
+from bridge.server import *
 
 def play_full_hand():
     players = {'E': 'user0', 'S': 'user1', 'W': 'user2', 'N': 'user3'}

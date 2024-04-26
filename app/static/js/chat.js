@@ -45,5 +45,9 @@ $(document).ready(function(){
         $("#send").click();
     }
   });
+
+  $('#gameState').on('click', function() {
+    
+  })
       
 });

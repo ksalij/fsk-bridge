@@ -1,5 +1,27 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-Hello
+
+<!--
+<button id="gameState">Get Game State</button>
+<p id="gameInfo"></p
+-->
+
+<p>User: {{current_user}}</p>
+<form action="/openTable">
+  <input type="submit" value="New Table"/>
+</form>
+
+</hr>
+
+<form action="" name='join' id='join'>
+  <input type='text' name='id' id='id'>
+  <button action="submit">Join Room</button>
+</form>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+<script src="/static/js/home.js"></script>
+
 {% endblock %}
