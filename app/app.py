@@ -118,6 +118,7 @@ def disconnect():
     #global Server.count
     Server.count -= 1
     emit('updateCount', {'count' : Server.count}, broadcast=True)
+    emit("userJoined", str(Server.active_tables[table_id].players.items()))
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)

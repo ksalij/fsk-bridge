@@ -3,7 +3,7 @@ services:
         build: ./app
         ports:
           - "80:5000"
-#    server:
-#        build: ./server
-#        expose:
-#          - "5001"
+    database:
+        build: ./database
+        expose:
+          - "5001"
