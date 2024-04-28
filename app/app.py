@@ -48,6 +48,14 @@ def login():
         return redirect(url_for('home'))
     return render_template("login.html", app_data=app_data)
 
+def register():
+    if request.method == 'POST':
+        '''
+        Create a new account and enter it into the database
+        '''
+        pass
+    return render_template("register.html", app_data=app_data)
+
 @app.route('/openTable')
 def openTable():
 

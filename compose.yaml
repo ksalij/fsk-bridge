@@ -1,9 +1,13 @@
 services:
-    app:
-        build: ./app
-        ports:
-          - "80:5000"
-    database:
-        build: ./database
-        expose:
-          - "5001"
+  app:
+    build: ./app
+    ports:
+      - "80:5000"
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - "./postgres/data:/var/lib/postgresql/data"
+      - "./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql"
