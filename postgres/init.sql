@@ -1,12 +1,9 @@
-DROP TABLE IF EXISTS games;
-DROP TABLE IF EXISTS users;
-
-CREATE TABLE games (
-    game_id integer PRIMARY KEY,
+create table games (
+    game_id integer primary key,
     lin_file varchar(700)
 );
 
-CREATE TABLE users (
+create table users (
     login VARCHAR(20),
     password CHAR(64),
     salt CHAR(16)

@@ -7,7 +7,11 @@ FROM python:3.10-alpine
 WORKDIR /app
 
 # We install Flask and requests in the container using Pip
-RUN pip install flask flask-socketio requests eventlet
+RUN \
+ apk add --no-cache postgresql-libs && \
+ apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
+ python3 -m pip install flask flask-socketio requests eventlet psycopg2 --no-cache-dir && \
+ apk --purge del .build-deps
 
 # We want port 5000 (the default Flask port) to be used outside the container
 EXPOSE 5000

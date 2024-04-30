@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+<form action="/register" method="POST" id="register-form">
+  <input type="text" id="username" name="username" placeholder="Username"><br>
+  <input type="password" id="password" name="password" placeholder="Password"><br>
+  <input type="submit" name="register" value="Register" id="register-button">
+</form>
+
+<br>
+<a href="/login">Login<a>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+{% endblock %}

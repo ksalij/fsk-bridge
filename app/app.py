@@ -2,6 +2,7 @@ from flask import Flask, jsonify, url_for, render_template, send_from_directory,
 from flask_socketio import SocketIO, emit, send 
 from bridge.server import Game, Table
 from _thread import *
+import psycopg2
 import random
 import json
 import requests
@@ -24,6 +25,15 @@ app_data = {
     "keywords": "flask, webapp, template, basic",
 }
 
+conn = psycopg2.connect(
+    host = 'db',
+    port = '5432',
+    database = 'postgres',
+    user = 'postgres',
+    password = 'password'
+)
+cur = conn.cursor()
+
 class Server:
     count = 0
     message_history = {}
@@ -44,16 +54,27 @@ def chat():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        session['username'] = request.form['username']
-        return redirect(url_for('home'))
+        user_username = request.form['username']
+        user_password = request.form['password']
+
+        cur.execute("SELECT password, salt FROM users WHERE login='{0}';".format(user_username))
+        pass_info = cur.fetchone()
+        correct_pass, salt = pass_info
+
+        if user_password == correct_pass:      
+            session['username'] = request.form['username']
+            return redirect(url_for('home'))
+
     return render_template("login.html", app_data=app_data)
 
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        '''
-        Create a new account and enter it into the database
-        '''
-        pass
+        user_username = request.form['username']
+        user_password = request.form['password']
+        cur.execute("INSERT INTO users VALUES ('{0}', '{1}', '{2}')".format(user_username, user_password, user_password))
+        return redirect('/login')
+
     return render_template("register.html", app_data=app_data)
 
 @app.route('/openTable')
