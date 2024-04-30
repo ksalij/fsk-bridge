@@ -5,6 +5,6 @@ create table games (
 
 create table users (
     login VARCHAR(20),
-    password CHAR(64),
-    salt CHAR(16)
+    password bytea,
+    salt bytea
 )

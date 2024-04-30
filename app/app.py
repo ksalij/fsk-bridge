@@ -11,6 +11,8 @@ import threading
 import sys
 import urllib
 import os
+import hashlib
+import binascii
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = b'159151191247130924858171211'
@@ -39,6 +41,20 @@ class Server:
     message_history = {}
     active_tables = {}
 
+def gen_salt(size: int) -> bytes:
+    return binascii.hexlify(os.urandom(size))
+
+def hash(password: str, b_salt: bytes) -> bytes:
+    sha256 = hashlib.sha256()
+
+    b_password = password.encode()
+    #b_salt = salt.encode()
+
+    sha256.update(b_password)
+    sha256.update(b_salt)
+
+    return sha256.hexdigest().encode()
+
 @app.route('/')
 def index():
     return redirect('/login')
@@ -49,7 +65,7 @@ def home():
 
 @app.route('/chat')
 def chat():
-    return render_template("chat.html", app_data=app_data)
+    return render_template("chat.html", app_data=app_data, current_user=session['username'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -57,13 +73,21 @@ def login():
         user_username = request.form['username']
         user_password = request.form['password']
 
-        cur.execute("SELECT password, salt FROM users WHERE login='{0}';".format(user_username))
+        cur.execute("SELECT password,salt FROM users WHERE login='{0}';".format(user_username))
         pass_info = cur.fetchone()
-        correct_pass, salt = pass_info
+        correct_pass, salt = tuple([item.tobytes() for item in pass_info])
 
-        if user_password == correct_pass:      
+        # Fix this shit
+        print(pass_info, file=sys.stderr)
+        print(salt, file=sys.stderr)
+        print(correct_pass, file=sys.stderr)
+        print(hash(user_password, salt), file=sys.stderr)
+
+        if hash(user_password, salt) == correct_pass:      
             session['username'] = request.form['username']
             return redirect(url_for('home'))
+        else:
+            return redirect('/test/' + user_password + '/' + correct_pass)
 
     return render_template("login.html", app_data=app_data)
 
@@ -72,7 +96,13 @@ def register():
     if request.method == 'POST':
         user_username = request.form['username']
         user_password = request.form['password']
-        cur.execute("INSERT INTO users VALUES ('{0}', '{1}', '{2}')".format(user_username, user_password, user_password))
+        user_confirm = request.form['confirm']
+
+        if user_password == user_confirm:
+            salt = gen_salt(16)
+            cur.execute("INSERT INTO users VALUES ('{0}', '{1}', '{2}')".format(user_username, hash(user_password, salt).decode(), salt.decode()))
+            conn.commit()
+
         return redirect('/login')
 
     return render_template("register.html", app_data=app_data)
@@ -140,7 +170,8 @@ def connect():
     Server.count += 1
     emit('updateCount', {'count' : Server.count}, broadcast=True)
     for key, value in Server.message_history.items():
-        emit('updateChat', (key, value), broadcast=True)
+        if key != session['username']:
+            emit('updateChat', (key, value))
 
 @socketio.on('disconnect')
 def disconnect():
