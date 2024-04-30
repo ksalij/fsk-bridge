@@ -10,6 +10,7 @@ import threading
 import sys
 import urllib
 import os
+import bridge.linparse
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = b'159151191247130924858171211'
@@ -87,12 +88,14 @@ def give_favicon():
     return send_from_directory('static', 'favicon/favicon.ico')
 
 @socketio.on('cardPlayed')
-def handle_message(message):
-    data = {
-      'hand' : ['2C','3C','6C','7C','9C','AC','4H','9H','QH','AH','4S','8S','QS']
-    }
-    send(str(data))
-    print('Received Message', file=sys.stdout)
+def handle_message(user, card):
+    played_card = bridge.linparse.convert_card(card)
+    if not Table.play_card(user, played_card):
+        send(False)
+        print('bad card')
+    else:
+        send(True)
+        print('good card')
 
 @socketio.on('gameState')
 def broadcast_gamestate(message):
