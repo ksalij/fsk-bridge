@@ -24,15 +24,15 @@ jsonData = {
     "whoseTurn": 0
 }
 
-function loadPlayerDiv() {
-    var gameInfoDiv = document.getElementById('players');
-    gameInfoDiv.innerHTML = (
-        "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
-        + "<button onclick=displayPlayers()>Click me to display players!</button>"
-        // put game display stuff here!
-        + "<button id=show-cards-button onclick=showAllCards()>Click me to display cards!</button>"
-    );
-}
+//function loadPlayerDiv() {
+//    var gameInfoDiv = document.getElementById('players');
+//    gameInfoDiv.innerHTML = (
+//        "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
+//        + "<button onclick=displayPlayers()>Click me to display players!</button>"
+//        // put game display stuff here!
+//        + "<button id=show-cards-button onclick=showAllCards()>Click me to display cards!</button>"
+//    );
+//}
 
 window.addEventListener("load", (event) => { loadPlayerDiv(); });
 
@@ -157,11 +157,13 @@ function hideAllCards() {
 window.addEventListener("load", (event) => { fetchImages(); });
 
 var socket = io.connect('http://localhost:80');
-socket.on('connect', (arg, callback) => {
-  console.log('Socket Connected');
+
+socket.on('tableConnect', (response) => {
+  console.log(response);
+  document.getElementById("hand").innerHTML = response; 
 });
 
 socket.on('userJoined', (response) => {
-  players = document.getElementById("currentPlayers");
-  players.innerHTML = "Current Users: " + response;
+  players = document.getElementById("users");
+  players.innerHTML = response;
 });

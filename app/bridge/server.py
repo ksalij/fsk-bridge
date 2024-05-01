@@ -289,7 +289,9 @@ class Table:
         game_id = game_counter
         
         num_games = len(self.game_id_list)
-        self.current_game = Game(self.players, self.table_id, seed = self.seed + num_games)
+        if self.seed != None:
+            self.current_game = Game(self.players, self.table_id, seed = self.seed + num_games)
+        self.current_game = Game(self.players, self.table_id)
         self.game_id_list.append(game_id)
 
     def end_game(self):

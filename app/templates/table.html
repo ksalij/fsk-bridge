@@ -12,9 +12,15 @@
 
 {% block body %}
 <p> Table created. Table ID is {{table.table_id}} </p>
-<p id="currentPlayers">Current Users: {{table.players.items()}}</p>
+<div class="centered">Current Players:</div>
+<div class="centered" id="users">
+  {{users|safe}}
+</div>
 
-<div id="currentPlayers">
+<div class="centered">Your Hand:</div>
+<div class="centered" id="hand"></div>
+
+<div id="currentPlayer">
 </div>
 
 <div id="players"> </div>
