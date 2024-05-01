@@ -121,6 +121,17 @@ function preloadImages(imageUrls) {
       link.appendChild(img);
 
       document.body.appendChild(link); // Append to body to trigger loading
+
+      // Add event listeners for mouseover and mouseout
+      link.addEventListener('mouseover', function() {
+        img.style.border = '2px solid blue'; // Add border on mouseover
+        img.style.transition = 'border-color 0.5s ease';
+        });
+    
+      link.addEventListener('mouseout', function() {
+        img.style.border = '2px transparent'; // Remove border on mouseout
+        img.style.transition = 'border-color 0.5s ease';
+        });
     });
 }
   
