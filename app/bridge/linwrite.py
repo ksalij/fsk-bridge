@@ -9,9 +9,9 @@ def linwrite(table: Table):
     output += 'pn|' + bridge_hand.players['S'] + ',' + bridge_hand.players['W'] + ',' + bridge_hand.players['N'] + ',' + bridge_hand.players['E'] + '|st||md|'
     output += str(DEALER_MAP[bridge_hand.dealer])
     # hands
-    print(bridge_hand.hands['S'].sort().reverse())
-    for card in bridge_hand.hands['S'].sort().reverse():
-        ouput += card.suitname + card.rankname
+    # print(bridge_hand.hands['S'].sort().reverse())
+    # for card in bridge_hand.hands['S'].sort().reverse():
+    #     ouput += card.suitname + card.rankname
 
     vuln = {'NS': 'n','WE': 'e','none': 'o', 'both': 'b'}
     output += '|rh||ah|Board ' + str(table.game_count) + '|sv|' + vuln[bridge_hand.vuln]
