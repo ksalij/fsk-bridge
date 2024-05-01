@@ -13,12 +13,13 @@ def linwrite(table: Table):
     # for card in bridge_hand.hands['S'].sort():
     #     output += card.suitname + card.rankname
     vuln = {'NS': 'n','WE': 'e','none': 'o', 'both': 'b'}
-    output += '|rh||ah|Board ' + str(len(table.game_id_list)) + '|sv|' + vuln[bridge_hand.vuln] + '|mb|'
+    output += '|rh||ah|Board ' + str(table.game_count) + '|sv|' + vuln[bridge_hand.vuln] + '|mb|'
     return output
 
 if __name__== "__main__":
     bridge_hand = parse_linfile("../lin/example.lin")
     table = Table(bridge_hand.players)
+    table.game_count = 5
     table.new_game()
     table.current_game.current_bridgehand = bridge_hand
     print(linwrite(table))

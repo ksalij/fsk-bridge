@@ -54,6 +54,7 @@ class Game:
 
                 
     def begin_play_phase(self):
+        print("begin play phase")
         if self.current_bridgehand.bids[-5:] == ['p', 'p', 'p', 'p']:
             self.end_game(passout = True)
         self.game_phase = "PLAY"
@@ -208,6 +209,8 @@ class Game:
         self.current_bridgehand.bids.append(bid)
 
         # check if auction is over
+        print("bid", player, bid)
+        print(self.current_bridgehand.bids)
         if len(self.current_bridgehand.bids) > 3 and self.current_bridgehand.bids[-3:] == ['p', 'p', 'p']:
             self.begin_play_phase()
             self.update_current_player()
@@ -236,21 +239,19 @@ class Game:
         '''
         Get who the dealer should be based on how many hands have been played so far.
         '''
-        game_count = len(running_tables[self.table_id].game_id_list)
         players = ['N', 'E', 'S', 'W']
-        self.current_bridgehand.dealer = players[game_count % 4]
+        self.current_bridgehand.dealer = players[(running_tables[self.table_id].game_count - 1) % 4]
 
     def set_vulnerability(self):
         '''
         sets the vulnerability for the current board.
         '''
         global running_tables
-        game_count = len(running_tables[self.table_id].game_id_list)
         vulnerabilities = ['none', 'NS', 'EW', 'both',
                            'NS', 'EW', 'both', 'none',
                            'EW', 'both', 'none', 'NS',
                            'both', 'none', 'NS', 'EW']
-        self.current_bridgehand.vuln = vulnerabilities[game_count % 16]
+        self.current_bridgehand.vuln = vulnerabilities[running_tables[self.table_id].game_count % 16]
     
     def set_contract(self):
         '''
@@ -384,8 +385,8 @@ class Table:
         self.seed = seed
         self.NS_score = 0
         self.EW_score = 0
+        self.game_count = 0
         self.current_game = None
-        self.game_id_list = []
         self.table_id = math.trunc(int(datetime.now().timestamp()))
 
         global running_tables
@@ -401,14 +402,13 @@ class Table:
         global game_counter
         game_counter += 1
         game_id = game_counter
-        
-        num_games = len(self.game_id_list)
+
+        self.game_count += 1
+
         if self.seed == None:
             self.current_game = Game(self.players, self.table_id, seed = None)
         else:
-            self.current_game = Game(self.players, self.table_id, seed = self.seed + num_games)
-
-        self.game_id_list.append(game_id)
+            self.current_game = Game(self.players, self.table_id, seed = self.seed + self.game_count)
 
     def end_game(self, passout = False):
         '''
