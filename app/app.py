@@ -173,19 +173,27 @@ def send_message(user, message):
     Server.message_history[user] = message
     emit('updateChat', (user, message), broadcast=True)
 
+# Update the whole game state
+# This should be called from the client table whenever a change is made to the table
+@socketio.on('updateGameState')
+def update_game_state():
+    # Get the data from the server and format it for the specific clients
+    # Send it to each client based on their player id/position
+    pass
+
 # Count the number of connected clients
 @socketio.on('connect')
 def connect():
-    current_table = Server.active_tables[session['currentTable']]
-    print(current_table.current_game.current_bridgehand.hands, file=sys.stderr)
-    print(session['userPosition'], file=sys.stderr)
-    emit('tableConnect', str(current_table.current_game.current_bridgehand.hands[session['userPosition']]))
+    #current_table = Server.active_tables[session['currentTable']]
+    #print(current_table.current_game.current_bridgehand.hands, file=sys.stderr)
+    #print(session['userPosition'], file=sys.stderr)
+    #emit('tableConnect', str(current_table.current_game.current_bridgehand.hands[session['userPosition']]))
     
-    #Server.client_count += 1
-    #emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    #for key, value in Server.message_history.items():
-    #    if key != session['username']:
-    #        emit('updateChat', (key, value))
+    Server.client_count += 1
+    emit('updateCount', {'count' : Server.client_count}, broadcast=True)
+    for key, value in Server.message_history.items():
+        if key != session['username']:
+            emit('updateChat', (key, value))
 
 @socketio.on('disconnect')
 def disconnect():
