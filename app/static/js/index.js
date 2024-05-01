@@ -64,12 +64,12 @@ function readyUp() {
     client_hand.id = "client_hand";
     var client_cards = new DocumentFragment();
     for (var i = 0; i < jsonData.yourHand.length; i++) {
-        const client_card = document.createElement("input");
+        var client_card = document.createElement("input");
         client_card.type = "button";
         client_card.className = "card";
         client_card.value = jsonData.yourHand[i];
         client_card.onclick = function () {
-            socket.emit("cardPlayed", user, client_card.value);
+            socket.emit("cardPlayed", jsonData.playerNames[0], client_card.value);
         }
         client_cards.appendChild(client_card);
     }

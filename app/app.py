@@ -90,12 +90,13 @@ def give_favicon():
 @socketio.on('cardPlayed')
 def handle_message(user, card):
     played_card = bridge.linparse.convert_card(card)
+    print('card played', file=sys.stderr)
     if not Table.play_card(user, played_card):
         send(False)
-        print('bad card')
+        print('bad card', file=sys.stderr)
     else:
         send(True)
-        print('good card')
+        print('good card', file=sys.stderr)
 
 @socketio.on('gameState')
 def broadcast_gamestate(message):
