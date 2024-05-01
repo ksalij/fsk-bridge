@@ -33,7 +33,7 @@ class Game:
         self.set_dealer()
         self.set_vulnerability()
         self.current_player = self.current_bridgehand.dealer
-        self.valid_bids = [str(num) + suit for num in range(1, 8) for suit in ['C', 'D', 'H', 'S']]
+        self.valid_bids = [str(num) + suit for num in range(1, 8) for suit in ['C', 'D', 'H', 'S', 'N']]
 
     def deal(self):
         '''
@@ -55,7 +55,6 @@ class Game:
 
                 
     def begin_play_phase(self):
-        print("begin play phase")
         if self.current_bridgehand.bids[-5:] == ['p', 'p', 'p', 'p']:
             self.end_game(passout = True)
         self.game_phase = "PLAY"
@@ -210,8 +209,6 @@ class Game:
         self.current_bridgehand.bids.append(bid)
 
         # check if auction is over
-        print("bid", player, bid)
-        print(self.current_bridgehand.bids)
         if len(self.current_bridgehand.bids) > 3 and self.current_bridgehand.bids[-3:] == ['p', 'p', 'p']:
             self.begin_play_phase()
             self.update_current_player()
@@ -435,7 +432,6 @@ class Table:
             print("tricks played", len(self.current_game.current_bridgehand.play))
             print("Tricks made", self.current_game.current_bridgehand.made)
             print("Final Score", score)
-            # print(linwrite(self))
 
         # set current_game to none
         self.current_game = None
