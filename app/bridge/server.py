@@ -1,4 +1,5 @@
 from linparse import *
+# from linwrite import *
 import random, math
 from datetime import datetime
 from score import calculate_score
@@ -433,6 +434,7 @@ class Table:
             print("tricks played", len(self.current_game.current_bridgehand.play))
             print("Tricks made", self.current_game.current_bridgehand.made)
             print("Final Score", score)
+            # print(linwrite(self))
 
         # set current_game to none
         self.current_game = None
