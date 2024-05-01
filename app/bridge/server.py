@@ -356,6 +356,7 @@ class Game:
                        "hands": hands,
                        "hand_sizes": hand_sizes,
                        "dummy_direction": dummy_direction,
+                       "dummy_hand": dummy_hand,
                        "contract": contract,
                        "players": players,
                        "current_player": current_player}
