@@ -59,10 +59,20 @@ function readyUp() {
     const opp_team = document.createElement("div");
     opp_team.id = "opp_team";
     
-    // fill the user's hand
+    // fill the user's hand, with each card in hand being a button of className card
     const client_hand = document.createElement("p");
     client_hand.id = "client_hand";
-    const client_cards = document.createTextNode(jsonData.yourHand.join(" | "));
+    var client_cards = new DocumentFragment();
+    for (var i = 0; i < jsonData.yourHand.length; i++) {
+        const client_card = document.createElement("input");
+        client_card.type = "button";
+        client_card.className = "card";
+        client_card.value = jsonData.yourHand[i];
+        client_card.onclick = function () {
+            socket.emit("cardPlayed", user, client_card.value);
+        }
+        client_cards.appendChild(client_card);
+    }
     client_hand.appendChild(client_cards);
     client_team.appendChild(client_hand);
 
