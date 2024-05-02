@@ -29,6 +29,11 @@ button {
     left: 12.5%;
 }
 
+.centered {
+    text-align: center;
+    color: bisque;
+}
+
 #game p {
     font-size: calc(0.03* 75vw);
 }

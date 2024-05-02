@@ -4,6 +4,7 @@ import random, math
 from datetime import datetime
 from score import calculate_score
 import json
+
 '''
 table_id to Table object
 '''

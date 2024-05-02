@@ -1,26 +1,18 @@
 $(document).ready(function(){
 
-  var socket = io.connect('http://localhost:80');
-
-  socket.on('connect', (arg, callback) => {
-    console.log('Socket Connected');
-  });
+  //var socket = io.connect('http://localhost:80');
 
   $('#send').on('click', function() {
-    user = document.getElementById('username').value;
+    user = document.getElementById('username').innerHTML;
     socket.emit("sendMessage", user, user + ": " + document.getElementById('textInput').value);
     document.getElementById('textInput').value = '';
-  });
-
-  socket.on('message', (response) => {
-    console.log(response);
   });
 
   socket.on('updateChat', (user, response) => {
     console.log(response);
     const newText = document.createElement("div");
 
-    if (user == document.getElementById('username').value) {
+    if (user == document.getElementById('username').innerHTML) {
       newText.id = "currentUserChat";
     } else {
       newText.id = "userChat";
@@ -33,11 +25,6 @@ $(document).ready(function(){
     
     const parent = document.getElementById('chat')
     parent.appendChild(newTextContainer);
-  });
-
-  socket.on('updateCount', (response) => {
-    console.log(response.count);
-    document.getElementById('clients').innerHTML = "Clients: " + response.count;
   });
 
   $("#textInput").keydown(function(event) {
