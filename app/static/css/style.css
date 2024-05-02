@@ -18,53 +18,82 @@ button {
     display: block;
 }
 
+img {
+    border: 1px black solid;
+}
+
 #game {
     width: 75vw;
-    height: 75vw;
+    height: 75vh;
     border: 1px black solid;
     background-color: darkgreen;
     position: relative;
     padding: 0 0 0 0;
     margin: 25px 0;
     left: 12.5%;
-}
-
-#game p {
-    font-size: calc(0.03* 75vw);
+    display: grid;
+    grid-template-areas: "corner1 partner corner2"
+                         "oppL center oppR"
+                         "corner3 client corner4";
+    grid-template-rows: 1fr 3fr 1fr;
+    grid-template-columns: 1fr 3fr 1fr;
 }
 
 #start-button {
-    top: 50%;
-    transform: translateY(calc(-50% - 15px));
+    grid-area: center;
+    align-self: center;
+    justify-self: center;
+    /* top: 50%; */
+    /* transform: translateY(calc(-50% - 15px)); */
 }
 
-#client_team {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    margin: 0 0 0 0;
-    display: flex;
-    flex-direction: column-reverse;
-    align-items: center;
-    justify-content: space-between;
-}
-
-#opp_team {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    margin: -100% 0 0 0;
-    transform: rotate(-90deg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-}
-
-#opp1_hand {
-    transform: rotate(180deg);
+#client_hand {
+    grid-area: client;
 }
 
 #partner_hand {
-    transform: rotate(180deg);
+    grid-area: partner;
+}
+
+#oppL_hand {
+    grid-area: oppL;
+}
+
+#oppR_hand {
+    grid-area: oppR;
+}
+
+/* .card {
+    width: 23%;
+    margin-right: 17.5%;
+} */
+
+.hand {
+    display:flex;
+    max-width:500px;
+    background:#eee;
+    padding:10px;
+    box-sizing:border-box;
+    margin-bottom:10px;
+    border: 1px black solid;
+}
+
+.card-container {
+    overflow:visible;
+    width:1px;
+    flex-grow:1;
+}
+
+.card-container:last-child {
+    width:100px;
+    flex-grow:0
+}
+
+.card {
+    width:100px;
+    height:200px;
+    background:red;
+    border:5px solid #000;
+    box-shadow:-5px 0px 10px #000c;
+    box-sizing:border-box;
 }
