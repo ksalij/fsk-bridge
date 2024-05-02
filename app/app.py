@@ -16,12 +16,12 @@ app.secret_key = b'159151191247130924858171211'
 socketio = SocketIO(app)
 
 app_data = {
-    "name": "Peter's Starter Template for a Flask Web App",
+    "name": "Formerly Peter's Starter Template for a Flask Web App (Now our project)",
     "description": "A basic Flask app using bootstrap for layout",
     "author": "Peter Simeth",
-    "html_title": "Oliver and Cole's Bridge Website",
-    "project_name": "Starter Template",
-    "keywords": "flask, webapp, template, basic",
+    "html_title": "Oliver and Cole's Bridge Website (and fsk bridge group)",
+    "project_name": "Bridge Stuff",
+    "keywords": "flask, webapp, bridge",
 }
 
 class Server:

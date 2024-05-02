@@ -102,13 +102,31 @@ function readyUp() {
 // Function to preload images, called by fetchImages below
 function preloadImages(imageUrls) {
     imageUrls.forEach(url => {
-      const fullUrl = `/getimages/${url}`;
+      const fullUrl = `/getimages${url}`;
+
+      const link = document.createElement('a');
+      link.href = fullUrl;
 
       const img = new Image(); // Create an image object
       img.className = "card";
       img.src = fullUrl;
+
       img.style.display = 'none'; // Hide the image
-      document.body.appendChild(img); // Append to body to trigger loading
+
+      link.appendChild(img);
+
+      document.body.appendChild(link); // Append to body to trigger loading
+
+      // Add event listeners for mouseover and mouseout
+      link.addEventListener('mouseover', function() {
+        img.style.border = '2px solid blue'; // Add border on mouseover
+        img.style.transition = 'border-color 0.5s ease';
+        });
+    
+      link.addEventListener('mouseout', function() {
+        img.style.border = '2px transparent'; // Remove border on mouseout
+        img.style.transition = 'border-color 0.5s ease';
+        });
     });
 }
   
