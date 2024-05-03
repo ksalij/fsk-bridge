@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, url_for, render_template, send_from_directory, session, redirect, request
 from flask_socketio import SocketIO, emit, send 
+from flask_socketio import join_room, leave_room
 from bridge.server import Game, Table
 from _thread import *
 import psycopg2
@@ -121,6 +122,7 @@ def openTable():
     new_table = Table({'E' : None, 'S' : None, 'W' : None, 'N' : None})
     Server.active_tables[str(new_table.table_id)] = new_table
     new_table.new_game()
+    # TODO replace clients list with database?
 
     return redirect('/table/' + str(new_table.table_id))
 
@@ -133,6 +135,7 @@ def joinTable(table_id):
             break
     socketio.emit("userJoined", genUsers(table_id))
     session['currentTable'] = table_id
+    join_room(table_id)
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id))
 
 @app.route('/startGame/<tableID>/<seat>')
@@ -165,14 +168,14 @@ def handle_message(user, card):
     else:
         send(True)
         print('good card')
+        # When the server wants to send each player their json, it asks every player in the room to request the json from the server
+        send('requestGameState', to=Table.table_id)
 
-    # TODO: pull the gamestate JSON from Table
-    message = None
-    emit('gameState', message, broadcast=True)
-
-@socketio.on('gameState')
-def broadcast_gamestate(message):
-    emit('gameState', message, broadcast=True)
+# The server then responds to each player asking with the json
+@socketio.on('updateGameState')
+def broadcast_gamestate(user):
+    game_state = Table.get_json(user)
+    send('gameState', game_state)
 
 @socketio.on('sendMessage')
 def send_message(user, message):
