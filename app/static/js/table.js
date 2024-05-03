@@ -290,6 +290,10 @@ socket.on('userJoined', (response) => {
   players.innerHTML = "Current Users: " + response;
 });
 
+socket.on('requestGameState', (response) => {
+    socket.emit('updateGameState', user);
+});
+
 socket.on('gameState', (jsonData) => {
     renderUpdate(jsonData);
   });
