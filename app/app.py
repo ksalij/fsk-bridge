@@ -20,12 +20,12 @@ app.secret_key = b'159151191247130924858171211'
 socketio = SocketIO(app)
 
 app_data = {
-    "name": "Peter's Starter Template for a Flask Web App",
+    "name": "Formerly Peter's Starter Template for a Flask Web App (Now our project)",
     "description": "A basic Flask app using bootstrap for layout",
     "author": "Peter Simeth",
-    "html_title": "Oliver and Cole's Bridge Website",
-    "project_name": "Starter Template",
-    "keywords": "flask, webapp, template, basic",
+    "html_title": "Oliver and Cole's Bridge Website (and fsk bridge group)",
+    "project_name": "Bridge Stuff",
+    "keywords": "flask, webapp, bridge",
 }
 
 conn = psycopg2.connect(
@@ -38,7 +38,8 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 
 class Server:
-    count = 0
+    client_count = 0
+    client_list = []
     message_history = {}
     active_tables = {}
 
@@ -55,6 +56,12 @@ def hash(password: str, b_salt: bytes) -> bytes:
     sha256.update(b_salt)
 
     return sha256.hexdigest().encode()
+
+def genUsers(table_id: str) -> str:
+    html = ""
+    for position,user in Server.active_tables[table_id].players.items():
+        html += '<div id="user">{0}: {1}</div>'.format(position, user)
+    return html
 
 @app.route('/')
 def index():
@@ -113,6 +120,7 @@ def openTable():
 
     new_table = Table({'E' : None, 'S' : None, 'W' : None, 'N' : None})
     Server.active_tables[str(new_table.table_id)] = new_table
+    new_table.new_game()
 
     return redirect('/table/' + str(new_table.table_id))
 
@@ -121,9 +129,11 @@ def joinTable(table_id):
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
             Server.active_tables[table_id].players[direction] = session['username']
+            session['userPosition'] = direction
             break
-    socketio.emit("userJoined", str(Server.active_tables[table_id].players.items()))
-    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id])
+    socketio.emit("userJoined", genUsers(table_id))
+    session['currentTable'] = table_id
+    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id))
 
 @app.route('/startGame/<tableID>/<seat>')
 def watchgame(tableID, seat):
@@ -170,21 +180,32 @@ def send_message(user, message):
     Server.message_history[user] = message
     emit('updateChat', (user, message), broadcast=True)
 
+# Update the whole game state
+# This should be called from the client table whenever a change is made to the table
+@socketio.on('updateGameState')
+def update_game_state():
+    # Get the data from the server and format it for the specific clients
+    # Send it to each client based on their player id/position
+    pass
+
 # Count the number of connected clients
 @socketio.on('connect')
-def connect(): 
-    #global Server.count
-    Server.count += 1
-    emit('updateCount', {'count' : Server.count}, broadcast=True)
+def connect():
+    #current_table = Server.active_tables[session['currentTable']]
+    #print(current_table.current_game.current_bridgehand.hands, file=sys.stderr)
+    #print(session['userPosition'], file=sys.stderr)
+    #emit('tableConnect', str(current_table.current_game.current_bridgehand.hands[session['userPosition']]))
+    
+    Server.client_count += 1
+    emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     for key, value in Server.message_history.items():
         if key != session['username']:
             emit('updateChat', (key, value))
 
 @socketio.on('disconnect')
 def disconnect():
-    #global Server.count
-    Server.count -= 1
-    emit('updateCount', {'count' : Server.count}, broadcast=True)
+    Server.client_count -= 1
+    emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     emit("userJoined", str(Server.active_tables[table_id].players.items()))
 
 if __name__ == '__main__':

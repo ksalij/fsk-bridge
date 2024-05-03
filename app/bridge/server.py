@@ -1,19 +1,16 @@
 from bridge.linparse import *
+# from bridge.linparse import *
 import random, math
 from datetime import datetime
 from bridge.score import calculate_score
+import json
+
 '''
 table_id to Table object
 '''
 running_tables = {}
 game_counter = 0
 finished_bridgehands = {}
-
-def update_game_state():
-    '''
-    Call after most functions to send an updatated game state to the front-end.
-    '''
-    pass
 
 class Game:
     '''
@@ -37,7 +34,7 @@ class Game:
         self.set_dealer()
         self.set_vulnerability()
         self.current_player = self.current_bridgehand.dealer
-        self.valid_bids = [str(num) + suit for num in range(1, 8) for suit in ['C', 'D', 'H', 'S']]
+        self.valid_bids = [str(num) + suit for num in range(1, 8) for suit in ['C', 'D', 'H', 'S', 'N']]
 
     def deal(self):
         '''
@@ -59,7 +56,11 @@ class Game:
 
                 
     def begin_play_phase(self):
+        if self.current_bridgehand.bids[-5:] == ['p', 'p', 'p', 'p']:
+            self.end_game(passout = True)
         self.game_phase = "PLAY"
+        self.set_contract()
+        self.set_declarer()
         self.current_bridgehand.play = []
 
     def update_current_player(self) -> None:
@@ -74,6 +75,8 @@ class Game:
         '''
         if self.game_phase == "AUCTION":
             self.current_player = self.get_left_player()
+            return
+
         # Check if the game is over
         if len(self.current_bridgehand.play) == 13 and len(self.current_bridgehand.play[-1]) == 5:
             self.current_player = None
@@ -81,6 +84,7 @@ class Game:
 
         # Check if this is the opening lead
         elif len(self.current_bridgehand.play) == 0:
+            self.current_player = self.current_bridgehand.declarer
             self.current_player = self.get_left_player()
 
         # check if a trick is in progress
@@ -97,7 +101,6 @@ class Game:
             trick['W'] = last_trick['W']
             self.current_player = get_trick_winner(trick, last_trick['lead'], trump=self.current_bridgehand.contract[1])[0]
                 
-        return
 
     def get_left_player(self) -> str:
         '''
@@ -128,6 +131,7 @@ class Game:
             new_trick['lead'] = player
             new_trick[player] = card
             self.current_bridgehand.play.append(new_trick)
+            self.update_current_player()
             return True
         
         leader = self.current_bridgehand.play[-1]['lead']
@@ -162,7 +166,23 @@ class Game:
                 running_tables[self.table_id].end_game()
         self.update_current_player()
         return True
-
+    
+    def get_playable_cards(self):
+        '''
+        return all playable cards that the current player could play
+        '''
+        if self.game_phase == "PLAY":
+            # starting a new trick
+            if len(self.current_bridgehand.play) == 0 or len(self.current_bridgehand.play[-1]) == 5:
+                return self.current_bridgehand.hands[self.current_player].cards
+            # following suit on a trick
+            leader = self.current_bridgehand.play[-1]['lead']
+            lead_suit = self.current_bridgehand.play[-1][leader].suitname
+            if self.hand_contains_suit(self.current_bridgehand.hands[self.current_player], lead_suit):
+                return [card for card in self.current_bridgehand.hands[self.current_player] if card.suitname == lead_suit]
+            else:
+                return self.current_bridgehand.hands[self.current_player].cards
+        
     def hand_contains_suit(self, hand: Hand, suit: str):
         contains = False
         for card in hand.cards:
@@ -176,40 +196,101 @@ class Game:
         '''
         Check if the bid is valid.
         If so, update the BridgeHand auction state.
-        Return all valid bids for the next player.
+        Update valid bids for the next player.
         '''
-        if not bid in self.valid_bids:
+        if not (bid in self.valid_bids or bid == 'p'):
             return False
-        # handle X
-        # handle XX
-        # handle regular bids
-        i = self.valid_bids.index(bid)
-        self.valid_bids = self.valid_bids[i+1:]
-        print("new valid bids", self.valid_bids)
+
+        if not player == self.current_player:
+            return False
+        
+        if not (bid == 'd' or bid == 'r' or bid == 'p'):
+            i = self.valid_bids.index(bid)
+            self.valid_bids = self.valid_bids[i+1:]
         self.current_bridgehand.bids.append(bid)
-        pass    
+
+        # check if auction is over
+        if len(self.current_bridgehand.bids) > 3 and self.current_bridgehand.bids[-3:] == ['p', 'p', 'p']:
+            self.begin_play_phase()
+            self.update_current_player()
+            return True
+
+        # handle X
+        if ((len(self.current_bridgehand.bids) > 0 and not self.current_bridgehand.bids[-1] in ['p', 'd', 'r']) 
+            or (len(self.current_bridgehand.bids) > 2 and not self.current_bridgehand.bids[-3] in ['p', 'd', 'r'] and self.current_bridgehand.bids[-2:] == ['p', 'p'])):
+            if not 'd' in self.valid_bids:
+                self.valid_bids.append('d')
+        elif 'd' in self.valid_bids:
+            self.valid_bids.remove('d')
+
+        # handle XX
+        if ((len(self.current_bridgehand.bids) > 0 and self.current_bridgehand.bids[-1] == 'd') 
+            or (len(self.current_bridgehand.bids) > 2 and self.current_bridgehand.bids[-4:] == ['d', 'p', 'p'])):
+            self.valid_bids.append('r')
+        elif 'r' in self.valid_bids:
+            self.valid_bids.remove('r')
+            
+        self.update_current_player()
+        return True    
 
 
     def set_dealer(self):
         '''
         Get who the dealer should be based on how many hands have been played so far.
         '''
-        game_count = len(running_tables[self.table_id].game_id_list)
-        players = ['E', 'S', 'W', 'N']
-        self.current_bridgehand.dealer = players[game_count % 4]
+        players = ['N', 'E', 'S', 'W']
+        self.current_bridgehand.dealer = players[(running_tables[self.table_id].game_count - 1) % 4]
 
     def set_vulnerability(self):
         '''
         sets the vulnerability for the current board.
         '''
         global running_tables
-        game_count = len(running_tables[self.table_id].game_id_list)
         vulnerabilities = ['none', 'NS', 'EW', 'both',
                            'NS', 'EW', 'both', 'none',
                            'EW', 'both', 'none', 'NS',
                            'both', 'none', 'NS', 'EW']
-        self.current_bridgehand.vuln = vulnerabilities[game_count % 16]
+        self.current_bridgehand.vuln = vulnerabilities[running_tables[self.table_id].game_count % 16]
     
+    def set_contract(self):
+        '''
+        This function is based on linparse.
+        '''
+        if len(self.current_bridgehand.bids) < 1:
+            return False
+        
+        doubles = []
+        i = 1
+        while (self.current_bridgehand.bids[-i] in 'drp') or (self.current_bridgehand.bids[-i] == 'p!'):
+            if self.current_bridgehand.bids[-i] in 'dr':
+                doubles.append(self.current_bridgehand.bids[-i])
+            i += 1
+        self.current_bridgehand.contract = self.current_bridgehand.bids[-i]
+        self.current_bridgehand.doubled = len(doubles)
+
+    def set_declarer(self):
+        '''
+        This function is based on linparse.
+        '''
+        if len(self.current_bridgehand.bids) < 1:
+            return False
+        
+        BID_PLAYERS = rotate_to(self.current_bridgehand.dealer)
+        csuit = self.current_bridgehand.contract[1]
+        cindex = self.current_bridgehand.bids.index(self.current_bridgehand.contract)
+        
+        def get_snd(str):
+            if len(str) == 1: return None
+            else: return str[1]
+        bidsuits = list(map(get_snd, self.current_bridgehand.bids))
+
+        firstmatch = rindex(bidsuits[cindex::-2], csuit)
+        
+        if firstmatch % 2 == 0:
+            self.current_bridgehand.declarer = BID_PLAYERS[cindex % 4]
+        else:
+            self.current_bridgehand.declarer = BID_PLAYERS[(cindex-2) % 4]
+
     def get_score(self):
         level = self.current_bridgehand.contract[0]
         suit = self.current_bridgehand.contract[1]
@@ -229,7 +310,72 @@ class Game:
                 vulnerable = False
     
         return calculate_score(int(level), suit, doubled, result, vulnerable)
+    
+    def get_json(self):
+        '''
+        Returns a json object of relevent information based on the current player
+        PLAYER_MAP = {'E': 0, 'S': 1, 'W': 2, 'N': 3}
 
+        json:
+            current_trick: dict (keys: directions, values: cards (int, int))
+            leader: int 
+            hands: dict (keys: positions, values: list of tuples (int, int) suit, rank)
+            hand_sizes: dict (keys: directions, values: numCards (int))
+            dummy_direction: int or null
+            dummy_hand: list of tuples (int, int) suit, rank
+            contract: (int, int) -> num, suit
+            players: dict (keys: directions, values: playernames)
+            current_player: int
+        '''
+        if self.game_phase == 'AUCTION':
+            current_trick = None
+            leader = None
+        else:
+            current_trick = self.current_bridgehand.play[-1]
+            leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
+        
+            current_trick.pop('lead')
+            current_trick = {pos:(card.suit, card.rank) for pos, card in current_trick.items()}
+        
+        hands = {pos:[(card.suit, card.rank) for card in hand] for pos, hand in self.current_bridgehand.hands.items()}
+
+        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+
+        if self.current_bridgehand.declarer == None:
+            dummy = None
+            dummy_direction = None
+            dummy_hand = None
+        else:
+            dummy = get_partner(self.current_bridgehand.declarer)
+            dummy_direction = PLAYER_MAP[dummy]
+            dummy_hand = [(card.suit, card.rank) for card in self.current_bridgehand.hands[dummy]]
+
+        contract = (int(self.current_bridgehand.contract[0]), SUITMAP[self.current_bridgehand.contract[1]])
+
+        players = self.current_bridgehand.players
+
+        current_player = PLAYER_MAP[self.current_player]
+
+        return_dict = {"currentTrick": current_trick,
+                       "leader": leader,
+                       "hands": hands,
+                       "hand_sizes": hand_sizes,
+                       "dummy_direction": dummy_direction,
+                       "dummy_hand": dummy_hand,
+                       "contract": contract,
+                       "players": players,
+                       "current_player": current_player}
+        return json.dumps(return_dict)
+
+def get_partner(position: str):
+    if position == 'N':
+        return 'S'
+    elif position == 'S':
+        return 'N'
+    elif position == 'E':
+        return 'W'
+    else:
+        return 'E'
 
 class Table:
     '''
@@ -243,8 +389,8 @@ class Table:
         self.seed = seed
         self.NS_score = 0
         self.EW_score = 0
+        self.game_count = 0
         self.current_game = None
-        self.game_id_list = []
         self.table_id = math.trunc(int(datetime.now().timestamp()))
 
         global running_tables
@@ -260,30 +406,39 @@ class Table:
         global game_counter
         game_counter += 1
         game_id = game_counter
-        
-        num_games = len(self.game_id_list)
-        self.current_game = Game(self.players, self.table_id, seed = self.seed + num_games)
-        self.game_id_list.append(game_id)
 
-    def end_game(self):
+        self.game_count += 1
+
+        if self.seed == None:
+            self.current_game = Game(self.players, self.table_id, seed = None)
+        else:
+            self.current_game = Game(self.players, self.table_id, seed = self.seed + self.game_count)
+
+    def end_game(self, passout = False):
         '''
         Distroy stored game state.
         Calculate and output score.
         '''
-        # calculate the score
-        score = self.current_game.get_score()
-        # add the score
-        declarer = self.current_game.current_bridgehand.declarer
-        if declarer == 'N' or declarer == 'S':
-            if score > 0:
-                self.NS_score += score
+        if not passout:
+            # calculate the score
+            score = self.current_game.get_score()
+            # add the score
+            declarer = self.current_game.current_bridgehand.declarer
+            if declarer == 'N' or declarer == 'S':
+                if score > 0:
+                    self.NS_score += score
+                else:
+                    self.EW_score -= score
             else:
-                self.EW_score -= score
-        else:
-            if score > 0:
-                self.EW_score += score
-            else:
-                self.NS_score -= score
+                if score > 0:
+                    self.EW_score += score
+                else:
+                    self.NS_score -= score
+
+            print("tricks played", len(self.current_game.current_bridgehand.play))
+            print("Tricks made", self.current_game.current_bridgehand.made)
+            print("Final Score", score)
+
         # set current_game to none
         self.current_game = None
         # store the finished game somewhere (lin format eventually)
