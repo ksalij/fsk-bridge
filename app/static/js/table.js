@@ -67,6 +67,32 @@ function buildEmptyHand(handDiv, handSize) {
     }
 }
 
+function buildEmptyHand(handDiv, handSize, hand) {
+    for (let i = 0; i < handSize; i++) {
+        //TODO load hand
+        const card = document.createElement("IMG");
+        card.setAttribute("src", "/getimages/static/QS.svg");
+
+        const link = document.createElement('a');
+        link.setAttribute("href", "/getimages/static/QS.svg");
+        link.setAttribute("class", "card");
+        link.appendChild(card);
+
+        // link.addEventListener('mouseover', function() {
+        //     card.style.border = '2px solid blue'; // Add border on mouseover
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        // link.addEventListener('mouseout', function() {
+        //     card.style.border = '2px transparent'; // Remove border on mouseout
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        handDiv.appendChild(link);
+    }
+}
+
+
 // Executed when the user says that they're ready to play.
 // As of 4/23/24, fills the div with id "game" with some default text-based hands for four players.
 function readyUp() {
@@ -128,61 +154,43 @@ function renderUpdate(jsonData) {
       partner_hand.removeChild(partner_hand.firstChild);
       oppL_hand.removeChild(oppL_hand.firstChild);
       oppR_hand.removeChild(oppR_hand.firstChild);
-      
+    }
     buildHand(client_hand, cards);
 
     if(jsonData.dummyDirection) {
         switch((jsonData.dummyDirection - jsonData.yourDirection)%4) {
             case 0:
                 //TODO: maybe put a dummy indicator on you
-                var partner_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
-                partner_hand.appendChild(partner_cards);
-                var oppL_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-                oppL_hand.appendChild(oppL_cards);
-                var oppR_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
-                oppR_hand.appendChild(oppR_cards);
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
             break;
             case 1:
-                var partner_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 2)%4])
-                partner_hand.appendChild(partner_cards);
-                var oppL_cards = makeHand(jsonData.dummyHand);
-                oppL_hand.appendChild(oppL_cards);
-                var oppR_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 3)%4])
-                oppR_hand.appendChild(oppR_cards);
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4])
+                buildHand(oppL_hand, jsonData.dummyHand);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4])
             break;
             case 2:
-                var partner_cards = makeHand(jsonData.dummyHand);
-                partner_hand.appendChild(partner_cards);
-                var oppL_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-                oppL_hand.appendChild(oppL_cards);
-                var oppR_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
-                oppR_hand.appendChild(oppR_cards);
+                buildHand(partner_hand, jsonData.dummyHand);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
             break;
             case 3:
-                var partner_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
-                partner_hand.appendChild(partner_cards);
-                var oppL_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-                oppL_hand.appendChild(oppL_cards);
-                var oppR_cards = makeHand(jsonData.dummyHand);
-                oppR_hand.appendChild(oppR_cards);
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+                buildHand(oppR_hand, jsonData.dummyHand);
             break;
 
             default:
-                var partner_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
-                partner_hand.appendChild(partner_cards);
-                var oppL_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-                oppL_hand.appendChild(oppL_cards);
-                var oppR_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
-                oppR_hand.appendChild(oppR_cards);
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
             break;
         }
     } else {
-        var partner_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
-        partner_hand.appendChild(partner_cards);
-        var oppL_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-        oppL_hand.appendChild(oppL_cards);
-        var oppR_cards = makeEmptyHand(jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
-        oppR_hand.appendChild(oppR_cards);
+        buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
+        buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+        buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
     }
 }
 
