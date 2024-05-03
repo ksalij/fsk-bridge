@@ -156,9 +156,13 @@ def handle_message(user, card):
         send(True)
         print('good card')
 
+    # TODO: pull the gamestate JSON from Table
+    message = None
+    emit('gameState', message, broadcast=True)
+
 @socketio.on('gameState')
 def broadcast_gamestate(message):
-    emit('gameState', 'Test Message', broadcast=True)
+    emit('gameState', message, broadcast=True)
 
 @socketio.on('sendMessage')
 def send_message(user, message):
