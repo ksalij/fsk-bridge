@@ -13,18 +13,19 @@ import urllib
 import os
 import hashlib
 import binascii
+import bridge.linparse
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = b'159151191247130924858171211'
 socketio = SocketIO(app)
 
 app_data = {
-    "name": "Peter's Starter Template for a Flask Web App",
+    "name": "Formerly Peter's Starter Template for a Flask Web App (Now our project)",
     "description": "A basic Flask app using bootstrap for layout",
     "author": "Peter Simeth",
-    "html_title": "Oliver and Cole's Bridge Website",
-    "project_name": "Starter Template",
-    "keywords": "flask, webapp, template, basic",
+    "html_title": "Oliver and Cole's Bridge Website (and fsk bridge group)",
+    "project_name": "Bridge Stuff",
+    "keywords": "flask, webapp, bridge",
 }
 
 conn = psycopg2.connect(
@@ -156,16 +157,22 @@ def give_favicon():
     return send_from_directory('static', 'favicon/favicon.ico')
 
 @socketio.on('cardPlayed')
-def handle_message(message):
-    data = {
-      'hand' : ['2C','3C','6C','7C','9C','AC','4H','9H','QH','AH','4S','8S','QS']
-    }
-    send(str(data))
-    print('Received Message', file=sys.stdout)
+def handle_message(user, card):
+    played_card = bridge.linparse.convert_card(card)
+    if not Table.play_card(user, played_card):
+        send(False)
+        print('bad card')
+    else:
+        send(True)
+        print('good card')
+
+    # TODO: pull the gamestate JSON from Table
+    message = None
+    emit('gameState', message, broadcast=True)
 
 @socketio.on('gameState')
 def broadcast_gamestate(message):
-    emit('gameState', 'Test Message', broadcast=True)
+    emit('gameState', message, broadcast=True)
 
 @socketio.on('sendMessage')
 def send_message(user, message):
