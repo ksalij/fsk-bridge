@@ -1,8 +1,8 @@
-from bridge.linparse import *
-# from bridge.linparse import *
+from linparse import *
+# from linwrite import *
 import random, math
 from datetime import datetime
-from bridge.score import calculate_score
+from score import calculate_score
 import json
 
 '''
@@ -311,15 +311,18 @@ class Game:
     
         return calculate_score(int(level), suit, doubled, result, vulnerable)
     
-    def get_json(self):
+    def get_json(self, playername: str):
         '''
-        Returns a json object of relevent information based on the current player
+        Returns a json object of relevent information for the specifed playername
         PLAYER_MAP = {'E': 0, 'S': 1, 'W': 2, 'N': 3}
 
         json:
+            game_phase: str ("AUCTION" or "PLAY")
+            valid_bids: list of tuples (int, int) num, suit
             current_trick: dict (keys: directions, values: cards (int, int))
             leader: int 
-            hands: dict (keys: positions, values: list of tuples (int, int) suit, rank)
+            your_direction: int
+            your_hand: list of tuples (int, int) suit, rank
             hand_sizes: dict (keys: directions, values: numCards (int))
             dummy_direction: int or null
             dummy_hand: list of tuples (int, int) suit, rank
@@ -327,44 +330,61 @@ class Game:
             players: dict (keys: directions, values: playernames)
             current_player: int
         '''
+        # info that varies based on the game phase
         if self.game_phase == 'AUCTION':
+            valid_bids = self.valid_bids
+
             current_trick = None
             leader = None
+
+            dummy = None
+            dummy_direction = None
+            dummy_hand = None
+
+            contract = None
         else:
+            valid_bids = None
+
             current_trick = self.current_bridgehand.play[-1]
             leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
         
             current_trick.pop('lead')
             current_trick = {pos:(card.suit, card.rank) for pos, card in current_trick.items()}
-        
-        hands = {pos:[(card.suit, card.rank) for card in hand] for pos, hand in self.current_bridgehand.hands.items()}
 
-        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
-
-        if self.current_bridgehand.declarer == None:
-            dummy = None
-            dummy_direction = None
-            dummy_hand = None
-        else:
             dummy = get_partner(self.current_bridgehand.declarer)
             dummy_direction = PLAYER_MAP[dummy]
             dummy_hand = [(card.suit, card.rank) for card in self.current_bridgehand.hands[dummy]]
 
-        contract = (int(self.current_bridgehand.contract[0]), SUITMAP[self.current_bridgehand.contract[1]])
+            contract = (int(self.current_bridgehand.contract[0]), SUITMAP[self.current_bridgehand.contract[1]])
+
+        your_direction = None
+        for dir, name in self.current_bridgehand.players.items():
+            if name == playername:
+                your_direction = dir
+                your_hand = [(card.suit, card.rank) for card in self.current_bridgehand.hands[your_direction]]
+        
+        if your_direction == None:
+            your_direction = 'Error: Player Not Found'
+            your_hand = None
+
+        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
 
         players = self.current_bridgehand.players
 
         current_player = PLAYER_MAP[self.current_player]
 
-        return_dict = {"currentTrick": current_trick,
-                       "leader": leader,
-                       "hands": hands,
-                       "hand_sizes": hand_sizes,
-                       "dummy_direction": dummy_direction,
-                       "dummy_hand": dummy_hand,
-                       "contract": contract,
-                       "players": players,
-                       "current_player": current_player}
+        return_dict = {"game_phase": self.game_phase,
+                    "valid_bids:": valid_bids,
+                    "currentTrick": current_trick,
+                    "leader": leader,
+                    "your_direction": your_direction,
+                    "your_hand": your_hand,
+                    "hand_sizes": hand_sizes,
+                    "dummy_direction": dummy_direction,
+                    "dummy_hand": dummy_hand,
+                    "contract": contract,
+                    "players": players,
+                    "current_player": current_player}
         return json.dumps(return_dict)
 
 def get_partner(position: str):
