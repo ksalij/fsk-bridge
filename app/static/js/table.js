@@ -67,14 +67,15 @@ function buildEmptyHand(handDiv, handSize) {
     }
 }
 
-function buildEmptyHand(handDiv, handSize, hand) {
-    for (let i = 0; i < handSize; i++) {
+function buildHand(handDiv, hand) {
+    for (let i = 0; i < hand.length; i++) {
         //TODO load hand
         const card = document.createElement("IMG");
-        card.setAttribute("src", "/getimages/static/QS.svg");
+        card_image_path = "/getimages/static/" + jsonData.yourHand[i] + ".svg"
+        card.setAttribute("src", card_image_path);
 
         const link = document.createElement('a');
-        link.setAttribute("href", "/getimages/static/QS.svg");
+        link.setAttribute("href", card_image_path);
         link.setAttribute("class", "card");
         link.appendChild(card);
 
@@ -287,6 +288,10 @@ socket.on('connect', (arg, callback) => {
 socket.on('userJoined', (response) => {
   players = document.getElementById("currentPlayers");
   players.innerHTML = "Current Users: " + response;
+});
+
+socket.on('requestGameState', (response) => {
+    socket.emit('updateGameState', user);
 });
 
 socket.on('gameState', (jsonData) => {
