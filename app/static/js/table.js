@@ -67,9 +67,36 @@ function buildEmptyHand(handDiv, handSize) {
     }
 }
 
+function buildEmptyHand(handDiv, handSize, hand) {
+    for (let i = 0; i < handSize; i++) {
+        //TODO load hand
+        const card = document.createElement("IMG");
+        card.setAttribute("src", "/getimages/static/QS.svg");
+
+        const link = document.createElement('a');
+        link.setAttribute("href", "/getimages/static/QS.svg");
+        link.setAttribute("class", "card");
+        link.appendChild(card);
+
+        // link.addEventListener('mouseover', function() {
+        //     card.style.border = '2px solid blue'; // Add border on mouseover
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        // link.addEventListener('mouseout', function() {
+        //     card.style.border = '2px transparent'; // Remove border on mouseout
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        handDiv.appendChild(link);
+    }
+}
+
+
 // Executed when the user says that they're ready to play.
 // As of 4/23/24, fills the div with id "game" with some default text-based hands for four players.
 function readyUp() {
+    jsonData = getStartingHand(); // TODO GET STARTING HAND
     const gameDiv = document.getElementById("game");
 
     // remove the start button
@@ -88,32 +115,98 @@ function readyUp() {
     client_hand.setAttribute("id", "client_hand");
     client_hand.setAttribute("class", "hand");
     buildEmptyHand(client_hand, 13);
-    client_team.appendChild(client_hand);
 
     // fill the user's partner's hand
     const partner_hand = document.createElement("div");
     partner_hand.setAttribute("id", "partner_hand");
     partner_hand.setAttribute("class", "hand");
     buildEmptyHand(partner_hand, 13);
-    client_team.appendChild(partner_hand);
 
     // fill the left opponent's hand
     const oppL_hand = document.createElement("div");
     oppL_hand.setAttribute("id", "oppL_hand");
     oppL_hand.setAttribute("class", "hand");
     buildEmptyHand(oppL_hand, 13);
-    opp_team.appendChild(oppL_hand);
 
     // fill the right opponent's hand
     const oppR_hand = document.createElement("div");
     oppR_hand.setAttribute("id", "oppR_hand");
     oppR_hand.setAttribute("class", "hand");
     buildEmptyHand(oppR_hand, 13);
+  
+    client_team.appendChild(client_hand);
+    client_team.appendChild(partner_hand);
+    opp_team.appendChild(oppL_hand);
     opp_team.appendChild(oppR_hand);
 
     // put the new divs in the existing "game" div
     gameDiv.appendChild(client_team);
     gameDiv.appendChild(opp_team);
+}
+
+function renderUpdate(jsonData) {
+    const client_hand = document.getElementById("client_hand");
+    const partner_hand = document.getElementById("partner_hand");
+    const oppL_hand = document.getElementById("oppL_hand");
+    const oppR_hand = document.getElementById("oppR_hand");
+    for (var i = 0; i < 13; i++) {
+      client_hand.removeChild(client_hand.firstChild);
+      partner_hand.removeChild(partner_hand.firstChild);
+      oppL_hand.removeChild(oppL_hand.firstChild);
+      oppR_hand.removeChild(oppR_hand.firstChild);
+    }
+    buildHand(client_hand, cards);
+
+    if(jsonData.dummyDirection) {
+        switch((jsonData.dummyDirection - jsonData.yourDirection)%4) {
+            case 0:
+                //TODO: maybe put a dummy indicator on you
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
+            break;
+            case 1:
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4])
+                buildHand(oppL_hand, jsonData.dummyHand);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4])
+            break;
+            case 2:
+                buildHand(partner_hand, jsonData.dummyHand);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
+            break;
+            case 3:
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+                buildHand(oppR_hand, jsonData.dummyHand);
+            break;
+
+            default:
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
+            break;
+        }
+    } else {
+        buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
+        buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
+        buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
+    }
+}
+
+function makeHand(cards) {
+    var client_cards = new DocumentFragment();
+    for (var i = 0; i < jsonData.yourHand.length; i++) {
+        const client_card = document.createElement("input");
+        client_card.type = "button";
+        client_card.className = "card";
+        client_card.value = cards[i];
+        client_card.onclick = function () {
+            socket.emit("cardPlayed", user, client_card.value);
+        }
+        client_cards.appendChild(client_card);
+    }
+    return client_cards;
 }
 
 // Function to preload images, called by fetchImages below
@@ -195,3 +288,7 @@ socket.on('userJoined', (response) => {
   players = document.getElementById("currentPlayers");
   players.innerHTML = "Current Users: " + response;
 });
+
+socket.on('gameState', (jsonData) => {
+    renderUpdate(jsonData);
+  });

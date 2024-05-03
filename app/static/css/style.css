@@ -20,7 +20,7 @@ button {
 
 img {
     width: 100%;
-    border: 1px solid black;
+    /* border: 1px solid black; */
 }
 
 #game {
@@ -91,7 +91,7 @@ img {
     z-index: 0;
 }
 
-.card:hover {
+.card img:hover {
     border: 2px solid blue;
     transition: border-color 0.5s ease;
     transform: translateY(-10px);
