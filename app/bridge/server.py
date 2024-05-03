@@ -327,11 +327,15 @@ class Game:
             players: dict (keys: directions, values: playernames)
             current_player: int
         '''
-        current_trick = self.current_bridgehand.play[-1]
-        leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
+        if self.game_phase == 'AUCTION':
+            current_trick = None
+            leader = None
+        else:
+            current_trick = self.current_bridgehand.play[-1]
+            leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
         
-        current_trick.pop('lead')
-        current_trick = {pos:(card.suit, card.rank) for pos, card in current_trick.items()}
+            current_trick.pop('lead')
+            current_trick = {pos:(card.suit, card.rank) for pos, card in current_trick.items()}
         
         hands = {pos:[(card.suit, card.rank) for card in hand] for pos, hand in self.current_bridgehand.hands.items()}
 
@@ -339,15 +343,15 @@ class Game:
 
         if self.current_bridgehand.declarer == None:
             dummy = None
+            dummy_direction = None
         else:
             dummy = get_partner(self.current_bridgehand.declarer)
+            dummy_direction = PLAYER_MAP[dummy]
         dummy_hand = [(card.suit, card.rank) for card in self.current_bridgehand.hands[dummy]]
 
         contract = (int(self.current_bridgehand.contract[0]), SUITMAP[self.current_bridgehand.contract[1]])
 
         players = self.current_bridgehand.players
-        
-        dummy_direction = PLAYER_MAP[dummy]
 
         current_player = PLAYER_MAP[self.current_player]
 
