@@ -45,19 +45,25 @@ function displayPlayers() {
 
 function buildEmptyHand(handDiv, handSize) {
     for (let i = 0; i < handSize; i++) {
-        // Create the card image object
         const card = document.createElement("IMG");
-        const img = new Image();
-        card.setAttribute("class", "card");
-        card.setAttribute("src", "/getimages/static/queen_of_spades.svg");
+        card.setAttribute("src", "/getimages/static/QS.svg");
 
-        // Create a container to hold the card
-        const card_container = document.createElement("div");
-        card_container.setAttribute("class", "card-container");
-        card_container.appendChild(card);
+        const link = document.createElement('a');
+        link.setAttribute("href", "/getimages/static/QS.svg");
+        link.setAttribute("class", "card");
+        link.appendChild(card);
 
-        // Append the card_container to the hand
-        handDiv.appendChild(card_container);
+        // link.addEventListener('mouseover', function() {
+        //     card.style.border = '2px solid blue'; // Add border on mouseover
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        // link.addEventListener('mouseout', function() {
+        //     card.style.border = '2px transparent'; // Remove border on mouseout
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        handDiv.appendChild(link);
     }
 }
 
@@ -70,33 +76,44 @@ function readyUp() {
     const start_button = document.getElementById("start-button");
     start_button.remove();
 
+    // the client_team div contains elements for the user and their partner
+    const client_team = document.createElement("div");
+    client_team.setAttribute("id", "client_team");
+    // the opp_team div contains elements for the user's two opponents
+    const opp_team = document.createElement("div");
+    opp_team.setAttribute("id", "opp_team");
+    
     // fill the user's hand
     const client_hand = document.createElement("div");
     client_hand.setAttribute("id", "client_hand");
     client_hand.setAttribute("class", "hand");
     buildEmptyHand(client_hand, 13);
-    gameDiv.appendChild(client_hand);
+    client_team.appendChild(client_hand);
 
     // fill the user's partner's hand
     const partner_hand = document.createElement("div");
     partner_hand.setAttribute("id", "partner_hand");
     partner_hand.setAttribute("class", "hand");
     buildEmptyHand(partner_hand, 13);
-    gameDiv.appendChild(partner_hand);
+    client_team.appendChild(partner_hand);
 
     // fill the left opponent's hand
     const oppL_hand = document.createElement("div");
     oppL_hand.setAttribute("id", "oppL_hand");
     oppL_hand.setAttribute("class", "hand");
     buildEmptyHand(oppL_hand, 13);
-    gameDiv.appendChild(oppL_hand);
+    opp_team.appendChild(oppL_hand);
 
     // fill the right opponent's hand
     const oppR_hand = document.createElement("div");
     oppR_hand.setAttribute("id", "oppR_hand");
     oppR_hand.setAttribute("class", "hand");
     buildEmptyHand(oppR_hand, 13);
-    gameDiv.appendChild(oppR_hand);
+    opp_team.appendChild(oppR_hand);
+
+    // put the new divs in the existing "game" div
+    gameDiv.appendChild(client_team);
+    gameDiv.appendChild(opp_team);
 }
 
 // Function to preload images, called by fetchImages below
