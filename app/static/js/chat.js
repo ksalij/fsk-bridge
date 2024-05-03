@@ -7,7 +7,7 @@ $(document).ready(function(){
   });
 
   $('#send').on('click', function() {
-    user = document.getElementById('username').value;
+    user = document.getElementById('username').innerHTML;
     socket.emit("sendMessage", user, user + ": " + document.getElementById('textInput').value);
     document.getElementById('textInput').value = '';
   });
@@ -20,7 +20,7 @@ $(document).ready(function(){
     console.log(response);
     const newText = document.createElement("div");
 
-    if (user == document.getElementById('username').value) {
+    if (user == document.getElementById('username').innerHTML) {
       newText.id = "currentUserChat";
     } else {
       newText.id = "userChat";
