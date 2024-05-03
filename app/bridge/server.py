@@ -344,10 +344,11 @@ class Game:
         if self.current_bridgehand.declarer == None:
             dummy = None
             dummy_direction = None
+            dummy_hand = None
         else:
             dummy = get_partner(self.current_bridgehand.declarer)
             dummy_direction = PLAYER_MAP[dummy]
-        dummy_hand = [(card.suit, card.rank) for card in self.current_bridgehand.hands[dummy]]
+            dummy_hand = [(card.suit, card.rank) for card in self.current_bridgehand.hands[dummy]]
 
         contract = (int(self.current_bridgehand.contract[0]), SUITMAP[self.current_bridgehand.contract[1]])
 
