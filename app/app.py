@@ -132,7 +132,6 @@ def joinTable(table_id):
             break
     socketio.emit("userJoined", genUsers(table_id))
     session['currentTable'] = table_id
-    print(Server.active_tables[table_id].get_json(), file=sys.stderr)
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id))
 
 @app.route('/startGame/<tableID>/<seat>')
