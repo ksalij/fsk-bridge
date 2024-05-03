@@ -1,3 +1,4 @@
+// Sample jsonData for test purposes
 jsonData = {
     "cardsPlayed": [null, null, null, null],
     "yourHand": [
@@ -92,56 +93,90 @@ function buildEmptyHand(handDiv, handSize, hand) {
     }
 }
 
+/*
+    Create the structure for a hand.
 
-// Executed when the user says that they're ready to play.
-// As of 4/23/24, fills the div with id "game" with some default text-based hands for four players.
-function readyUp() {
-    jsonData = getStartingHand(); // TODO GET STARTING HAND
+    Parameters:
+      - handID, the id for the hand div
+    
+    Functionality:
+      - creates a hand div, sets its id to handID and gives it the class "hand"
+      - fills the hand with 13 face down cards
+*/
+function buildHandStructure(handID) {
+    const hand = document.createElement("div");
+    hand.setAttribute("id", handID);
+    hand.setAttribute("class", "hand");
+    buildEmptyHand(hand, 13);
+    return hand;
+}
+
+/*
+    Create the structure for the game table.
+
+    Parameters: none
+
+    Functionality: Builds the div structure for the game table, outlined as follows:
+      - a "card" is a link element with an image as its content
+      - cards are organized in "hand" divs
+      - hands are organized into the structuring div for the appropriate team (ie. "client_team" or "opp_team")
+      - client_team and opp_team are contained in the "game" div
+      - the game div defines the geometry of the table and contains all of the divs relevant to the play of game
+*/
+function buildTableStructure() {
+    // Get the game div from the page
     const gameDiv = document.getElementById("game");
 
-    // remove the start button
-    const start_button = document.getElementById("start-button");
-    start_button.remove();
-
-    // the client_team div contains elements for the user and their partner
-    const client_team = document.createElement("div");
+    // Create the client_team and opp_team divs
+    const client_team = document.createElement("div"); // the client_team div contains elements for the user and their partner
     client_team.setAttribute("id", "client_team");
-    // the opp_team div contains elements for the user's two opponents
-    const opp_team = document.createElement("div");
+    const opp_team = document.createElement("div"); // the opp_team div contains elements for the user's two opponents
     opp_team.setAttribute("id", "opp_team");
     
-    // fill the user's hand
-    const client_hand = document.createElement("div");
-    client_hand.setAttribute("id", "client_hand");
-    client_hand.setAttribute("class", "hand");
-    buildEmptyHand(client_hand, 13);
-
-    // fill the user's partner's hand
-    const partner_hand = document.createElement("div");
-    partner_hand.setAttribute("id", "partner_hand");
-    partner_hand.setAttribute("class", "hand");
-    buildEmptyHand(partner_hand, 13);
-
-    // fill the left opponent's hand
-    const oppL_hand = document.createElement("div");
-    oppL_hand.setAttribute("id", "oppL_hand");
-    oppL_hand.setAttribute("class", "hand");
-    buildEmptyHand(oppL_hand, 13);
-
-    // fill the right opponent's hand
-    const oppR_hand = document.createElement("div");
-    oppR_hand.setAttribute("id", "oppR_hand");
-    oppR_hand.setAttribute("class", "hand");
-    buildEmptyHand(oppR_hand, 13);
+    // Create an empty hand for each player
+    const client_hand = buildHandStructure("client_hand");
+    const partner_hand = buildHandStructure("partner_hand");
+    const oppL_hand = buildHandStructure("oppL_hand");
+    const oppR_hand = buildHandStructure("oppR_hand");
   
+    // Add each hand to the correct containers
     client_team.appendChild(client_hand);
     client_team.appendChild(partner_hand);
     opp_team.appendChild(oppL_hand);
     opp_team.appendChild(oppR_hand);
 
-    // put the new divs in the existing "game" div
+    // Add the new structures back into the document
     gameDiv.appendChild(client_team);
     gameDiv.appendChild(opp_team);
+}
+
+// TO DO ON PAGE LOAD: - connect the client to the server via a websocket
+
+/*
+    Indicate to the server that the client is ready to play.
+    Called when the user clicks on the "start-button" button.
+
+    Parameters: none
+
+    Functionality:
+      - remove the readyUp button
+      - inform the user that the table is waiting for other players
+      - create div structuring for hands, and fills each hand with 13 card backs
+*/
+function readyUp() {
+    jsonData = getStartingHand(); // TODO GET STARTING HAND
+    const gameDiv = document.getElementById("game");
+
+    // Remove the start button
+    const start_button = document.getElementById("start-button");
+    start_button.remove();
+
+    // Inform the user that the table is waiting for other players
+    const waitMessage = document.createElement("p");
+    waitMessage.setAttribute("")
+
+    // Create the div structuring
+    buildTableStructure();
 }
 
 function renderUpdate(jsonData) {
