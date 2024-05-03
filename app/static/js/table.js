@@ -24,15 +24,15 @@ jsonData = {
     "whoseTurn": 0
 }
 
-//function loadPlayerDiv() {
-//    var gameInfoDiv = document.getElementById('players');
-//    gameInfoDiv.innerHTML = (
-//        "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
-//        + "<button onclick=displayPlayers()>Click me to display players!</button>"
-//        // put game display stuff here!
-//        + "<button id=show-cards-button onclick=showAllCards()>Click me to display cards!</button>"
-//    );
-//}
+function loadPlayerDiv() {
+    var gameInfoDiv = document.getElementById('players');
+    gameInfoDiv.innerHTML = (
+        "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
+        + "<button onclick=displayPlayers()>Click me to display players!</button>"
+        // put game display stuff here!
+        + "<button id=show-cards-button onclick=showAllCards()>Click me to display cards!</button>"
+    );
+}
 
 window.addEventListener("load", (event) => { loadPlayerDiv(); });
 
@@ -41,6 +41,30 @@ function displayPlayers() {
     gameInfoDiv.innerHTML = (
         "<p>Clicked!</p>"
     );
+}
+
+function buildEmptyHand(handDiv, handSize) {
+    for (let i = 0; i < handSize; i++) {
+        const card = document.createElement("IMG");
+        card.setAttribute("src", "/getimages/static/QS.svg");
+
+        const link = document.createElement('a');
+        link.setAttribute("href", "/getimages/static/QS.svg");
+        link.setAttribute("class", "card");
+        link.appendChild(card);
+
+        // link.addEventListener('mouseover', function() {
+        //     card.style.border = '2px solid blue'; // Add border on mouseover
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        // link.addEventListener('mouseout', function() {
+        //     card.style.border = '2px transparent'; // Remove border on mouseout
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        handDiv.appendChild(link);
+    }
 }
 
 // Executed when the user says that they're ready to play.
@@ -54,50 +78,38 @@ function readyUp() {
 
     // the client_team div contains elements for the user and their partner
     const client_team = document.createElement("div");
-    client_team.id = "client_team";
+    client_team.setAttribute("id", "client_team");
     // the opp_team div contains elements for the user's two opponents
     const opp_team = document.createElement("div");
-    opp_team.id = "opp_team";
+    opp_team.setAttribute("id", "opp_team");
     
     // fill the user's hand
-    const client_hand = document.createElement("p");
-    client_hand.id = "client_hand";
-    const client_cards = document.createTextNode(jsonData.yourHand.join(" | "));
-    client_hand.appendChild(client_cards);
+    const client_hand = document.createElement("div");
+    client_hand.setAttribute("id", "client_hand");
+    client_hand.setAttribute("class", "hand");
+    buildEmptyHand(client_hand, 13);
     client_team.appendChild(client_hand);
 
     // fill the user's partner's hand
-    const partner_hand = document.createElement("p");
-    partner_hand.id = "partner_hand";
-    const hand = [];
-    for (let i = 0; i < jsonData.handSizes[1]; i++) {
-        hand[i] = "??"
-    }
-    const partner_cards = document.createTextNode(hand.join(" | "));
-    partner_hand.appendChild(partner_cards);
+    const partner_hand = document.createElement("div");
+    partner_hand.setAttribute("id", "partner_hand");
+    partner_hand.setAttribute("class", "hand");
+    buildEmptyHand(partner_hand, 13);
     client_team.appendChild(partner_hand);
 
     // fill the left opponent's hand
-    const opp1_hand = document.createElement("p");
-    opp1_hand.id = "opp1_hand";
-    hand.length = 0; // resets array
-    for (let i = 0; i < jsonData.handSizes[1]; i++) {
-        hand[i] = "??"
-    }
-    const opp1_cards = document.createTextNode(hand.join(" | "));
-    opp1_hand.appendChild(opp1_cards);
-    opp_team.appendChild(opp1_hand);
+    const oppL_hand = document.createElement("div");
+    oppL_hand.setAttribute("id", "oppL_hand");
+    oppL_hand.setAttribute("class", "hand");
+    buildEmptyHand(oppL_hand, 13);
+    opp_team.appendChild(oppL_hand);
 
     // fill the right opponent's hand
-    const opp3_hand = document.createElement("p");
-    opp3_hand.id = "opp3_hand";
-    hand.length = 0; // resets array
-    for (let i = 0; i < jsonData.handSizes[1]; i++) {
-        hand[i] = "??"
-    }
-    const opp3_cards = document.createTextNode(hand.join(" | "));
-    opp3_hand.appendChild(opp3_cards);
-    opp_team.appendChild(opp3_hand);
+    const oppR_hand = document.createElement("div");
+    oppR_hand.setAttribute("id", "oppR_hand");
+    oppR_hand.setAttribute("class", "hand");
+    buildEmptyHand(oppR_hand, 13);
+    opp_team.appendChild(oppR_hand);
 
     // put the new divs in the existing "game" div
     gameDiv.appendChild(client_team);
@@ -107,13 +119,31 @@ function readyUp() {
 // Function to preload images, called by fetchImages below
 function preloadImages(imageUrls) {
     imageUrls.forEach(url => {
-      const fullUrl = `/getimages/${url}`;
+      const fullUrl = `/getimages${url}`;
+
+      const link = document.createElement('a');
+      link.href = fullUrl;
 
       const img = new Image(); // Create an image object
       img.className = "card";
       img.src = fullUrl;
+
       img.style.display = 'none'; // Hide the image
-      document.body.appendChild(img); // Append to body to trigger loading
+
+      link.appendChild(img);
+
+      document.body.appendChild(link); // Append to body to trigger loading
+
+      // Add event listeners for mouseover and mouseout
+      link.addEventListener('mouseover', function() {
+        img.style.border = '2px solid blue'; // Add border on mouseover
+        img.style.transition = 'border-color 0.5s ease';
+        });
+    
+      link.addEventListener('mouseout', function() {
+        img.style.border = '2px transparent'; // Remove border on mouseout
+        img.style.transition = 'border-color 0.5s ease';
+        });
     });
 }
   
@@ -157,13 +187,11 @@ function hideAllCards() {
 window.addEventListener("load", (event) => { fetchImages(); });
 
 var socket = io.connect('http://localhost:80');
-
-socket.on('tableConnect', (response) => {
-  console.log(response);
-  document.getElementById("hand").innerHTML = response; 
+socket.on('connect', (arg, callback) => {
+  console.log('Socket Connected');
 });
 
 socket.on('userJoined', (response) => {
-  players = document.getElementById("users");
-  players.innerHTML = response;
+  players = document.getElementById("currentPlayers");
+  players.innerHTML = "Current Users: " + response;
 });

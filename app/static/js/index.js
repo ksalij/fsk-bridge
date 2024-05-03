@@ -1,4 +1,3 @@
-
 var socket = io.connect('http://localhost:80');
 
 socket.on('connect', (arg, callback) => {
