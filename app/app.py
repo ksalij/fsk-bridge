@@ -133,9 +133,7 @@ def joinTable(table_id):
             Server.active_tables[table_id].players[direction] = session['username']
             session['userPosition'] = direction
             break
-    socketio.emit("userJoined", genUsers(table_id))
     session['currentTable'] = table_id
-    join_room(table_id)
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id))
 
 @app.route('/startGame/<tableID>/<seat>')
@@ -158,6 +156,12 @@ def get_image(filename):
 @app.route('/favicon.ico')
 def give_favicon():
     return send_from_directory('static', 'favicon/favicon.ico')
+
+@socketio.on('joinRoom')
+def put_user_in_room(table_id):
+    join_room(table_id)
+    socketio.emit("userJoined", genUsers(table_id), to=table_id)
+
 
 @socketio.on('cardPlayed')
 def handle_message(user, card):
@@ -206,7 +210,7 @@ def connect():
             emit('updateChat', (key, value))
 
 @socketio.on('disconnect')
-def disconnect():
+def disconnect(table_id):
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     emit("userJoined", str(Server.active_tables[table_id].players.items()))

@@ -25,6 +25,7 @@ jsonData = {
     "whoseTurn": 0
 }
 
+// Fill the "players" div with information for testing/debugging purposes
 function loadPlayerDiv() {
     var gameInfoDiv = document.getElementById('players');
     gameInfoDiv.innerHTML = (
@@ -35,6 +36,7 @@ function loadPlayerDiv() {
     );
 }
 
+// Load debugging info on page load
 window.addEventListener("load", (event) => { loadPlayerDiv(); });
 
 function displayPlayers() {
@@ -44,30 +46,44 @@ function displayPlayers() {
     );
 }
 
+/*
+    Construct a default hand of X card backs.
+
+    Parameters:
+      - handDiv, the hand div to fill with card backs
+      - handSize, the number of cards to place in the hand
+
+    Functionality:
+      - For each card, create an anchor object with the following properties
+          - it links to the card back .svg
+          - its content is an image element of the card back
+*/
 function buildEmptyHand(handDiv, handSize) {
     for (let i = 0; i < handSize; i++) {
         const card = document.createElement("IMG");
-        card.setAttribute("src", "/getimages/static/QS.svg");
+        card.setAttribute("src", "/getimages/static/QS.svg"); // CHANGE TO BACK.SVG
 
         const link = document.createElement('a');
         link.setAttribute("href", "/getimages/static/QS.svg");
         link.setAttribute("class", "card");
         link.appendChild(card);
 
-        // link.addEventListener('mouseover', function() {
-        //     card.style.border = '2px solid blue'; // Add border on mouseover
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
-        // link.addEventListener('mouseout', function() {
-        //     card.style.border = '2px transparent'; // Remove border on mouseout
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
         handDiv.appendChild(link);
     }
 }
 
+/*
+    Construct an HTML hand of card images from a list of card strings.
+
+    Parameters:
+      - handDiv, the hand div to fill with cards
+      - hand, the list of card strings to place in the hand
+
+    Functionality:
+      - For each card, create an anchor object with the following properties
+          - it links to the .svg image of the card
+          - its content is an image element of the card
+*/
 function buildHand(handDiv, hand) {
     for (let i = 0; i < hand.length; i++) {
         //TODO load hand
@@ -165,16 +181,14 @@ function buildTableStructure() {
       - create div structuring for hands, and fills each hand with 13 card backs
 */
 function readyUp() {
-    jsonData = getStartingHand(); // TODO GET STARTING HAND
     const gameDiv = document.getElementById("game");
 
     // Remove the start button
-    const start_button = document.getElementById("start-button");
-    start_button.remove();
+    document.getElementById("start-button").remove();
 
     // Inform the user that the table is waiting for other players
-    const waitMessage = document.createElement("p");
-    waitMessage.setAttribute("")
+    // const waitMessage = document.createElement("p");
+    // waitMessage.setAttribute("");
 
     // Create the div structuring
     buildTableStructure();
@@ -317,12 +331,13 @@ window.addEventListener("load", (event) => { fetchImages(); });
 
 var socket = io.connect('http://localhost:80');
 socket.on('connect', (arg, callback) => {
-  console.log('Socket Connected');
+    console.log('Socket Connected');
+    socket.emit('joinRoom', window.location.pathname.substring(7))
 });
 
 socket.on('userJoined', (response) => {
-  players = document.getElementById("currentPlayers");
-  players.innerHTML = "Current Users: " + response;
+    players = document.getElementById("currentPlayers");
+    players.innerHTML = "Current Users: " + response;
 });
 
 socket.on('requestGameState', (response) => {
@@ -331,4 +346,4 @@ socket.on('requestGameState', (response) => {
 
 socket.on('gameState', (jsonData) => {
     renderUpdate(jsonData);
-  });
+});
