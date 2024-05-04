@@ -318,15 +318,15 @@ class Game:
 
         json:
             game_phase: str ("AUCTION" or "PLAY")
-            valid_bids: list of tuples (int, int) num, suit
+            valid_bids: list of strings
             current_trick: dict (keys: directions, values: cards (int, int))
             leader: int 
             your_direction: int
-            your_hand: list of tuples (int, int) suit, rank
+            your_hand: list of strings "suitrank"
             hand_sizes: dict (keys: directions, values: numCards (int))
             dummy_direction: int or null
-            dummy_hand: list of tuples (int, int) suit, rank
-            contract: (int, int) -> num, suit
+            dummy_hand: list of strings "suitrank"
+            contract: string
             players: dict (keys: directions, values: playernames)
             current_player: int
         '''
@@ -349,19 +349,19 @@ class Game:
             leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
         
             current_trick.pop('lead')
-            current_trick = {pos:(card.suit, card.rank) for pos, card in current_trick.items()}
+            current_trick = {pos:str(card) for pos, card in current_trick.items()}
 
             dummy = get_partner(self.current_bridgehand.declarer)
             dummy_direction = PLAYER_MAP[dummy]
-            dummy_hand = [(card.suit, card.rank) for card in self.current_bridgehand.hands[dummy]]
+            dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
 
-            contract = (int(self.current_bridgehand.contract[0]), SUITMAP[self.current_bridgehand.contract[1]])
+            contract = self.current_bridgehand.contract
 
         your_direction = None
         for dir, name in self.current_bridgehand.players.items():
             if name == playername:
                 your_direction = dir
-                your_hand = [(card.suit, card.rank) for card in self.current_bridgehand.hands[your_direction]]
+                your_hand = [str(card) for card in self.current_bridgehand.hands[your_direction]]
         
         if your_direction == None:
             your_direction = 'Error: Player Not Found'

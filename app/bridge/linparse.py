@@ -50,7 +50,7 @@ class Card(object):
     """
 
     suit_names = ['C', 'D', 'H', 'S']
-    rank_names = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+    rank_names = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
     def __init__(self, suit=0, rank=2):
         self.suit = suit
