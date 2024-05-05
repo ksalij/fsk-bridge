@@ -47,6 +47,10 @@ img {
     transform: translateY(calc(-50% - 15px));
 }
 
+#waiting {
+    margin-top: -50%;
+}
+
 #client_team {
     width: 50%;
     height: 100%;

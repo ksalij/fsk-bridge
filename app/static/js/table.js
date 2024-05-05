@@ -25,6 +25,9 @@ jsonData = {
     "whoseTurn": 0
 }
 
+// Some global variables to keep track of the client relative to the rest of the table
+let user = "";
+
 // Fill the "players" div with information for testing/debugging purposes
 function loadPlayerDiv() {
     var gameInfoDiv = document.getElementById('players');
@@ -177,22 +180,30 @@ function buildTableStructure() {
 
     Functionality:
       - remove the readyUp button
-      - inform the user that the table is waiting for other players
+      - inform the server that the user is ready to start the game
       - create div structuring for hands, and fills each hand with 13 card backs
+      - inform the user that the table is waiting for other players
 */
 function readyUp() {
-    const gameDiv = document.getElementById("game");
-
     // Remove the start button
     document.getElementById("start-button").remove();
 
-    // Inform the user that the table is waiting for other players
-    // const waitMessage = document.createElement("p");
-    // waitMessage.setAttribute("");
+    // Notify the server that the user is ready
+    socket.emit('ready', user);
 
     // Create the div structuring
     buildTableStructure();
+    
+    // Inform the user that the table is waiting for other players
+    const waitMessage = document.createElement("p");
+    waitMessage.setAttribute("id", "waiting");
+    waitMessage.innerHTML = "Waiting for other players to ready up...";
+    document.getElementById("game").appendChild(waitMessage);
 }
+
+socket.on('allReady', (response) => {
+    document.getElementById("waiting").innerHTML = "Everyone's ready to start!";
+});
 
 /*
     Update the hands for each player.
