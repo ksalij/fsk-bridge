@@ -61,10 +61,10 @@ function displayPlayers() {
 function buildEmptyHand(handDiv, handSize) {
     for (let i = 0; i < handSize; i++) {
         const card = document.createElement("IMG");
-        card.setAttribute("src", "/getimages/static/QS.svg"); // CHANGE TO BACK.SVG
+        card.setAttribute("src", "/getimages/static/back.svg");
 
         const link = document.createElement('a');
-        link.setAttribute("href", "/getimages/static/QS.svg");
+        link.setAttribute("href", "/getimages/static/back.svg");
         link.setAttribute("class", "card");
         link.appendChild(card);
 
@@ -194,6 +194,14 @@ function readyUp() {
     buildTableStructure();
 }
 
+/*
+    Update the hands for each player.
+
+    Parameters:
+      - jsonData, ???
+
+    Functionality:
+*/
 function renderUpdate(jsonData) {
     const client_hand = document.getElementById("client_hand");
     const partner_hand = document.getElementById("partner_hand");
@@ -268,7 +276,7 @@ function preloadImages(imageUrls) {
       link.href = fullUrl;
 
       const img = new Image(); // Create an image object
-      img.className = "card";
+      img.className = "cardImage";
       img.src = fullUrl;
 
       img.style.display = 'none'; // Hide the image
@@ -290,6 +298,7 @@ function preloadImages(imageUrls) {
     });
 }
   
+// Query the server for the names of each of the card images, then call preloadImages() on the list of filenames.
 function fetchImages(){
     fetch('/getimages')
         .then(response => response.json())
@@ -302,8 +311,20 @@ function fetchImages(){
         });
 }
 
+// Call the fetchImages function when the page loads
+window.addEventListener("load", (event) => { fetchImages(); });
+
+/*
+    Display each card svg below the game board.
+
+    Parameters: none
+
+    Functionality:
+      - set the display style of each cardImage element to be "inline" (from "none")
+      - change the display button to a hide button
+*/
 function showAllCards() {
-    const allCards = document.getElementsByClassName("card");
+    const allCards = document.getElementsByClassName("cardImage");
     for (let i = 0; i < allCards.length; i++) {
         allCards[i].style.display = 'inline';
     }
@@ -314,8 +335,17 @@ function showAllCards() {
     button.innerHTML = ("Click me to hide cards!");
 }
 
+/*
+    Hide each card svg below the game board.
+
+    Parameters: none
+
+    Functionality:
+      - set the display style of each cardImage element to be "none" (from "inline")
+      - change the hide button to a display button
+*/
 function hideAllCards() {
-    const allCards = document.getElementsByClassName("card");
+    const allCards = document.getElementsByClassName("cardImage");
     for (let i = 0; i < allCards.length; i++) {
         allCards[i].style.display = 'none';
     }
@@ -326,9 +356,7 @@ function hideAllCards() {
     button.innerHTML = ("Click me to display cards!");
 }
 
-// Call the fetchImages function when the page loads
-window.addEventListener("load", (event) => { fetchImages(); });
-
+// Socket stuff. Someone with more knowledge should comment this.
 var socket = io.connect('http://localhost:80');
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected');
