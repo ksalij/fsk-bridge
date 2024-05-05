@@ -1,29 +1,17 @@
-jsonData = {
-    "cardsPlayed": [null, null, null, null],
-    "yourHand": [
-        "C2",
-        "C3",
-        "C4",
-        "C5",
-        "C6",
-        "C7",
-        "C8",
-        "C9",
-        "CT",
-        "CJ",
-        "CQ",
-        "CK",
-        "CA",
-    ],
-    "handSizes": [13, 13, 13, 13],
-    "dummyHand": null,
-    "auctionValue": [0, 0],
-    "playerNames": ["You", "Player2", "Player3", "Player4"],
-    "yourDirection": 0,
-    "dummyDirection": null,
-    "whoseTurn": 0
-}
-
+jsonData = {"game_phase": "AUCTION",
+            "valid_bids": ["1C", "1D", "1H", "1S", "1N", "2C", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N"], 
+            "currentTrick": null, 
+            "leader": null, 
+            "your_direction": "S", 
+            "your_hand": ["2C", "3C", "5C", "QC", "3D", "6D", "7D", "3H", "9H", "TH", "5S", "7S", "8S"], 
+            "hand_sizes": {"N": 13, "E": 13, "S": 13, "W": 13}, 
+            "dummy_direction": null, 
+            "dummy_hand": null, 
+            "contract": null, 
+            "players": {"E": "user0", "S": "user1", "W": "user2", "N": "user3"}, 
+            "current_player": 3
+        }
+            
 function loadPlayerDiv() {
     var gameInfoDiv = document.getElementById('players');
     gameInfoDiv.innerHTML = (
@@ -70,6 +58,7 @@ function buildEmptyHand(handDiv, handSize) {
 // Executed when the user says that they're ready to play.
 // As of 4/23/24, fills the div with id "game" with some default text-based hands for four players.
 function readyUp() {
+    displayAuction();
     const gameDiv = document.getElementById("game");
 
     // remove the start button
@@ -195,3 +184,55 @@ socket.on('userJoined', (response) => {
   players = document.getElementById("currentPlayers");
   players.innerHTML = "Current Users: " + response;
 });
+
+function displayAuction(){
+    const gameDiv = document.getElementById("game");
+    const bidding = document.createElement("div");
+    bidding.setAttribute("id", "bidding");
+    const tab = document.createElement("div");
+    tab.setAttribute("class", "tab");
+    
+    window.alert(JSON.stringify(jsonData.valid_bids)[0][0]);
+    // parseInt(jsonData['valid_bids'][0][0])
+    for (let i = 1; i < 8; i++){
+        const level = document.createElement("button");
+        level.innerHTML = (
+            "<button class=\"tablinks\" onclick=\"openBid(event, '" + i + "')\">" + i + "</button>");
+        tab.appendChild(level);
+    }
+    bidding.appendChild(tab);
+    for (let i = 1; i < 8; i++){
+        const tabcontent = document.createElement("div");
+        suitButtons = "<div id=\"" + i + "\" class=\"tabcontent\">";
+        suitName = ["club", "diamond", "heart", "spade"];
+        suits = ['\u2663', '\u2666', '\u2665', '\u2660'];
+        for (let j = 0; j < 4; j++){
+            suitButtons = suitButtons +  "<button class = \"suit\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button> ";
+        }
+        suitButtons = suitButtons + "</div>";
+        tabcontent.innerHTML = (suitButtons);
+        bidding.appendChild(tabcontent);
+    }
+    gameDiv.appendChild(bidding);
+}
+
+function openBid(evt, level) {
+    // Declare all variables
+    var i, tabcontent, tablinks;
+  
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+  
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+  
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(level).style.display = "block";
+    evt.currentTarget.className += " active";
+  }

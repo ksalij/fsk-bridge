@@ -18,6 +18,7 @@ button {
     display: block;
 }
 
+
 img {
     width: 100%;
     border: 1px solid black;
@@ -100,3 +101,61 @@ img {
 .card + .card {
     margin-left: -17.5%;
 }
+/* Style the tab */
+.tab {
+    overflow: hidden;
+    /*border: 1px solid #ccc;*/
+    background-color: #f1f1f1;
+  }
+  
+  /* Style the buttons that are used to open the tab content */
+.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    /*padding: 14px 16px;*/
+    transition: 0.3s;
+}
+
+.suit {
+    background-color: #04AA6D; /* Green */
+    border: none;
+    color: white;
+    /* padding: 15px 32px; */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+  /* .button {
+    background-color: #04AA6D; 
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+  } */
+  
+  /* Change background color of buttons on hover */
+  .tab button:hover {
+    background-color: #ddd;
+  }
+  
+  /* Create an active/current tablink class */
+  .tab button.active {
+    background-color: pink;
+  }
+  
+  /* Style the tab content */
+  .tabcontent {
+    background-color: gray;
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+  }
