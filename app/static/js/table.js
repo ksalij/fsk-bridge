@@ -124,6 +124,39 @@ function buildHand(handDiv, hand, seat, isPlaying) {
     }
 }
 
+function buildDummyHand(handDiv, hand, seat, isPlaying, dummyUser) {
+    for (let i = 0; i < hand.length; i++) {
+        //TODO load hand
+        const card = document.createElement("input");
+        card_image_path = "/getimages/static/" + hand[i] + ".svg";
+        card.setAttribute("src", card_image_path);
+        card.setAttribute("type", "image");
+        card.setAttribute("class", "card");
+        if (seat == 2) {
+            card.setAttribute("onclick", cardPlayed(dummyUser, hand[i]));
+        }
+        if (isPlaying == 0) {
+            card.style.boxShadow = "0px 0px 22px #8fd7d2";
+        }
+        else {
+            card.style.boxShadow = "";
+        }
+        
+
+        // link.addEventListener('mouseover', function() {
+        //     card.style.border = '2px solid blue'; // Add border on mouseover
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        // link.addEventListener('mouseout', function() {
+        //     card.style.border = '2px transparent'; // Remove border on mouseout
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        handDiv.appendChild(card);
+    }
+}
+
 function cardPlayed(user, value) {
     socket.emit("cardPlayed", user, value);
 }
@@ -259,18 +292,18 @@ function renderUpdate(jsonData) {
             break;
             case 1:
                 buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4)
-                buildHand(oppL_hand, jsonData.dummyHand, 1, (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
+                buildDummyHand(oppL_hand, jsonData.dummyHand, 1, (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4, jsonData.dummyUser);
                 buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4)
             break;
             case 2:
-                buildHand(partner_hand, jsonData.dummyHand, 2, (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
+                buildDummyHand(partner_hand, jsonData.dummyHand, 2, (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4, jsonData.dummyUser);
                 buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
                 buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
             break;
             case 3:
                 buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
                 buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
-                buildHand(oppR_hand, jsonData.dummyHand, 3, (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
+                buildDummyHand(oppR_hand, jsonData.dummyHand, 3, (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4, jsonData.dummyUser);
             break;
 
             default:
