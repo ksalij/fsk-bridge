@@ -27,6 +27,7 @@ jsonData = {
 
 // Some global variables to keep track of the client relative to the rest of the table
 let user = "";
+let tableID = 0;
 
 // Fill the "players" div with information for testing/debugging purposes
 function loadPlayerDiv() {
@@ -57,21 +58,24 @@ function displayPlayers() {
       - handSize, the number of cards to place in the hand
 
     Functionality:
-      - For each card, create an anchor object with the following properties
-          - it links to the card back .svg
-          - its content is an image element of the card back
+      - For each card, create a button object with the following properties
+          - its class is "card"
+          - its content is the card back image
 */
-function buildEmptyHand(handDiv, handSize) {
+function buildEmptyHand(handDiv, handSize, isPlaying) {
     for (let i = 0; i < handSize; i++) {
-        const card = document.createElement("IMG");
+        const card = document.createElement("input");
         card.setAttribute("src", "/getimages/static/back.svg");
+        card.setAttribute("type", "image");
+        card.setAttribute("class", "card");
+        handDiv.appendChild(card);
 
-        const link = document.createElement('a');
-        link.setAttribute("href", "/getimages/static/back.svg");
-        link.setAttribute("class", "card");
-        link.appendChild(card);
-
-        handDiv.appendChild(link);
+        if (isPlaying == 0) {
+            card.style.boxShadow = "0px 0px 22px #8fd7d2";
+        }
+        else {
+            card.style.boxShadow = "";
+        }
     }
 }
 
@@ -87,17 +91,24 @@ function buildEmptyHand(handDiv, handSize) {
           - it links to the .svg image of the card
           - its content is an image element of the card
 */
-function buildHand(handDiv, hand) {
+function buildHand(handDiv, hand, seat, isPlaying) {
     for (let i = 0; i < hand.length; i++) {
         //TODO load hand
-        const card = document.createElement("IMG");
-        card_image_path = "/getimages/static/" + jsonData.yourHand[i] + ".svg"
+        const card = document.createElement("input");
+        card_image_path = "/getimages/static/" + hand[i] + ".svg";
         card.setAttribute("src", card_image_path);
-
-        const link = document.createElement('a');
-        link.setAttribute("href", card_image_path);
-        link.setAttribute("class", "card");
-        link.appendChild(card);
+        card.setAttribute("type", "image");
+        card.setAttribute("class", "card");
+        if (seat == 0) {
+            card.setAttribute("onclick", cardPlayed(user, hand[i]));
+        }
+        if (isPlaying == 0) {
+            card.style.boxShadow = "0px 0px 22px #8fd7d2";
+        }
+        else {
+            card.style.boxShadow = "";
+        }
+        
 
         // link.addEventListener('mouseover', function() {
         //     card.style.border = '2px solid blue'; // Add border on mouseover
@@ -109,8 +120,12 @@ function buildHand(handDiv, hand) {
         //     card.style.transition = 'border-color 0.5s ease';
         //     });
 
-        handDiv.appendChild(link);
+        handDiv.appendChild(card);
     }
+}
+
+function cardPlayed(user, value) {
+    socket.emit("cardPlayed", user, value);
 }
 
 /*
@@ -219,41 +234,49 @@ function renderUpdate(jsonData) {
     const oppL_hand = document.getElementById("oppL_hand");
     const oppR_hand = document.getElementById("oppR_hand");
     for (var i = 0; i < 13; i++) {
-      client_hand.removeChild(client_hand.firstChild);
-      partner_hand.removeChild(partner_hand.firstChild);
-      oppL_hand.removeChild(oppL_hand.firstChild);
-      oppR_hand.removeChild(oppR_hand.firstChild);
+        if (client_hand.firstChild) {
+            client_hand.removeChild(client_hand.firstChild);
+        }
+        if (partner_hand.firstChild) {
+            partner_hand.removeChild(partner_hand.firstChild);
+        }
+        if (oppL_hand.firstChild) {
+            oppL_hand.removeChild(oppL_hand.firstChild);
+        }
+        if (oppR_hand.firstChild) {
+            oppR_hand.removeChild(oppR_hand.firstChild);
+        }
     }
-    buildHand(client_hand, cards);
+    buildHand(client_hand, jsonData.yourHand, 0, (jsonData.yourDirection - jsonData.whoseTurn)%4);
 
     if(jsonData.dummyDirection) {
         switch((jsonData.dummyDirection - jsonData.yourDirection)%4) {
             case 0:
                 //TODO: maybe put a dummy indicator on you
-                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
-                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
             break;
             case 1:
-                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4])
-                buildHand(oppL_hand, jsonData.dummyHand);
-                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4])
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4)
+                buildHand(oppL_hand, jsonData.dummyHand, 1, (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4)
             break;
             case 2:
-                buildHand(partner_hand, jsonData.dummyHand);
-                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
+                buildHand(partner_hand, jsonData.dummyHand, 2, (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
             break;
             case 3:
-                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
-                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-                buildHand(oppR_hand, jsonData.dummyHand);
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
+                buildHand(oppR_hand, jsonData.dummyHand, 3, (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
             break;
 
             default:
-                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
-                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
+                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
+                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
+                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
             break;
         }
     } else {
@@ -372,6 +395,11 @@ var socket = io.connect('http://localhost:80');
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected');
     socket.emit('joinRoom', window.location.pathname.substring(7))
+});
+
+socket.on('yourLocalInfo', (your_user, your_table_id) => {
+    user = your_user;
+    tableID = your_table_id;
 });
 
 socket.on('userJoined', (response) => {
