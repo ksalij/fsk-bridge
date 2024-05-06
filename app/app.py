@@ -243,10 +243,10 @@ def connect():
             emit('updateChat', (key, value), to=request.sid)
 
 @socketio.on('disconnect')
-def disconnect(table_id):
+def disconnect():
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    emit("userJoined", str(Server.active_tables[table_id].players.items()))
+    #emit("userJoined", str(Server.active_tables[table_id].players.items()))
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)

@@ -1,4 +1,4 @@
-var socket = io.connect('http://localhost:80');;
+//var socket = io.connect('http://localhost:80');;
 
 // Sample jsonData for test purposes
 // jsonData = {
