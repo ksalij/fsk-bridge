@@ -118,6 +118,8 @@ class Game:
         output:
             returns True of card is successfully played, False otherwise
         '''
+        print(player)
+        print(self.current_bridgehand.hands[player])
         # check if the card is in the players hand
         if not self.current_bridgehand.hands[player].has(card):
             return False
@@ -323,7 +325,7 @@ class Game:
             leader: int 
             your_direction: int
             your_hand: list of strings "suitrank"
-            hand_sizes: dict (keys: directions, values: numCards (int))
+            hand_sizes: dict (keys: direction ints, values: numCards (int))
             dummy_direction: int or null
             dummy_hand: list of strings "suitrank"
             contract: string
@@ -344,16 +346,21 @@ class Game:
             contract = None
         else:
             valid_bids = None
-
-            current_trick = self.current_bridgehand.play[-1]
-            leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
         
-            current_trick.pop('lead')
-            current_trick = {pos:str(card) for pos, card in current_trick.items()}
-
             dummy = get_partner(self.current_bridgehand.declarer)
             dummy_direction = PLAYER_MAP[dummy]
             dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
+            # TODO REPLACE BACKEND: OUTPUT JSON WHEN THE FIRST TRICK HASN'T BEEN PLAYED
+            if len(self.current_bridgehand.play) == 0:
+                leader = (PLAYER_MAP[dummy] - 1) % 4
+                current_trick = {'lead': leader}
+            else:
+                current_trick = self.current_bridgehand.play[-1]
+                leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
+            
+            current_trick.pop('lead')
+            current_trick = {pos:str(card) for pos, card in current_trick.items()}
+
 
             contract = self.current_bridgehand.contract
 
@@ -367,7 +374,7 @@ class Game:
             your_direction = 'Error: Player Not Found'
             your_hand = None
 
-        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+        hand_sizes = {PLAYER_MAP[pos]:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
 
         players = self.current_bridgehand.players
 
@@ -375,9 +382,9 @@ class Game:
 
         return_dict = {"game_phase": self.game_phase,
                     "valid_bids:": valid_bids,
-                    "currentTrick": current_trick,
+                    "current_trick": current_trick,
                     "leader": leader,
-                    "your_direction": your_direction,
+                    "your_direction": PLAYER_MAP[your_direction],
                     "your_hand": your_hand,
                     "hand_sizes": hand_sizes,
                     "dummy_direction": dummy_direction,

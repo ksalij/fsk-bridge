@@ -18,13 +18,13 @@ var socket = io.connect('http://localhost:80');;
 //         "CK",
 //         "CA",
 //     ],
-//     "handSizes": [13, 13, 13, 13],
+//     "hand_sizes": [13, 13, 13, 13],
 //     "dummyHand": null,
 //     "auctionValue": [0, 0],
 //     "playerNames": ["You", "Player2", "Player3", "Player4"],
-//     "yourDirection": 0,
-//     "dummyDirection": null,
-//     "whoseTurn": 0
+//     "your_direction": 0,
+//     "dummy_direction": null,
+//     "current_player": 0
 // }
 
 // Some global variables to keep track of the client relative to the rest of the table
@@ -105,7 +105,7 @@ function buildHand(handDiv, hand, seat, isPlaying) {
         //TODO load hand
         const card = buildCard(hand[i]);
         if (seat == 0) {
-            card.setAttribute("onclick", cardPlayed(user, hand[i]));
+            card.setAttribute("onclick", `cardPlayed("${user}", "${hand[i]}")`);
         }
         if (isPlaying == 0) {
             card.style.boxShadow = "0px 0px 22px #8fd7d2";
@@ -133,8 +133,8 @@ function buildDummyHand(handDiv, hand, seat, isPlaying, dummyUser) {
         //TODO load hand
         const card = buildCard(hand[i]);
         if (seat == 2) {
-            card.setAttribute("onclick", cardPlayed(dummyUser, hand[i]));
-        }
+            card.setAttribute("onclick", `cardPlayed("${dummyUser}", "${hand[i]}")`);
+        }   
         if (isPlaying == 0) {
             card.style.boxShadow = "0px 0px 22px #8fd7d2";
         }
@@ -160,10 +160,14 @@ function cardPlayed(user, value) {
     socket.emit("cardPlayed", user, value);
 }
 
-function buildPlayArea(cardsPlayed, seat) {
+function buildPlayArea(cardsPlayed) {
     const playArea = document.getElementById("playArea");
 
-    playArea.innerHTML = "";
+    for (var i = 0; i < 4; i++) {
+        if (playArea.firstChild) {
+            playArea.removeChild(playArea.firstChild);
+        }
+    }
     for (let i = 0; i < 4; i++) {
         if (cardsPlayed[i]) {
             playArea.appendChild(buildCard(cardsPlayed[i]));
@@ -187,6 +191,10 @@ function buildHandStructure(handID) {
     hand.setAttribute("class", "hand");
     buildEmptyHand(hand, 13);
     return hand;
+}
+
+function specialModFour(num) {
+    return ((num % 4) + 4) % 4;
 }
 
 /*
@@ -216,6 +224,10 @@ function buildTableStructure() {
     const partner_hand = buildHandStructure("partner_hand");
     const oppL_hand = buildHandStructure("oppL_hand");
     const oppR_hand = buildHandStructure("oppR_hand");
+
+    // Create an area for cards played during a trick
+    const playArea = document.createElement("div");
+    playArea.setAttribute("id", "playArea");
   
     // Add each hand to the correct containers
     client_team.appendChild(client_hand);
@@ -226,6 +238,7 @@ function buildTableStructure() {
     // Add the new structures back into the document
     gameDiv.appendChild(client_team);
     gameDiv.appendChild(opp_team);
+    gameDiv.appendChild(playArea);
 }
 
 // TO DO ON PAGE LOAD: - connect the client to the server via a websocket
@@ -260,10 +273,6 @@ function readyUp() {
     document.getElementById("game").appendChild(waitMessage);
 }
 
-socket.on('allReady', (response) => {
-    document.getElementById("waiting").innerHTML = "Everyone's ready to start!";
-});
-
 /*
     Update the hands for each player.
 
@@ -291,60 +300,46 @@ function renderUpdate(jsonData) {
             oppR_hand.removeChild(oppR_hand.firstChild);
         }
     }
-    buildHand(client_hand, jsonData.yourHand, 0, (jsonData.yourDirection - jsonData.whoseTurn)%4);
 
-    if(jsonData.dummyDirection) {
-        switch((jsonData.dummyDirection - jsonData.yourDirection)%4) {
+    buildHand(client_hand, jsonData.your_hand, 0, specialModFour(jsonData.your_direction - jsonData.current_player));
+
+    if(jsonData.dummy_direction) {
+        switch(specialModFour(jsonData.dummy_direction - jsonData.your_direction)) {
             case 0:
                 //TODO: maybe put a dummy indicator on you
-                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
-                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
-                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
-            break;
+                buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.your_direction + 2 - jsonData.current_player));
+                buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.your_direction + 1 - jsonData.current_player));
+                buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.your_direction + 3 - jsonData.current_player));
+                break;
             case 1:
-                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4)
-                buildDummyHand(oppL_hand, jsonData.dummyHand, 1, (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4, jsonData.dummyUser);
-                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4)
-            break;
+                buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.your_direction + 2 - jsonData.current_player));
+                buildDummyHand(oppL_hand, jsonData.dummy_hand, 1, specialModFour(jsonData.your_direction + 1 - jsonData.current_player), jsonData.players[jsonData.dummy_direction]);
+                buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.your_direction + 3 - jsonData.current_player));
+                break;
             case 2:
-                buildDummyHand(partner_hand, jsonData.dummyHand, 2, (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4, jsonData.dummyUser);
-                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
-                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
-            break;
+                buildDummyHand(partner_hand, jsonData.dummy_hand, 2, specialModFour(jsonData.your_direction + 2 - jsonData.current_player), jsonData.players[jsonData.dummy_direction]);
+                buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.your_direction + 1 - jsonData.current_player));
+                buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.your_direction + 3 - jsonData.current_player));
+                break;
             case 3:
-                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
-                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
-                buildDummyHand(oppR_hand, jsonData.dummyHand, 3, (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4, jsonData.dummyUser);
-            break;
+                buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.your_direction + 2 - jsonData.current_player));
+                buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.your_direction + 1 - jsonData.current_player));
+                buildDummyHand(oppR_hand, jsonData.dummy_hand, 3, specialModFour(jsonData.your_direction + 3 - jsonData.current_player), jsonData.players[jsonData.dummy_direction]);
+                break;
 
             default:
-                buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4], (jsonData.yourDirection + 2 - jsonData.whoseTurn)%4);
-                buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4], (jsonData.yourDirection + 1 - jsonData.whoseTurn)%4);
-                buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4], (jsonData.yourDirection + 3 - jsonData.whoseTurn)%4);
-            break;
+                buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.your_direction + 2 - jsonData.current_player));
+                buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.your_direction + 1 - jsonData.current_player));
+                buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.your_direction + 3 - jsonData.current_player));
+                break;
         }
     } else {
-        buildEmptyHand(partner_hand, jsonData.handSizes[(jsonData.yourDirection + 2)%4]);
-        buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
-        buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
+        buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.current_player - jsonData.yourDirection + 2));
+        buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.current_player - jsonData.yourDirection + 1));
+        buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.current_player - jsonData.yourDirection + 3));
     }
 
-    buildPlayArea(jsonData.cardsPlayed, (jsonData.whoseTurn - 1)%4);
-}
-
-function makeHand(cards) {
-    var client_cards = new DocumentFragment();
-    for (var i = 0; i < jsonData.yourHand.length; i++) {
-        const client_card = document.createElement("input");
-        client_card.type = "button";
-        client_card.className = "card";
-        client_card.value = cards[i];
-        client_card.onclick = function () {
-            socket.emit("cardPlayed", user, client_card.value);
-        }
-        client_cards.appendChild(client_card);
-    }
-    return client_cards;
+    buildPlayArea(jsonData.current_trick);
 }
 
 // Function to preload images, called by fetchImages below
@@ -445,20 +440,20 @@ socket.on('connect', (arg, callback) => {
 socket.on('yourLocalInfo', (your_user, your_table_id) => {
     user = your_user;
     tableID = your_table_id;
+    console.log("my local info");
 });
 
 socket.on('userJoined', (response) => {
     players = document.getElementById("currentPlayers");
     players.innerHTML = "Current Users: " + response;
-    if (response.length == 4) {
-        socket.emit('startAuction', tableID)
-    }
 });
 
 socket.on('requestGameState', (response) => {
     socket.emit('updateGameState', user);
 });
 
-socket.on('gameState', (jsonData) => {
+socket.on('gameState', (jsonInput) => {
+    jsonData = JSON.parse(jsonInput);
+    console.log(jsonData);
     renderUpdate(jsonData);
 });

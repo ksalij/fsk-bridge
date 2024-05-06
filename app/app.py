@@ -161,9 +161,9 @@ def give_favicon():
 
 @socketio.on('joinRoom')
 def put_user_in_room(table_id):
+    socketio.emit("yourLocalInfo", (session['username'], table_id), to=request.sid)
     join_room(table_id)
     # Server.active_tables[table_id].players.values()[:-1]
-    socketio.emit("yourLocalInfo", (session['username'], table_id))
     socketio.emit("userJoined", genUsers(table_id), to=table_id)
 
 ready_users = {}
@@ -174,29 +174,29 @@ def user_ready(table_id, user):
     ready_users[table_id].add(user)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
-        emit('allReady', to=table_id)
-        print("everyone ready")
+        start_auction(table_id)
 
 
 @socketio.on('cardPlayed')
 def handle_message(user, card):
-    played_card = bridge.linparse.convert_card(card)
+    played_card = bridge.linparse.convert_card(card[1] + card[0])
     table_id = Server.client_list[user]
-    if not Server.active_tables[table_id].current_game.play_card(user, played_card):
-        send(False)
+    user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
+    if not Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
+        emit(False, to=request.sid)
         print('bad card')
     else:
-        send(True)
+        emit(True, to=request.sid)
         print('good card')
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
-        send('requestGameState', to=table_id)
+        emit('requestGameState', to=table_id)
 
 # The server then responds to each player asking with the json
 @socketio.on('updateGameState')
 def broadcast_gamestate(user):
     table_id = Server.client_list[user]
     game_state = Server.active_tables[table_id].current_game.get_json(user)
-    send('gameState', game_state)
+    emit('gameState', game_state, to=request.sid)
 
 @socketio.on('sendMessage')
 def send_message(user, message):
@@ -207,10 +207,12 @@ def send_message(user, message):
 # Update the whole game state
 # This should be called from the client table whenever a change is made to the table
 @socketio.on('updateGameState')
-def update_game_state():
+def update_game_state(user):
     # Get the data from the server and format it for the specific clients
     # Send it to each client based on their player id/position
-    pass
+    game = Server.active_tables[Server.client_list[user]].current_game
+    json = game.get_json(user)
+    emit('gameState', json, to=request.sid)
 
 @socketio.on('startAuction')
 def start_auction(table_id):
@@ -235,7 +237,7 @@ def connect():
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     for key, value in Server.message_history.items():
         if key != session['username']:
-            emit('updateChat', (key, value))
+            emit('updateChat', (key, value), to=request.sid)
 
 @socketio.on('disconnect')
 def disconnect(table_id):
