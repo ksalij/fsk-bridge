@@ -160,7 +160,7 @@ def give_favicon():
 @socketio.on('joinRoom')
 def put_user_in_room(table_id):
     join_room(table_id)
-    socketio.emit("yourLocalInfo", genUsers(table_id)[:-1], to=table_id)
+    socketio.emit("yourLocalInfo", Server.active_tables[table_id].players.items()[:-1], table_id)
     socketio.emit("userJoined", genUsers(table_id), to=table_id)
 
 ready_users = {}
