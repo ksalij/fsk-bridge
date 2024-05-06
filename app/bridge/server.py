@@ -1,8 +1,8 @@
-from linparse import *
+from bridge.linparse import *
 # from linwrite import *
 import random, math
 from datetime import datetime
-from score import calculate_score
+from bridge.score import calculate_score
 import json
 
 '''
