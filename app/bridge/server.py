@@ -471,7 +471,7 @@ class Table:
         if not direction in self.players:
             self.players[direction] = playername
             return True
-        return 
+        return False
     
 
 if __name__=="__main__": 

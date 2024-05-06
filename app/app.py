@@ -40,9 +40,10 @@ cur = conn.cursor()
 
 class Server:
     client_count = 0
-    client_list = []
+    client_list = {}
     message_history = {}
     active_tables = {}
+    nextUserID = 0
 
 def gen_salt(size: int) -> bytes:
     return binascii.hexlify(os.urandom(size))
@@ -128,6 +129,7 @@ def openTable():
 
 @app.route('/table/<table_id>')
 def joinTable(table_id):
+    Server.client_list[session['username']] = table_id
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
             Server.active_tables[table_id].players[direction] = session['username']
@@ -178,19 +180,21 @@ def user_ready(table_id, user):
 @socketio.on('cardPlayed')
 def handle_message(user, card):
     played_card = bridge.linparse.convert_card(card)
-    if not Table.play_card(user, played_card):
+    table_id = Server.client_list[user]
+    if not Server.active_tables[table_id].current_game.play_card(user, played_card):
         send(False)
         print('bad card')
     else:
         send(True)
         print('good card')
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
-        send('requestGameState', to=Table.table_id)
+        send('requestGameState', to=table_id)
 
 # The server then responds to each player asking with the json
 @socketio.on('updateGameState')
 def broadcast_gamestate(user):
-    game_state = Table.get_json(user)
+    table_id = Server.client_list[user]
+    game_state = Server.active_tables[table_id].current_game.get_json(user)
     send('gameState', game_state)
 
 @socketio.on('sendMessage')
@@ -207,6 +211,17 @@ def update_game_state():
     # Send it to each client based on their player id/position
     pass
 
+@socketio.on('startAuction')
+def start_auction(table_id):
+    game = Server.active_tables[table_id].current_game
+    game.deal()
+    emit('requestGameState', to=table_id)
+    # TODO START AUCTION
+    game.current_bridgehand.bids = ['1C', 'p', 'p', 'p']
+    game.begin_play_phase()
+    game.update_current_player()
+    emit('requestGameState', to=table_id)
+    
 # Count the number of connected clients
 @socketio.on('connect')
 def connect():

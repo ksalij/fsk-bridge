@@ -1,56 +1,56 @@
 var socket = io.connect('http://localhost:80');;
 
 // Sample jsonData for test purposes
-jsonData = {
-    "cardsPlayed": [null, null, null, null],
-    "yourHand": [
-        "C2",
-        "C3",
-        "C4",
-        "C5",
-        "C6",
-        "C7",
-        "C8",
-        "C9",
-        "CT",
-        "CJ",
-        "CQ",
-        "CK",
-        "CA",
-    ],
-    "handSizes": [13, 13, 13, 13],
-    "dummyHand": null,
-    "auctionValue": [0, 0],
-    "playerNames": ["You", "Player2", "Player3", "Player4"],
-    "yourDirection": 0,
-    "dummyDirection": null,
-    "whoseTurn": 0
-}
+// jsonData = {
+//     "cardsPlayed": [null, null, null, null],
+//     "yourHand": [
+//         "C2",
+//         "C3",
+//         "C4",
+//         "C5",
+//         "C6",
+//         "C7",
+//         "C8",
+//         "C9",
+//         "CT",
+//         "CJ",
+//         "CQ",
+//         "CK",
+//         "CA",
+//     ],
+//     "handSizes": [13, 13, 13, 13],
+//     "dummyHand": null,
+//     "auctionValue": [0, 0],
+//     "playerNames": ["You", "Player2", "Player3", "Player4"],
+//     "yourDirection": 0,
+//     "dummyDirection": null,
+//     "whoseTurn": 0
+// }
 
 // Some global variables to keep track of the client relative to the rest of the table
 let user = "";
 let tableID = 0;
 
-// Fill the "players" div with information for testing/debugging purposes
-function loadPlayerDiv() {
-    var gameInfoDiv = document.getElementById('players');
-    gameInfoDiv.innerHTML = (
-        "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
-        + "<button onclick=displayPlayers()>Click me to display players!</button>"
-        // put game display stuff here!
-        + "<button id=show-cards-button onclick=showAllCards()>Click me to display cards!</button>"
-    );
-}
+// // Fill the "players" div with information for testing/debugging purposes
+// function loadPlayerDiv() {
+//     var gameInfoDiv = document.getElementById('players');
+//     gameInfoDiv.innerHTML = (
+//         "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
+//         + "<button onclick=displayPlayers()>Click me to display players!</button>"
+//         // put game display stuff here!
+//         + "<button id=show-cards-button onclick=showAllCards()>Click me to display cards!</button>"
+//     );
+// }
 
 // Load debugging info on page load
-window.addEventListener("load", (event) => { loadPlayerDiv(); });
+// window.addEventListener("load", (event) => { loadPlayerDiv(); });
 
-function displayPlayers() {
-    var gameInfoDiv = document.getElementById('players');
-    gameInfoDiv.innerHTML = (
-        "<p>Clicked!</p>"
-    );
-}
+// function displayPlayers() {
+//     var gameInfoDiv = document.getElementById('players');
+//     gameInfoDiv.innerHTML = (
+//         "<p>Clicked!</p>"
+//     );
+// }
 
 /*
     Build a card object.
@@ -450,6 +450,9 @@ socket.on('yourLocalInfo', (your_user, your_table_id) => {
 socket.on('userJoined', (response) => {
     players = document.getElementById("currentPlayers");
     players.innerHTML = "Current Users: " + response;
+    if (response.length == 4) {
+        socket.emit('startAuction', tableID)
+    }
 });
 
 socket.on('requestGameState', (response) => {
