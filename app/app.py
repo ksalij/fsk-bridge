@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, url_for, render_template, send_from_directory, session, redirect, request
 from flask_socketio import SocketIO, emit, send 
+from flask_socketio import join_room, leave_room
 from bridge.server import Game, Table
 from _thread import *
 import psycopg2
@@ -39,9 +40,10 @@ cur = conn.cursor()
 
 class Server:
     client_count = 0
-    client_list = []
+    client_list = {}
     message_history = {}
     active_tables = {}
+    nextUserID = 0
 
 def gen_salt(size: int) -> bytes:
     return binascii.hexlify(os.urandom(size))
@@ -121,11 +123,13 @@ def openTable():
     new_table = Table({'E' : None, 'S' : None, 'W' : None, 'N' : None})
     Server.active_tables[str(new_table.table_id)] = new_table
     new_table.new_game()
+    # TODO replace clients list with database?
 
     return redirect('/table/' + str(new_table.table_id))
 
 @app.route('/table/<table_id>')
 def joinTable(table_id):
+    Server.client_list[session['username']] = table_id
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
             Server.active_tables[table_id].players[direction] = session['username']
@@ -158,23 +162,44 @@ def get_image(filename):
 def give_favicon():
     return send_from_directory('static', 'favicon/favicon.ico')
 
+@socketio.on('joinRoom')
+def put_user_in_room(table_id):
+    socketio.emit("yourLocalInfo", (session['username'], table_id), to=request.sid)
+    join_room(table_id)
+    # Server.active_tables[table_id].players.values()[:-1]
+    socketio.emit("userJoined", genUsers(table_id), to=table_id)
+
+ready_users = {}
+@socketio.on('ready')
+def user_ready(table_id, user):
+    if table_id not in ready_users.keys():
+        ready_users[table_id] = set()
+    ready_users[table_id].add(user)
+    print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
+    if len(ready_users[table_id]) >= 4:
+        start_auction(table_id)
+
+
 @socketio.on('cardPlayed')
 def handle_message(user, card):
-    played_card = bridge.linparse.convert_card(card)
-    if not Table.play_card(user, played_card):
-        send(False)
+    played_card = bridge.linparse.convert_card(card[1] + card[0])
+    table_id = Server.client_list[user]
+    user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
+    if not Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
+        emit(False, to=request.sid)
         print('bad card')
     else:
-        send(True)
+        emit(True, to=request.sid)
         print('good card')
+        # When the server wants to send each player their json, it asks every player in the room to request the json from the server
+        emit('requestGameState', to=table_id)
 
-    # TODO: pull the gamestate JSON from Table
-    message = None
-    emit('gameState', message, broadcast=True)
-
-@socketio.on('gameState')
-def broadcast_gamestate(message):
-    emit('gameState', message, broadcast=True)
+# The server then responds to each player asking with the json
+@socketio.on('updateGameState')
+def broadcast_gamestate(user):
+    table_id = Server.client_list[user]
+    game_state = Server.active_tables[table_id].current_game.get_json(user)
+    emit('gameState', game_state, to=request.sid)
 
 @socketio.on('sendMessage')
 def send_message(user, message):
@@ -185,11 +210,24 @@ def send_message(user, message):
 # Update the whole game state
 # This should be called from the client table whenever a change is made to the table
 @socketio.on('updateGameState')
-def update_game_state():
+def update_game_state(user):
     # Get the data from the server and format it for the specific clients
     # Send it to each client based on their player id/position
-    pass
+    game = Server.active_tables[Server.client_list[user]].current_game
+    json = game.get_json(user)
+    emit('gameState', json, to=request.sid)
 
+@socketio.on('startAuction')
+def start_auction(table_id):
+    game = Server.active_tables[table_id].current_game
+    game.deal()
+    emit('requestGameState', to=table_id)
+    # TODO START AUCTION
+    game.current_bridgehand.bids = ['1C', 'p', 'p', 'p']
+    game.begin_play_phase()
+    game.update_current_player()
+    emit('requestGameState', to=table_id)
+    
 # Count the number of connected clients
 @socketio.on('connect')
 def connect():
@@ -202,10 +240,10 @@ def connect():
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     for key, value in Server.message_history.items():
         if key != session['username']:
-            emit('updateChat', (key, value))
+            emit('updateChat', (key, value), to=request.sid)
 
 @socketio.on('disconnect')
-def disconnect():
+def disconnect(table_id):
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     emit("userJoined", str(Server.active_tables[table_id].players.items()))
