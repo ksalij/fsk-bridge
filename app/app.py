@@ -160,17 +160,19 @@ def give_favicon():
 @socketio.on('joinRoom')
 def put_user_in_room(table_id):
     join_room(table_id)
-    socketio.emit("yourLocalInfo", genUsers(table_id)[:-1], table_id)
+    socketio.emit("yourLocalInfo", genUsers(table_id)[:-1], to=table_id)
     socketio.emit("userJoined", genUsers(table_id), to=table_id)
 
-# ready_users = {}
-# @socketio.on('ready')
-# def user_ready(table_id, user):
-#     if table_id not in ready_users.keys():
-#         ready_users[table_id] = set()
-#     ready_users[table_id].add(user)
-#     if len(ready_users[table_id]) == 4:
-#         emit('allReady', to=table_id)
+ready_users = {}
+@socketio.on('ready')
+def user_ready(table_id, user):
+    if table_id not in ready_users.keys():
+        ready_users[table_id] = set()
+    ready_users[table_id].add(user)
+    print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
+    if len(ready_users[table_id]) >= 4:
+        emit('allReady', to=table_id)
+        print("everyone ready")
 
 
 @socketio.on('cardPlayed')

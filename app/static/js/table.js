@@ -1,3 +1,5 @@
+var socket = io.connect('http://localhost:80');;
+
 // Sample jsonData for test purposes
 jsonData = {
     "cardsPlayed": [null, null, null, null],
@@ -51,6 +53,17 @@ function displayPlayers() {
 }
 
 /*
+    Build a card object.
+*/
+function buildCard(cardString) {
+    const card = document.createElement("input");
+    card.setAttribute("src", "/getimages/static/" + cardString + ".svg");
+    card.setAttribute("type", "image");
+    card.setAttribute("class", "card");
+    return card;
+}
+
+/*
     Construct a default hand of X card backs.
 
     Parameters:
@@ -64,18 +77,14 @@ function displayPlayers() {
 */
 function buildEmptyHand(handDiv, handSize, isPlaying) {
     for (let i = 0; i < handSize; i++) {
-        const card = document.createElement("input");
-        card.setAttribute("src", "/getimages/static/back.svg");
-        card.setAttribute("type", "image");
-        card.setAttribute("class", "card");
-        handDiv.appendChild(card);
-
+        const card = buildCard("back");
         if (isPlaying == 0) {
             card.style.boxShadow = "0px 0px 22px #8fd7d2";
         }
         else {
             card.style.boxShadow = "";
         }
+        handDiv.appendChild(card);
     }
 }
 
@@ -94,11 +103,7 @@ function buildEmptyHand(handDiv, handSize, isPlaying) {
 function buildHand(handDiv, hand, seat, isPlaying) {
     for (let i = 0; i < hand.length; i++) {
         //TODO load hand
-        const card = document.createElement("input");
-        card_image_path = "/getimages/static/" + hand[i] + ".svg";
-        card.setAttribute("src", card_image_path);
-        card.setAttribute("type", "image");
-        card.setAttribute("class", "card");
+        const card = buildCard(hand[i]);
         if (seat == 0) {
             card.setAttribute("onclick", cardPlayed(user, hand[i]));
         }
@@ -109,7 +114,6 @@ function buildHand(handDiv, hand, seat, isPlaying) {
             card.style.boxShadow = "";
         }
         
-
         // link.addEventListener('mouseover', function() {
         //     card.style.border = '2px solid blue'; // Add border on mouseover
         //     card.style.transition = 'border-color 0.5s ease';
@@ -127,11 +131,7 @@ function buildHand(handDiv, hand, seat, isPlaying) {
 function buildDummyHand(handDiv, hand, seat, isPlaying, dummyUser) {
     for (let i = 0; i < hand.length; i++) {
         //TODO load hand
-        const card = document.createElement("input");
-        card_image_path = "/getimages/static/" + hand[i] + ".svg";
-        card.setAttribute("src", card_image_path);
-        card.setAttribute("type", "image");
-        card.setAttribute("class", "card");
+        const card = buildCard(hand[i]);
         if (seat == 2) {
             card.setAttribute("onclick", cardPlayed(dummyUser, hand[i]));
         }
@@ -142,7 +142,6 @@ function buildDummyHand(handDiv, hand, seat, isPlaying, dummyUser) {
             card.style.boxShadow = "";
         }
         
-
         // link.addEventListener('mouseover', function() {
         //     card.style.border = '2px solid blue'; // Add border on mouseover
         //     card.style.transition = 'border-color 0.5s ease';
@@ -159,6 +158,17 @@ function buildDummyHand(handDiv, hand, seat, isPlaying, dummyUser) {
 
 function cardPlayed(user, value) {
     socket.emit("cardPlayed", user, value);
+}
+
+function buildPlayArea(cardsPlayed, seat) {
+    const playArea = document.getElementById("playArea");
+
+    playArea.innerHTML = "";
+    for (let i = 0; i < 4; i++) {
+        if (cardsPlayed[i]) {
+            playArea.appendChild(buildCard(cardsPlayed[i]));
+        }
+    }
 }
 
 /*
@@ -237,7 +247,8 @@ function readyUp() {
     document.getElementById("start-button").remove();
 
     // Notify the server that the user is ready
-    socket.emit('ready', user);
+    socket.emit('ready', tableID, user);
+    console.log(`emitted to socket: ready, ${tableID}, ${user}`);
 
     // Create the div structuring
     buildTableStructure();
@@ -317,6 +328,8 @@ function renderUpdate(jsonData) {
         buildEmptyHand(oppL_hand, jsonData.handSizes[(jsonData.yourDirection + 1)%4]);
         buildEmptyHand(oppR_hand, jsonData.handSizes[(jsonData.yourDirection + 3)%4]);
     }
+
+    buildPlayArea(jsonData.cardsPlayed, (jsonData.whoseTurn - 1)%4);
 }
 
 function makeHand(cards) {
@@ -424,7 +437,6 @@ function hideAllCards() {
 }
 
 // Socket stuff. Someone with more knowledge should comment this.
-var socket = io.connect('http://localhost:80');
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected');
     socket.emit('joinRoom', window.location.pathname.substring(7))
