@@ -135,7 +135,7 @@ def joinTable(table_id):
             Server.active_tables[table_id].players[direction] = session['username']
             session['userPosition'] = direction
             break
-        elif player = session['username']:
+        elif player == session['username']:
             break
     socketio.emit("userJoined", genUsers(table_id))
     session['currentTable'] = table_id
