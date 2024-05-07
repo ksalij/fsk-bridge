@@ -120,6 +120,8 @@ class Game:
         '''
         # print(player)
         # print(self.current_bridgehand.hands[player])
+        if self.game_phase != "PLAY":
+            return False
 
         # check if the card is in the players hand
         if not self.current_bridgehand.hands[player].has(card):
@@ -201,6 +203,9 @@ class Game:
         If so, update the BridgeHand auction state.
         Update valid bids for the next player.
         '''
+        if self.game_phase != "AUCTION":
+            return False
+
         if not (bid in self.valid_bids or bid == 'p'):
             return False
 
@@ -358,13 +363,13 @@ class Game:
             # print("length", len(self.current_bridgehand.play))
             if len(self.current_bridgehand.play) == 0:
                 leader = self.current_player
-                current_trick = {'lead': leader}
+                current_trick = None
             else:
-                current_trick = self.current_bridgehand.play[-1]
+                current_trick = self.current_bridgehand.play[-1].copy()
                 leader = PLAYER_MAP[current_trick['lead']]
             
-            current_trick.pop('lead')
-            current_trick = {pos:str(card) for pos, card in current_trick.items()}
+                current_trick.pop('lead')
+                current_trick = {pos:str(card) for pos, card in current_trick.items()}
 
             contract = self.current_bridgehand.contract
 
@@ -395,8 +400,7 @@ class Game:
                     "dummy_hand": dummy_hand,
                     "contract": contract,
                     "players": players,
-                    "current_player": current_player,
-                    "plays": plays}
+                    "current_player": current_player}
         return json.dumps(return_dict)
 
 def get_partner(position: str):
