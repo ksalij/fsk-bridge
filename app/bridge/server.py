@@ -347,6 +347,8 @@ class Game:
             contract = None
         else:
             valid_bids = None
+
+            plays = {self.current_bridgehand.play}
         
             dummy = get_partner(self.current_bridgehand.declarer)
             dummy_direction = PLAYER_MAP[dummy]
@@ -376,7 +378,7 @@ class Game:
             your_direction = 'Error: Player Not Found'
             your_hand = None
 
-        hand_sizes = {PLAYER_MAP[pos]:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
 
         players = self.current_bridgehand.players
 
@@ -393,7 +395,8 @@ class Game:
                     "dummy_hand": dummy_hand,
                     "contract": contract,
                     "players": players,
-                    "current_player": current_player}
+                    "current_player": current_player,
+                    "plays": plays}
         return json.dumps(return_dict)
 
 def get_partner(position: str):
