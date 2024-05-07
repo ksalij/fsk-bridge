@@ -192,10 +192,10 @@ def handle_message(user, card):
     table_id = Server.client_list[user]
     user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
     if not Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
-        emit(False, to=request.sid)
+        emit('isCardGood', (False, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
         print('bad card')
     else:
-        emit(True, to=request.sid)
+        emit('isCardGood', (True, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
         print('good card')
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
         emit('requestGameState', to=table_id)

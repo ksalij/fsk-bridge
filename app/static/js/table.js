@@ -315,19 +315,17 @@ function renderUpdate(jsonData) {
     const partner_hand = document.getElementById("partner_hand");
     const oppL_hand = document.getElementById("oppL_hand");
     const oppR_hand = document.getElementById("oppR_hand");
-    for (var i = 0; i < 13; i++) {
-        if (client_hand.firstChild) {
-            client_hand.removeChild(client_hand.firstChild);
-        }
-        if (partner_hand.firstChild) {
-            partner_hand.removeChild(partner_hand.firstChild);
-        }
-        if (oppL_hand.firstChild) {
-            oppL_hand.removeChild(oppL_hand.firstChild);
-        }
-        if (oppR_hand.firstChild) {
-            oppR_hand.removeChild(oppR_hand.firstChild);
-        }
+    while (client_hand.firstChild) {
+        client_hand.removeChild(client_hand.firstChild);
+    }
+    while (partner_hand.firstChild) {
+        partner_hand.removeChild(partner_hand.firstChild);
+    }
+    while (oppL_hand.firstChild) {
+        oppL_hand.removeChild(oppL_hand.firstChild);
+    }
+    while (oppR_hand.firstChild) {
+        oppR_hand.removeChild(oppR_hand.firstChild);
     }
 
     buildHand(client_hand, jsonData.your_hand, 0, specialModFour(jsonData.your_direction - jsonData.current_player));
@@ -492,4 +490,14 @@ socket.on('gameState', (jsonInput) => {
 
 socket.on('readyInfo', (data) => {
     console.log(data);
-})
+});
+
+socket.on('isCardGood', (bool, json) => {
+    if(bool) {
+        console.log("good card");
+    }
+    else {
+        console.log("bad card");
+    }
+    console.log(json);
+});
