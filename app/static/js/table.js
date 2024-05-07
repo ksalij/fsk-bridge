@@ -1,4 +1,4 @@
-var socket = io.connect('http://localhost:80');;
+//var socket = io.connect('http://localhost:80');;
 
 // Sample jsonData for test purposes
 // jsonData = {
@@ -430,6 +430,9 @@ function hideAllCards() {
     button.setAttribute("onclick", "showAllCards()");
     button.innerHTML = ("Click me to display cards!");
 }
+
+// Call the fetchImages function when the page loads
+window.addEventListener("load", (event) => { fetchImages(); });
 
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
