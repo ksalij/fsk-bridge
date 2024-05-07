@@ -220,12 +220,13 @@ def update_game_state(user):
 @socketio.on('startAuction')
 def start_auction(table_id):
     game = Server.active_tables[table_id].current_game
-    game.deal()
+    # game.deal()
     emit('requestGameState', to=table_id)
     # TODO START AUCTION
-    game.current_bridgehand.bids = ['1C', 'p', 'p', 'p']
-    game.begin_play_phase()
-    game.update_current_player()
+    game.make_bid('N', '1C')
+    game.make_bid('E', 'p')
+    game.make_bid('S', 'p')
+    game.make_bid('W', 'p')
     emit('requestGameState', to=table_id)
     
 # Count the number of connected clients
