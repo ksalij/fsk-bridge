@@ -361,7 +361,7 @@ class Game:
                 current_trick = {'lead': leader}
             else:
                 current_trick = self.current_bridgehand.play[-1]
-                leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
+                leader = PLAYER_MAP[current_trick['lead']]
             
             current_trick.pop('lead')
             current_trick = {pos:str(card) for pos, card in current_trick.items()}
