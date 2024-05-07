@@ -192,7 +192,7 @@ function displayAuction(){
     const tab = document.createElement("div");
     tab.setAttribute("class", "tab");
     
-    window.alert(JSON.stringify(jsonData.valid_bids)[0][0]);
+    // window.alert(JSON.stringify(jsonData.valid_bids)[0][0]);
     // parseInt(jsonData['valid_bids'][0][0])
     for (let i = 1; i < 8; i++){
         const level = document.createElement("button");
@@ -207,7 +207,7 @@ function displayAuction(){
         suitName = ["club", "diamond", "heart", "spade"];
         suits = ['\u2663', '\u2666', '\u2665', '\u2660'];
         for (let j = 0; j < 4; j++){
-            suitButtons = suitButtons +  "<button class = \"suit\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button> ";
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick=\"makeBid()\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button> ";
         }
         suitButtons = suitButtons + "</div>";
         tabcontent.innerHTML = (suitButtons);
@@ -217,6 +217,7 @@ function displayAuction(){
 }
 
 function openBid(evt, level) {
+    window.alert("You opened a bid!");
     // Declare all variables
     var i, tabcontent, tablinks;
   
@@ -236,3 +237,7 @@ function openBid(evt, level) {
     document.getElementById(level).style.display = "block";
     evt.currentTarget.className += " active";
   }
+
+function makeBid(){
+    window.alert("You are trying to make a bid!!!");
+}
