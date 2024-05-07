@@ -21,7 +21,7 @@ button {
 
 img {
     width: 100%;
-    border: 1px solid black;
+    /* border: 1px solid black; */
 }
 
 #game {
@@ -46,6 +46,14 @@ img {
 #start-button {
     top: 50%;
     transform: translateY(calc(-50% - 15px));
+}
+
+#waiting {
+    margin-top: -50%;
+}
+
+#play_area {
+    margin-top: -50%;
 }
 
 #client_team {
@@ -92,7 +100,7 @@ img {
     z-index: 0;
 }
 
-.card:hover {
+.card img:hover {
     border: 2px solid blue;
     transition: border-color 0.5s ease;
     transform: translateY(-10px);
@@ -101,6 +109,14 @@ img {
 .card + .card {
     margin-left: -17.5%;
 }
+
+
+input.glow{
+    -webkit-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+-moz-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+}
+
 /* Style the tab */
 .tab {
     overflow: hidden;
