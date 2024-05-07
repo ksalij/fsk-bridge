@@ -118,8 +118,9 @@ class Game:
         output:
             returns True of card is successfully played, False otherwise
         '''
-        print(player)
-        print(self.current_bridgehand.hands[player])
+        # print(player)
+        # print(self.current_bridgehand.hands[player])
+
         # check if the card is in the players hand
         if not self.current_bridgehand.hands[player].has(card):
             return False
@@ -350,9 +351,11 @@ class Game:
             dummy = get_partner(self.current_bridgehand.declarer)
             dummy_direction = PLAYER_MAP[dummy]
             dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
+           
             # TODO REPLACE BACKEND: OUTPUT JSON WHEN THE FIRST TRICK HASN'T BEEN PLAYED
+            # print("length", len(self.current_bridgehand.play))
             if len(self.current_bridgehand.play) == 0:
-                leader = (PLAYER_MAP[dummy] - 1) % 4
+                leader = self.current_player
                 current_trick = {'lead': leader}
             else:
                 current_trick = self.current_bridgehand.play[-1]
@@ -360,7 +363,6 @@ class Game:
             
             current_trick.pop('lead')
             current_trick = {pos:str(card) for pos, card in current_trick.items()}
-
 
             contract = self.current_bridgehand.contract
 
