@@ -245,7 +245,7 @@ function buildTableStructure() {
 
 /*
     Indicate to the server that the client is ready to play.
-    Called when the user clicks on the "start-button" button.
+    Called when the user clicks on the "ready-button" button.
 
     Parameters: none
 
@@ -256,8 +256,8 @@ function buildTableStructure() {
       - inform the user that the table is waiting for other players
 */
 function readyUp() {
-    // Remove the start button
-    document.getElementById("start-button").remove();
+    // Remove the ready button
+    document.getElementById("ready-button").remove();
 
     // Notify the server that the user is ready
     socket.emit('ready', tableID, user);
@@ -266,11 +266,40 @@ function readyUp() {
     // Create the div structuring
     buildTableStructure();
     
+    // Create ready message structuring
+    const readyInfo = document.createElement("div");
+    readyInfo.setAttribute("id", "ready-info");
+
     // Inform the user that the table is waiting for other players
     const waitMessage = document.createElement("p");
     waitMessage.setAttribute("id", "waiting");
     waitMessage.innerHTML = "Waiting for other players to ready up...";
-    document.getElementById("game").appendChild(waitMessage);
+    readyInfo.appendChild(waitMessage);
+
+    // Add the unready button
+    const unreadyButton = document.createElement("button");
+    unreadyButton.setAttribute("id", "unready-button");
+    unreadyButton.setAttribute("onclick", "readyDown()");
+    unreadyButton.innerHTML = "Unready";
+    readyInfo.appendChild(unreadyButton);
+
+    document.getElementById("game").appendChild(readyInfo);
+}
+
+function readyDown() {
+    // Reset the game area
+    // document.getElementById("client_hand").remove();
+    // document.getElementById("opp_hand").remove();
+    // document.getElementById("waiting").remove();
+    // document.getElementById("unready-node").remove();
+    document.getElementById("game").innerHTML = `<button id="ready-button" onclick="readyUp()">Ready Up!</button>`;
+    // readyButton = document.getElementById("ready-button");
+    // readyButton.innerHTML = "Ready Up!";
+    // readyButton.setAttribute("onclick", "readyUp()");
+
+    // Notify the server that the user is ready
+    socket.emit('unready', tableID, user);
+    console.log(`emitted to socket: unready, ${tableID}, ${user}`);
 }
 
 /*
@@ -459,6 +488,10 @@ socket.on('gameState', (jsonInput) => {
     renderUpdate(jsonData);
 });
 
+socket.on('readyInfo', (data) => {
+    console.log(data);
+});
+
 socket.on('isCardGood', (bool, json) => {
     if(bool) {
         console.log("good card");
@@ -467,4 +500,4 @@ socket.on('isCardGood', (bool, json) => {
         console.log("bad card");
     }
     console.log(json);
-})
+});

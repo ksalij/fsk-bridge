@@ -42,13 +42,14 @@ img {
     font-size: 18px;
 } */
 
-#start-button {
+#ready-button {
     top: 50%;
     transform: translateY(calc(-50% - 15px));
 }
 
-#waiting {
+#ready-info {
     margin-top: -50%;
+    transform: translateY(-75%);
 }
 
 #play_area {
@@ -111,6 +112,6 @@ img {
 
 input.glow{
     -webkit-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
--moz-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+    -moz-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+    box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
 }

@@ -175,10 +175,16 @@ def user_ready(table_id, user):
     if table_id not in ready_users.keys():
         ready_users[table_id] = set()
     ready_users[table_id].add(user)
+    # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
         start_auction(table_id)
 
+@socketio.on('unready')
+def user_unready(table_id, user):
+    if table_id in ready_users.keys():
+        ready_users[table_id].remove(user)
+    # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
 
 @socketio.on('cardPlayed')
 def handle_message(user, card):
