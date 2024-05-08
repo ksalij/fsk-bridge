@@ -462,9 +462,9 @@ socket.on('yourLocalInfo', (your_user, your_table_id) => {
     console.log("my local info");
 });
 
-socket.on('userJoined', (response) => {
-    players = document.getElementById("currentPlayers");
-    players.innerHTML = "Current Users: " + response;
+socket.on('updateUsers', (response) => {
+    players = document.getElementById("users");
+    players.innerHTML = response;
 });
 
 socket.on('requestGameState', (response) => {
