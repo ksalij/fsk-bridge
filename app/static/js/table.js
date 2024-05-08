@@ -27,6 +27,20 @@
 //     "current_player": 0
 // }
 
+jsonData = {"game_phase": "AUCTION", 
+            "valid_bids:": ["2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"], 
+            "current_trick": null, 
+            "leader": null, 
+            "your_direction": 1, 
+            "your_hand": ["2C", "3C", "5C", "QC", "3D", "6D", "7D", "3H", "9H", "TH", "5S", "7S", "8S"], 
+            "hand_sizes": {"3": 13, "0": 13, "1": 13, "2": 13}, 
+            "dummy_direction": null, 
+            "dummy_hand": null, 
+            "contract": null, 
+            "players": {"E": "user0", "S": "user1", "W": "user2", "N": "user3"}, 
+            "current_player": 1
+        }
+
 // Some global variables to keep track of the client relative to the rest of the table
 let user = "";
 let tableID = 0;
@@ -257,6 +271,7 @@ function buildTableStructure() {
       - inform the user that the table is waiting for other players
 */
 function readyUp() {
+    displayAuction();
     // Remove the start button
     document.getElementById("start-button").remove();
 
@@ -468,10 +483,10 @@ function displayAuction(){
     bidding.setAttribute("id", "bidding");
     const tab = document.createElement("div");
     tab.setAttribute("class", "tab");
-    
-    // window.alert(JSON.stringify(jsonData.valid_bids)[0][0]);
+    // window.alert(jsonData.valid_bids);
     // parseInt(jsonData['valid_bids'][0][0])
-    for (let i = 1; i < 8; i++){
+    validBids = ["2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"];
+    for (let i = parseInt(validBids[0][0]); i < 8; i++){
         const level = document.createElement("button");
         level.innerHTML = (
             "<button class=\"tablinks\" onclick=\"openBid(event, '" + i + "')\">" + i + "</button>");
@@ -481,10 +496,19 @@ function displayAuction(){
     for (let i = 1; i < 8; i++){
         const tabcontent = document.createElement("div");
         suitButtons = "<div id=\"" + i + "\" class=\"tabcontent\">";
-        suitName = ["club", "diamond", "heart", "spade"];
+        suitName = ["C", "D", "H", "S"];
         suits = ['\u2663', '\u2666', '\u2665', '\u2660'];
         for (let j = 0; j < 4; j++){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick=\"makeBid()\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button> ";
+            if (validBids.includes(i + suitName[j])){
+                suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
+            }
+        }
+        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = p> PASS </button>";
+        if (validBids.includes('d')){
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = d> X </button>";
+        }
+        if (validBids.includes('r')){
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = r> XX </button>";
         }
         suitButtons = suitButtons + "</div>";
         tabcontent.innerHTML = (suitButtons);
@@ -494,7 +518,6 @@ function displayAuction(){
 }
 
 function openBid(evt, level) {
-    window.alert("You opened a bid!");
     // Declare all variables
     var i, tabcontent, tablinks;
   
@@ -515,6 +538,6 @@ function openBid(evt, level) {
     evt.currentTarget.className += " active";
   }
 
-function makeBid(){
-    window.alert("You are trying to make a bid!!!");
+function makeBid(bid){
+    window.alert("You are trying to make a bid!!! The bid is " + bid);
 }
