@@ -9,7 +9,6 @@ import json
 table_id to Table object
 '''
 running_tables = {}
-game_counter = 0
 finished_bridgehands = {}
 
 class Game:
@@ -118,8 +117,6 @@ class Game:
         output:
             returns True of card is successfully played, False otherwise
         '''
-        # print(player)
-        # print(self.current_bridgehand.hands[player])
         if self.game_phase != "PLAY":
             return False
 
@@ -357,8 +354,7 @@ class Game:
             dummy_direction = PLAYER_MAP[dummy]
             dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
            
-            # TODO REPLACE BACKEND: OUTPUT JSON WHEN THE FIRST TRICK HASN'T BEEN PLAYED
-            # print("length", len(self.current_bridgehand.play))
+            # first trick hasn't been played
             if len(self.current_bridgehand.play) == 0:
                 leader = self.current_player
                 current_trick = None
@@ -433,14 +429,7 @@ class Table:
     def new_game(self):
         '''
         creates a new game at this table
-        gives it a game_id based on the global game_counter variable 
-        (should be replaced by something with regards to the database so game_ids are not repeated)
-        
         '''
-        global game_counter
-        game_counter += 1
-        game_id = game_counter
-
         self.game_count += 1
 
         if self.seed == None:
