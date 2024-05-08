@@ -253,8 +253,9 @@ def connect():
 def disconnect():
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    if session.get('currentTable') is not None and Server.active_tables[session.get('currentTable')]:
-        emit("updateUsers", genUsers(session['currentTable']), broadcast=True)
+    if session.get('currentTable') is not None:
+        if Server.active_tables[session.get('currentTable')]:
+            emit("updateUsers", genUsers(session['currentTable']), broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)
