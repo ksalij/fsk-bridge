@@ -352,8 +352,6 @@ class Game:
             contract = None
         else:
             valid_bids = None
-
-            plays = {self.current_bridgehand.play}
         
             dummy = get_partner(self.current_bridgehand.declarer)
             dummy_direction = PLAYER_MAP[dummy]
