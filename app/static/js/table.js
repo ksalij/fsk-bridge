@@ -138,13 +138,13 @@ function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, 
         //   - it's the client's turn and the client is not the dummy, or
         //   - it's the dummy's turn and the client is the dummy's partner
         if (seat == playingSeat) {
-            card.setAttribute("class", "current-turn");
+            card.setAttribute("class", card.getAttribute("class") + " current-turn");
             // 
-            if (playableCards.includes(hand[i])) {
-                card.setAttribute("class", "playable");
+            if (playableCards && playableCards.includes(hand[i])) {
+                card.setAttribute("class", card.getAttribute("class") + " playable");
                 if (clientSeat != dummySeat && seat == clientSeat) {
                     card.setAttribute("onclick", `cardPlayed("${user}", "${hand[i]}")`);
-                } else if (seat == dummySeat && dummySeat == (clientSeat + 2) % 4) {
+                } else if (seat == dummySeat && dummySeat == ((clientSeat + 2) % 4)) {
                     card.setAttribute("onclick", `cardPlayed("${dummyUser}", "${hand[i]}")`);
                 }
             }
@@ -200,14 +200,15 @@ function cardPlayed(user, value) {
 function buildPlayArea(cardsPlayed) {
     const playArea = document.getElementById("play-area");
 
-    for (var i = 0; i < 4; i++) {
-        if (playArea.firstChild) {
+    while (playArea.firstChild) {
             playArea.removeChild(playArea.firstChild);
-        }
     }
-    for (let i = 0; i < 4; i++) {
-        if (cardsPlayed[i]) {
-            playArea.appendChild(buildCard(cardsPlayed[i]));
+    console.log(cardsPlayed);
+    if (cardsPlayed) {
+        for (let i = 0; i < 4; i++) {
+            if (cardsPlayed[i]) {
+                playArea.appendChild(buildCard(cardsPlayed[i]));
+            }
         }
     }
 }
@@ -372,13 +373,10 @@ function renderUpdate(jsonData) {
     seats[(jsonData.your_direction + 3) % 4] = oppR_hand;
 
     const hands = [];
-    for (let i = 0; i < hands.length; i++) {
-        const hand = [];
-        for (let j = 0; j < jsonData.hand_sizes[i]; j++) {
-            hand[j] = "back";
-        }
-        console.log(hand);
-        hands[i] = hand;
+    for (let i = 0; i < 4; i++) {
+        console.log(Array(jsonData.hand_sizes[i]).fill("back"));
+        hands[i] = Array(jsonData.hand_sizes[i]).fill("back");
+        console.log(hands[i]);
     }
     hands[jsonData.your_direction] = jsonData.your_hand;
     hands[jsonData.dummy_direction] = jsonData.dummy_hand;

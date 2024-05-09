@@ -377,7 +377,9 @@ class Game:
             your_direction = 'Error: Player Not Found'
             your_hand = None
 
-        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+        hand_sizes = [0, 0, 0, 0]
+        for pos, hand in self.current_bridgehand.hands.items():
+            hand_sizes[PLAYER_MAP[pos]] = len(hand)
 
         players = self.current_bridgehand.players
 
