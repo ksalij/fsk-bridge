@@ -100,7 +100,7 @@ function buildEmptyHand(handDiv, handSize, isPlaying) {
           - it links to the .svg image of the card
           - its content is an image element of the card
 */
-function buildHand(handDiv, hand, seat, isPlaying) {
+/*function buildHand(handDiv, hand, seat, isPlaying) {
     for (let i = 0; i < hand.length; i++) {
         //TODO load hand
         const card = buildCard(hand[i]);
@@ -126,12 +126,49 @@ function buildHand(handDiv, hand, seat, isPlaying) {
 
         handDiv.appendChild(card);
     }
-}
+}*/
 
-function buildDummyHand(handDiv, hand, seat, isPlaying, dummyUser) {
+function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, dummySeat, dummyUser) {
     for (let i = 0; i < hand.length; i++) {
         //TODO load hand
         const card = buildCard(hand[i]);
+
+        // If constructing the current player's hand, add the current-turn attribute to the cards.
+        // Additionally, make these cards playable for the client if:
+        //   - it's the client's turn and the client is not the dummy, or
+        //   - it's the dummy's turn and the client is the dummy's partner
+        if (seat == playingSeat) {
+            card.setAttribute("class", "current-turn");
+            // 
+            if (playableCards.includes(hand[i])) {
+                card.setAttribute("class", "playable");
+                if (clientSeat != dummySeat && seat == clientSeat) {
+                    card.setAttribute("onclick", `cardPlayed("${user}", "${hand[i]}")`);
+                } else if (seat == dummySeat && dummySeat == (clientSeat + 2) % 4) {
+                    card.setAttribute("onclick", `cardPlayed("${dummyUser}", "${hand[i]}")`);
+                }
+            }
+        }
+
+        // link.addEventListener('mouseover', function() {
+        //     card.style.border = '2px solid blue'; // Add border on mouseover
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        // link.addEventListener('mouseout', function() {
+        //     card.style.border = '2px transparent'; // Remove border on mouseout
+        //     card.style.transition = 'border-color 0.5s ease';
+        //     });
+
+        handDiv.appendChild(card);
+    }
+}
+
+function buildDummyHand(handDiv, hand, playableCards, seat, isPlaying, dummyUser) {
+    for (let i = 0; i < hand.length; i++) {
+        //TODO load hand
+        const card = buildCard(hand[i]);
+
         if (seat == 2) {
             card.setAttribute("onclick", `cardPlayed("${dummyUser}", "${hand[i]}")`);
         }   
@@ -328,42 +365,25 @@ function renderUpdate(jsonData) {
         oppR_hand.removeChild(oppR_hand.firstChild);
     }
 
-    buildHand(client_hand, jsonData.your_hand, 0, specialModFour(jsonData.your_direction - jsonData.current_player));
+    const seats = [null, null, null, null];
+    seats[jsonData.your_direction] = client_hand;
+    seats[(jsonData.your_direction + 2) % 4] = partner_hand;
+    seats[(jsonData.your_direction + 1) % 4] = oppL_hand;
+    seats[(jsonData.your_direction + 3) % 4] = oppR_hand;
 
-    if(jsonData.dummy_direction) {
-        switch(specialModFour(jsonData.dummy_direction - jsonData.your_direction)) {
-            case 0:
-                //TODO: maybe put a dummy indicator on you
-                buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.your_direction + 2 - jsonData.current_player));
-                buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.your_direction + 1 - jsonData.current_player));
-                buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.your_direction + 3 - jsonData.current_player));
-                break;
-            case 1:
-                buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.your_direction + 2 - jsonData.current_player));
-                buildDummyHand(oppL_hand, jsonData.dummy_hand, 1, specialModFour(jsonData.your_direction + 1 - jsonData.current_player), jsonData.players[jsonData.dummy_direction]);
-                buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.your_direction + 3 - jsonData.current_player));
-                break;
-            case 2:
-                buildDummyHand(partner_hand, jsonData.dummy_hand, 2, specialModFour(jsonData.your_direction + 2 - jsonData.current_player), jsonData.players[jsonData.dummy_direction]);
-                buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.your_direction + 1 - jsonData.current_player));
-                buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.your_direction + 3 - jsonData.current_player));
-                break;
-            case 3:
-                buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.your_direction + 2 - jsonData.current_player));
-                buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.your_direction + 1 - jsonData.current_player));
-                buildDummyHand(oppR_hand, jsonData.dummy_hand, 3, specialModFour(jsonData.your_direction + 3 - jsonData.current_player), jsonData.players[jsonData.dummy_direction]);
-                break;
-
-            default:
-                buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.your_direction + 2 - jsonData.current_player));
-                buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.your_direction + 1 - jsonData.current_player));
-                buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.your_direction + 3 - jsonData.current_player));
-                break;
+    const hands = [];
+    for (let i = 0; i < hands.length; i++) {
+        const hand = [];
+        for (let j = 0; j < jsonData.hand_sizes[i]; j++) {
+            hand.push("back");
         }
-    } else {
-        buildEmptyHand(partner_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 2)], specialModFour(jsonData.current_player - jsonData.yourDirection + 2));
-        buildEmptyHand(oppL_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 1)], specialModFour(jsonData.current_player - jsonData.yourDirection + 1));
-        buildEmptyHand(oppR_hand, jsonData.hand_sizes[specialModFour(jsonData.your_direction + 3)], specialModFour(jsonData.current_player - jsonData.yourDirection + 3));
+        hands.push(hand);
+    }
+    hands[jsonData.your_direction] = jsonData.your_hand;
+    hands[jsonData.dummy_direction] = jsonData.dummy_hand;
+
+    for (let i = 0; i < seats.length; i++) {
+        buildHand(seats[i], hands[i], jsonData.playable_cards, i, jsonData.current_player, jsonData.your_direction, jsonData.dummy_direction, jsonData.players[jsonData.dummy_direction]);
     }
 
     buildPlayArea(jsonData.current_trick);

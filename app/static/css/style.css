@@ -106,7 +106,7 @@ img {
     z-index: 0;
 }
 
-.card:hover {
+.playable:hover {
     border: 2px solid blue;
     transition: border-color 0.5s ease;
     transform: translateY(-10px);
@@ -116,8 +116,12 @@ img {
     margin-left: -17.5%;
 }
 
-input.glow{
+input.glow {
     -webkit-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
     -moz-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
     box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+}
+
+.current-turn {
+    box-shadow: 0px 0px 22px #8fd7d2;
 }
