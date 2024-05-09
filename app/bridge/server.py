@@ -383,12 +383,24 @@ class Game:
 
         current_player = PLAYER_MAP[self.current_player]
 
+        if self.game_phase == "AUCTION":
+            playable_cards = None
+        elif your_direction == dummy:
+            playable_cards = None
+        elif your_direction == self.current_player:
+            playable_cards = [str(card) for card in self.get_playable_cards()]
+        elif your_direction == self.current_bridgehand.declarer and dummy == self.current_player:
+            playable_cards = [str(card) for card in self.get_playable_cards()]
+        else:
+            playable_cards = None
+
         return_dict = {"game_phase": self.game_phase,
                     "valid_bids:": valid_bids,
                     "current_trick": current_trick,
                     "leader": leader,
                     "your_direction": PLAYER_MAP[your_direction],
                     "your_hand": your_hand,
+                    "playable_cards": playable_cards,
                     "hand_sizes": hand_sizes,
                     "dummy_direction": dummy_direction,
                     "dummy_hand": dummy_hand,
