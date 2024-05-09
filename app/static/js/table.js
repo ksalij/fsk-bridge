@@ -375,14 +375,16 @@ function renderUpdate(jsonData) {
     for (let i = 0; i < hands.length; i++) {
         const hand = [];
         for (let j = 0; j < jsonData.hand_sizes[i]; j++) {
-            hand.push("back");
+            hand[j] = "back";
         }
-        hands.push(hand);
+        console.log(hand);
+        hands[i] = hand;
     }
     hands[jsonData.your_direction] = jsonData.your_hand;
     hands[jsonData.dummy_direction] = jsonData.dummy_hand;
-
+    console.log(hands);
     for (let i = 0; i < seats.length; i++) {
+        console.log(hands[i]);
         buildHand(seats[i], hands[i], jsonData.playable_cards, i, jsonData.current_player, jsonData.your_direction, jsonData.dummy_direction, jsonData.players[jsonData.dummy_direction]);
     }
 
