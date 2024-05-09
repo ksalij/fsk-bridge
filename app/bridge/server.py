@@ -336,20 +336,10 @@ class Game:
             current_player: int
         '''
         # info that varies based on the game phase
-        if self.game_phase == 'AUCTION':
-            valid_bids = self.valid_bids
-
-            current_trick = None
-            leader = None
-
-            dummy = None
-            dummy_direction = None
-            dummy_hand = None
-
-            contract = None
-        else:
-            valid_bids = None
-        
+        if self.game_phase == 'END':
+            return_dict['NS']
+        elif self.game_phase == 'AUCTION':
+            return_dict['valid_bids'] = self.valid_bids      else:
             dummy = get_partner(self.current_bridgehand.declarer)
             dummy_direction = PLAYER_MAP[dummy]
             dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
@@ -382,6 +372,8 @@ class Game:
         players = self.current_bridgehand.players
 
         current_player = PLAYER_MAP[self.current_player]
+        NS_score = running_tables[self.table_id].NS_score
+        EW_score = running_tables[self.table_id].EW_score
 
         if self.game_phase == "AUCTION":
             playable_cards = None
@@ -406,7 +398,9 @@ class Game:
                     "dummy_hand": dummy_hand,
                     "contract": contract,
                     "players": players,
-                    "current_player": current_player}
+                    "current_player": current_player,
+                    "NS_score": NS_score,
+                    "EW_score": EW_score}
         return json.dumps(return_dict)
 
 def get_partner(position: str):
@@ -475,8 +469,9 @@ class Table:
             print("Final Score", score)
 
         # set current_game to none
-        self.current_game = None
+        # self.current_game = None
         # store the finished game somewhere (lin format eventually)
+        # 
     
     def join_table(self, playername: str, direction: str):
         '''
