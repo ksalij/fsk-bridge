@@ -47,13 +47,19 @@ img {
     transform: translateY(calc(-50% - 15px));
 }
 
-#ready-info {
-    margin-top: -50%;
-    transform: translateY(-75%);
+#ready-info,
+#play-area {
+    margin: -50% auto 0;
+    transform: translateY(-50%);
 }
 
-#play_area {
-    margin-top: -50%;
+#ready-info {
+    width: 300px;
+}
+
+#play-area {
+    width: 250px;
+    height: 250px;
 }
 
 #client_team {

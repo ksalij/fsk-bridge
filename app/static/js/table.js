@@ -161,7 +161,7 @@ function cardPlayed(user, value) {
 }
 
 function buildPlayArea(cardsPlayed) {
-    const playArea = document.getElementById("playArea");
+    const playArea = document.getElementById("play-area");
 
     for (var i = 0; i < 4; i++) {
         if (playArea.firstChild) {
@@ -227,7 +227,7 @@ function buildTableStructure() {
 
     // Create an area for cards played during a trick
     const playArea = document.createElement("div");
-    playArea.setAttribute("id", "playArea");
+    playArea.setAttribute("id", "play-area");
   
     // Add each hand to the correct containers
     client_team.appendChild(client_hand);
