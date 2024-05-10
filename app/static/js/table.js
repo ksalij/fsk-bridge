@@ -27,6 +27,20 @@
 //     "current_player": 0
 // }
 
+jsonData = {"game_phase": "AUCTION", 
+            "valid_bids:": ["2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"], 
+            "current_trick": null, 
+            "leader": null, 
+            "your_direction": 1, 
+            "your_hand": ["2C", "3C", "5C", "QC", "3D", "6D", "7D", "3H", "9H", "TH", "5S", "7S", "8S"], 
+            "hand_sizes": {"3": 13, "0": 13, "1": 13, "2": 13}, 
+            "dummy_direction": null, 
+            "dummy_hand": null, 
+            "contract": null, 
+            "players": {"E": "user0", "S": "user1", "W": "user2", "N": "user3"}, 
+            "current_player": 1
+        }
+
 // Some global variables to keep track of the client relative to the rest of the table
 let user = "";
 let tableID = 0;
@@ -44,6 +58,7 @@ let tableID = 0;
 
 // Load debugging info on page load
 // window.addEventListener("load", (event) => { loadPlayerDiv(); });
+
 
 // function displayPlayers() {
 //     var gameInfoDiv = document.getElementById('players');
@@ -128,6 +143,7 @@ function buildHand(handDiv, hand, seat, isPlaying) {
     }
 }
 
+
 function buildDummyHand(handDiv, hand, seat, isPlaying, dummyUser) {
     for (let i = 0; i < hand.length; i++) {
         //TODO load hand
@@ -151,7 +167,6 @@ function buildDummyHand(handDiv, hand, seat, isPlaying, dummyUser) {
         //     card.style.border = '2px transparent'; // Remove border on mouseout
         //     card.style.transition = 'border-color 0.5s ease';
         //     });
-
         handDiv.appendChild(card);
     }
 }
@@ -271,6 +286,7 @@ function readyUp() {
     waitMessage.setAttribute("id", "waiting");
     waitMessage.innerHTML = "Waiting for other players to ready up...";
     document.getElementById("game").appendChild(waitMessage);
+    displayAuction();
 }
 
 /*
@@ -460,3 +476,74 @@ socket.on('gameState', (jsonInput) => {
     console.log(jsonData);
     renderUpdate(jsonData);
 });
+
+function displayAuction(){
+    const gameDiv = document.getElementById("game");
+    const bidding = document.createElement("div");
+    bidding.setAttribute("id", "bidding");
+    const tab = document.createElement("div");
+    tab.setAttribute("class", "tab");
+    // window.alert(jsonData.valid_bids);
+    // parseInt(jsonData['valid_bids'][0][0])
+    validBids = ["1C", "1D", "1H", "1S", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"];
+    for (let i = parseInt(validBids[0][0]); i < 8; i++){
+        const level = document.createElement("button");
+        level.setAttribute('class', 'tablinks');
+        level.onclick = function(event){ 
+                                    openBid(event, i); 
+                                }
+        level.innerText = i;
+        // level.innerHTML = (
+        //     "<button class=\"tablinks\" onclick=\"openBid(event, '" + i + "')\">" + i + "</button>");
+        tab.appendChild(level);
+    }
+    bidding.appendChild(tab);
+    for (let i = 1; i < 8; i++){
+        const tabcontent = document.createElement("div");
+        suitButtons = "<div id=\"" + i + "\" class=\"tabcontent\">";
+        suitName = ["C", "D", "H", "S"];
+        suits = ['\u2663', '\u2666', '\u2665', '\u2660'];
+        for (let j = 0; j < 4; j++){
+            if (validBids.includes(i + suitName[j])){
+                suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
+            }
+        }
+        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = p> PASS </button>";
+        if (validBids.includes('d')){
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = d> X </button>";
+        }
+        if (validBids.includes('r')){
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = r> XX </button>";
+        }
+        suitButtons = suitButtons + "</div>";
+        tabcontent.innerHTML = (suitButtons);
+        bidding.appendChild(tabcontent);
+    }
+    gameDiv.appendChild(bidding);
+    openBid(event, "1");
+}
+
+function openBid(evt, level) {
+    // Declare all variables
+    var i, tabcontent, tablinks;
+  
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+  
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+  
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(level).style.display = "block";
+    evt.currentTarget.className += " active";
+  }
+
+function makeBid(bid){
+    window.alert("You are trying to make a bid!!! The bid is " + bid);
+}
