@@ -154,16 +154,58 @@ function buildHandStructure(handID) {
       - reset the play-area container
       - for each card in cardsPlayed, create an HTML element for the card and add the element to the play-area
 */
-function buildPlayArea(cardsPlayed) {
+function buildPlayArea() {
     const playArea = document.getElementById("play-area");
-    while (playArea.firstChild) {
-            playArea.removeChild(playArea.firstChild);
+
+    const clientTeam = document.createElement("div");
+    clientTeam.setAttribute("class", "client-team");
+    // clientTeam.setAttribute("id", "client-team-cards");
+    const oppTeam = document.createElement("div");
+    oppTeam.setAttribute("class", "opp-team");
+    // oppTeam.setAttribute("id", "opp-team-cards");
+
+    // create divs to organize the individual cards
+    const clientCard = document.createElement("div");
+    clientCard.setAttribute("id", "client-trick-card");
+    clientCard.setAttribute("class", "in-trick");
+    const partnerCard = document.createElement("div");
+    partnerCard.setAttribute("id", "partner-trick-card");
+    partnerCard.setAttribute("class", "in-trick");
+    const oppLCard = document.createElement("div");
+    oppLCard.setAttribute("id", "oppL-trick-card");
+    oppLCard.setAttribute("class", "in-trick");
+    const oppRCard = document.createElement("div");
+    oppRCard.setAttribute("id", "oppR-trick-card");
+    oppRCard.setAttribute("class", "in-trick");
+
+    // Add each card div to the correct containers
+    clientTeam.appendChild(clientCard);
+    clientTeam.appendChild(partnerCard);
+    oppTeam.appendChild(oppLCard);
+    oppTeam.appendChild(oppRCard);
+
+    // Add the new structures back into the document
+    playArea.appendChild(clientTeam);
+    playArea.appendChild(oppTeam);
+}
+
+function fillPlayArea(clientDirection, cardsPlayed) {
+    const playArea = document.getElementById("play-area");
+    const seats = [null, null, null, null];
+    seats[clientDirection] = document.getElementById("client-trick-card");
+    seats[(clientDirection + 2) % 4] = document.getElementById("partner-trick-card");
+    seats[(clientDirection + 1) % 4] = document.getElementById("oppL-trick-card");
+    seats[(clientDirection + 3) % 4] = document.getElementById("oppR-trick-card");
+    for (let i = 0; i < 4; i++) {
+        if (seats[i].firstChild) {
+            seats[i].removeChild(seats[i].firstChild);
+        }
     }
 
     if (cardsPlayed) {
         for (let i = 0; i < 4; i++) {
             if (cardsPlayed[i]) {
-                playArea.appendChild(buildCard(cardsPlayed[i]));
+                seats[i].appendChild(buildCard(cardsPlayed[i]));
             }
         }
     }
@@ -177,39 +219,41 @@ function buildPlayArea(cardsPlayed) {
     Functionality: Builds the div structure for the game table, outlined as follows:
       - a "card" is a link element with an image as its content
       - cards are organized in "hand" divs
-      - hands are organized into the structuring div for the appropriate team (ie. "client_team" or "opp_team")
-      - client_team and opp_team are contained in the "game" div
+      - hands are organized into the structuring div for the appropriate team (ie. "client-team-hands" or "opp-team-hands")
+      - client-team-hands and opp-team-hands are contained in the "game" div
       - the game div defines the geometry of the table and contains all of the divs relevant to the play of game
 */
 function buildTableStructure() {
     // Get the game div from the page
     const gameDiv = document.getElementById("game");
 
-    // Create the client_team and opp_team divs
-    const client_team = document.createElement("div"); // the client_team div contains elements for the user and their partner
-    client_team.setAttribute("id", "client_team");
-    const opp_team = document.createElement("div"); // the opp_team div contains elements for the user's two opponents
-    opp_team.setAttribute("id", "opp_team");
+    // Create the client-team-hands and opp-team-hands divs
+    const clientTeam = document.createElement("div"); // the client-team-hands div contains elements for the user and their partner
+    clientTeam.setAttribute("id", "client-team-hands");
+    clientTeam.setAttribute("class", "client-team");
+    const oppTeam = document.createElement("div"); // the opp-team-hands div contains elements for the user's two opponents
+    oppTeam.setAttribute("id", "opp-team-hands");
+    oppTeam.setAttribute("class", "opp-team");
     
     // Create an empty hand for each player
-    const client_hand = buildHandStructure("client_hand");
-    const partner_hand = buildHandStructure("partner_hand");
-    const oppL_hand = buildHandStructure("oppL_hand");
-    const oppR_hand = buildHandStructure("oppR_hand");
+    const clientHand = buildHandStructure("client_hand");
+    const partnerHand = buildHandStructure("partner_hand");
+    const oppLHand = buildHandStructure("oppL_hand");
+    const oppRHand = buildHandStructure("oppR_hand");
 
+    // Add each hand to the correct containers
+    clientTeam.appendChild(clientHand);
+    clientTeam.appendChild(partnerHand);
+    oppTeam.appendChild(oppLHand);
+    oppTeam.appendChild(oppRHand);
+    
     // Create an area for cards played during a trick
     const playArea = document.createElement("div");
     playArea.setAttribute("id", "play-area");
-  
-    // Add each hand to the correct containers
-    client_team.appendChild(client_hand);
-    client_team.appendChild(partner_hand);
-    opp_team.appendChild(oppL_hand);
-    opp_team.appendChild(oppR_hand);
 
     // Add the new structures back into the document
-    gameDiv.appendChild(client_team);
-    gameDiv.appendChild(opp_team);
+    gameDiv.appendChild(clientTeam);
+    gameDiv.appendChild(oppTeam);
     gameDiv.appendChild(playArea);
 }
 
@@ -235,6 +279,7 @@ function readyUp() {
 
     // Create the div structuring
     buildTableStructure();
+    buildPlayArea();
     
     // Create ready message structuring
     const readyInfo = document.createElement("div");
@@ -284,10 +329,10 @@ function readyDown() {
 */
 function renderUpdate(jsonData) {
     const seats = [null, null, null, null];
-    seats[jsonData.your_direction] = client_hand;
-    seats[(jsonData.your_direction + 2) % 4] = partner_hand;
-    seats[(jsonData.your_direction + 1) % 4] = oppL_hand;
-    seats[(jsonData.your_direction + 3) % 4] = oppR_hand;
+    seats[jsonData.your_direction] = document.getElementById("client_hand");
+    seats[(jsonData.your_direction + 2) % 4] = document.getElementById("partner_hand");
+    seats[(jsonData.your_direction + 1) % 4] = document.getElementById("oppL_hand");
+    seats[(jsonData.your_direction + 3) % 4] = document.getElementById("oppR_hand");
     for (let i = 0; i < 4; i++) {
         while (seats[i].firstChild) {
             seats[i].removeChild(seats[i].firstChild);
@@ -305,7 +350,11 @@ function renderUpdate(jsonData) {
         buildHand(seats[i], hands[i], jsonData.playable_cards, i, jsonData.current_player, jsonData.your_direction, jsonData.dummy_direction, Object.values(jsonData.players)[parseInt(jsonData.dummy_direction)]);
     }
 
-    buildPlayArea(Object.values(jsonData.current_trick));
+    let currentTrick = false;
+    if (jsonData.current_trick) {
+        currentTrick = Object.values(jsonData.current_trick);
+    }
+    fillPlayArea(jsonData.your_direction, currentTrick);
 }
 
 // Function to preload images, called by fetchImages below

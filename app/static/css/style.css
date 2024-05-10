@@ -62,7 +62,7 @@ img {
     height: 250px;
 }
 
-#client_team {
+.client-team {
     width: 50%;
     height: 100%;
     position: relative;
@@ -74,7 +74,7 @@ img {
     justify-content: space-between;
 }
 
-#opp_team {
+.opp-team {
     width: 50%;
     height: 100%;
     position: relative;
@@ -87,16 +87,25 @@ img {
     justify-content: space-between;
 }
 
-.hand {
-    width: 100%;
+.hand,
+.in-trick {
     margin: 10px;
     display: flex;
-    align-items: flex-end;
     justify-content: center;
 }
 
+.hand {
+    width: 100%;
+}
+
+.in-trick {
+    width: 180%;
+}
+
 #partner_hand,
-#oppL_hand {
+#oppL_hand,
+#partner-trick-card,
+#oppL-trick-card {
     transform: rotate(180deg);
 }
 
