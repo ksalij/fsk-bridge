@@ -488,8 +488,13 @@ function displayAuction(){
     validBids = ["1C", "1D", "1H", "1S", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"];
     for (let i = parseInt(validBids[0][0]); i < 8; i++){
         const level = document.createElement("button");
-        level.innerHTML = (
-            "<button class=\"tablinks\" onclick=\"openBid(event, '" + i + "')\">" + i + "</button>");
+        level.setAttribute('class', 'tablinks');
+        level.onclick = function(event){ 
+                                    openBid(event, i); 
+                                }
+        level.innerText = i;
+        // level.innerHTML = (
+        //     "<button class=\"tablinks\" onclick=\"openBid(event, '" + i + "')\">" + i + "</button>");
         tab.appendChild(level);
     }
     bidding.appendChild(tab);
@@ -515,6 +520,7 @@ function displayAuction(){
         bidding.appendChild(tabcontent);
     }
     gameDiv.appendChild(bidding);
+    openBid(event, "1");
 }
 
 function openBid(evt, level) {
