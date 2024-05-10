@@ -106,10 +106,15 @@ img {
     z-index: 0;
 }
 
+.card:hover {
+    cursor: default;
+}
+
 .playable:hover {
     border: 2px solid blue;
     transition: border-color 0.5s ease;
     transform: translateY(-10px);
+    cursor: pointer;
 }
 
 .card + .card {

@@ -31,27 +31,6 @@
 let user = "";
 let tableID = 0;
 
-// // Fill the "players" div with information for testing/debugging purposes
-// function loadPlayerDiv() {
-//     var gameInfoDiv = document.getElementById('players');
-//     gameInfoDiv.innerHTML = (
-//         "<p>Player Names: " + JSON.stringify(jsonData.playerNames) + "</p>"
-//         + "<button onclick=displayPlayers()>Click me to display players!</button>"
-//         // put game display stuff here!
-//         + "<button id=show-cards-button onclick=showAllCards()>Click me to display cards!</button>"
-//     );
-// }
-
-// Load debugging info on page load
-// window.addEventListener("load", (event) => { loadPlayerDiv(); });
-
-// function displayPlayers() {
-//     var gameInfoDiv = document.getElementById('players');
-//     gameInfoDiv.innerHTML = (
-//         "<p>Clicked!</p>"
-//     );
-// }
-
 /*
     Build a card object.
 */
@@ -93,41 +72,20 @@ function buildEmptyHand(handDiv, handSize, isPlaying) {
 
     Parameters:
       - handDiv, the hand div to fill with cards
-      - hand, the list of card strings to place in the hand
+      - hand, the list of cards (as strings) to place in the hand
+      - playableCards, the list of cards currently playable by the user
+      - seat, the seat number corresponding to the hand being built
+      - playingSeat, the seat number of the player whose turn it is
+      - clientSeat, the seat number of the user
+      - dummySeat, the seat number of the dummy
+      - dummyUser, the username of the dummy player
 
     Functionality:
-      - For each card, create an anchor object with the following properties
-          - it links to the .svg image of the card
-          - its content is an image element of the card
+      - for each card in hand, build an HTML button for the card (via buildCard())
+          - if a card is playable by the user, give it the css class "playable"
+          - if a card is in the hand of the player whose turn it is, give it the css class "current-turn"
+      - add each HTML card to handDiv
 */
-/*function buildHand(handDiv, hand, seat, isPlaying) {
-    for (let i = 0; i < hand.length; i++) {
-        //TODO load hand
-        const card = buildCard(hand[i]);
-        if (seat == 0) {
-            card.setAttribute("onclick", `cardPlayed("${user}", "${hand[i]}")`);
-        }
-        if (isPlaying == 0) {
-            card.style.boxShadow = "0px 0px 22px #8fd7d2";
-        }
-        else {
-            card.style.boxShadow = "";
-        }
-        
-        // link.addEventListener('mouseover', function() {
-        //     card.style.border = '2px solid blue'; // Add border on mouseover
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
-        // link.addEventListener('mouseout', function() {
-        //     card.style.border = '2px transparent'; // Remove border on mouseout
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
-        handDiv.appendChild(card);
-    }
-}*/
-
 function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, dummySeat, dummyUser) {
     for (let i = 0; i < hand.length; i++) {
         //TODO load hand
@@ -164,53 +122,8 @@ function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, 
     }
 }
 
-function buildDummyHand(handDiv, hand, playableCards, seat, isPlaying, dummyUser) {
-    for (let i = 0; i < hand.length; i++) {
-        //TODO load hand
-        const card = buildCard(hand[i]);
-
-        if (seat == 2) {
-            card.setAttribute("onclick", `cardPlayed("${dummyUser}", "${hand[i]}")`);
-        }   
-        if (isPlaying == 0) {
-            card.style.boxShadow = "0px 0px 22px #8fd7d2";
-        }
-        else {
-            card.style.boxShadow = "";
-        }
-        
-        // link.addEventListener('mouseover', function() {
-        //     card.style.border = '2px solid blue'; // Add border on mouseover
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
-        // link.addEventListener('mouseout', function() {
-        //     card.style.border = '2px transparent'; // Remove border on mouseout
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
-        handDiv.appendChild(card);
-    }
-}
-
 function cardPlayed(user, value) {
     socket.emit("cardPlayed", user, value);
-}
-
-function buildPlayArea(cardsPlayed) {
-    const playArea = document.getElementById("play-area");
-
-    while (playArea.firstChild) {
-            playArea.removeChild(playArea.firstChild);
-    }
-    console.log(cardsPlayed);
-    if (cardsPlayed) {
-        for (let i = 0; i < 4; i++) {
-            if (cardsPlayed[i]) {
-                playArea.appendChild(buildCard(cardsPlayed[i]));
-            }
-        }
-    }
 }
 
 /*
@@ -227,12 +140,33 @@ function buildHandStructure(handID) {
     const hand = document.createElement("div");
     hand.setAttribute("id", handID);
     hand.setAttribute("class", "hand");
-    buildEmptyHand(hand, 13);
+    buildHand(hand, Array(13).fill("back"), null, -1, 0, 0, 0, null);
     return hand;
 }
 
-function specialModFour(num) {
-    return ((num % 4) + 4) % 4;
+/*
+    Create the structure for the area where the trick-in-progress is displayed.
+
+    Parameters:
+      - cardsPlayed, a list of the cards played so far in the current trick (as strings)
+
+    Functionality:
+      - reset the play-area container
+      - for each card in cardsPlayed, create an HTML element for the card and add the element to the play-area
+*/
+function buildPlayArea(cardsPlayed) {
+    const playArea = document.getElementById("play-area");
+    while (playArea.firstChild) {
+            playArea.removeChild(playArea.firstChild);
+    }
+
+    if (cardsPlayed) {
+        for (let i = 0; i < 4; i++) {
+            if (cardsPlayed[i]) {
+                playArea.appendChild(buildCard(cardsPlayed[i]));
+            }
+        }
+    }
 }
 
 /*
@@ -279,8 +213,6 @@ function buildTableStructure() {
     gameDiv.appendChild(playArea);
 }
 
-// TO DO ON PAGE LOAD: - connect the client to the server via a websocket
-
 /*
     Indicate to the server that the client is ready to play.
     Called when the user clicks on the "ready-button" button.
@@ -324,69 +256,56 @@ function readyUp() {
     document.getElementById("game").appendChild(readyInfo);
 }
 
+/*
+    Unready the user from their table.
+
+    Parameters: none
+
+    Functionality:
+      - reset the content of the "game" div to just the ready button
+      - notify the server that the user is no longer ready to start the game
+*/
 function readyDown() {
-    // Reset the game area
-    // document.getElementById("client_hand").remove();
-    // document.getElementById("opp_hand").remove();
-    // document.getElementById("waiting").remove();
-    // document.getElementById("unready-node").remove();
     document.getElementById("game").innerHTML = `<button id="ready-button" onclick="readyUp()">Ready Up!</button>`;
-    // readyButton = document.getElementById("ready-button");
-    // readyButton.innerHTML = "Ready Up!";
-    // readyButton.setAttribute("onclick", "readyUp()");
 
     // Notify the server that the user is ready
     socket.emit('unready', tableID, user);
-    console.log(`emitted to socket: unready, ${tableID}, ${user}`);
 }
 
 /*
     Update the hands for each player.
 
     Parameters:
-      - jsonData, ???
-
+      - jsonData, a dictionary defined in /app/bridge/server.py > get_json()
+    
     Functionality:
+      - clear all of the hands and make new hands for each player, based on the information available in jsonData
+      - rebuild the div showcasing the current trick
 */
 function renderUpdate(jsonData) {
-    const client_hand = document.getElementById("client_hand");
-    const partner_hand = document.getElementById("partner_hand");
-    const oppL_hand = document.getElementById("oppL_hand");
-    const oppR_hand = document.getElementById("oppR_hand");
-    while (client_hand.firstChild) {
-        client_hand.removeChild(client_hand.firstChild);
-    }
-    while (partner_hand.firstChild) {
-        partner_hand.removeChild(partner_hand.firstChild);
-    }
-    while (oppL_hand.firstChild) {
-        oppL_hand.removeChild(oppL_hand.firstChild);
-    }
-    while (oppR_hand.firstChild) {
-        oppR_hand.removeChild(oppR_hand.firstChild);
-    }
-
     const seats = [null, null, null, null];
     seats[jsonData.your_direction] = client_hand;
     seats[(jsonData.your_direction + 2) % 4] = partner_hand;
     seats[(jsonData.your_direction + 1) % 4] = oppL_hand;
     seats[(jsonData.your_direction + 3) % 4] = oppR_hand;
-
+    for (let i = 0; i < 4; i++) {
+        while (seats[i].firstChild) {
+            seats[i].removeChild(seats[i].firstChild);
+        }
+    }
+    
     const hands = [];
     for (let i = 0; i < 4; i++) {
-        console.log(Array(jsonData.hand_sizes[i]).fill("back"));
         hands[i] = Array(jsonData.hand_sizes[i]).fill("back");
-        console.log(hands[i]);
     }
     hands[jsonData.your_direction] = jsonData.your_hand;
     hands[jsonData.dummy_direction] = jsonData.dummy_hand;
-    console.log(hands);
-    for (let i = 0; i < seats.length; i++) {
-        console.log(hands[i]);
-        buildHand(seats[i], hands[i], jsonData.playable_cards, i, jsonData.current_player, jsonData.your_direction, jsonData.dummy_direction, jsonData.players[jsonData.dummy_direction]);
+
+    for (let i = 0; i < 4; i++) {
+        buildHand(seats[i], hands[i], jsonData.playable_cards, i, jsonData.current_player, jsonData.your_direction, jsonData.dummy_direction, Object.values(jsonData.players)[parseInt(jsonData.dummy_direction)]);
     }
 
-    buildPlayArea(jsonData.current_trick);
+    buildPlayArea(Object.values(jsonData.current_trick));
 }
 
 // Function to preload images, called by fetchImages below
@@ -435,48 +354,6 @@ function fetchImages(){
 
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
-
-/*
-    Display each card svg below the game board.
-
-    Parameters: none
-
-    Functionality:
-      - set the display style of each cardImage element to be "inline" (from "none")
-      - change the display button to a hide button
-*/
-function showAllCards() {
-    const allCards = document.getElementsByClassName("cardImage");
-    for (let i = 0; i < allCards.length; i++) {
-        allCards[i].style.display = 'inline';
-    }
-
-    const button = document.getElementById("show-cards-button");
-    button.id = "hide-cards-button";
-    button.setAttribute("onclick", "hideAllCards()");
-    button.innerHTML = ("Click me to hide cards!");
-}
-
-/*
-    Hide each card svg below the game board.
-
-    Parameters: none
-
-    Functionality:
-      - set the display style of each cardImage element to be "none" (from "inline")
-      - change the hide button to a display button
-*/
-function hideAllCards() {
-    const allCards = document.getElementsByClassName("cardImage");
-    for (let i = 0; i < allCards.length; i++) {
-        allCards[i].style.display = 'none';
-    }
-
-    const button = document.getElementById("hide-cards-button");
-    button.id = "show-cards-button";
-    button.setAttribute("onclick", "showAllCards()");
-    button.innerHTML = ("Click me to display cards!");
-}
 
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
