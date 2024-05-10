@@ -10,7 +10,7 @@
 
 {% block body %}
 <div> Table created. Table ID is {{table.table_id}} </div>
-<div class="centered">Current Players:</div>
+<div class="centered">Current Players: {{session_table}}</div>
 <div class="centered" id="users">
   {{users|safe}}
 </div>
