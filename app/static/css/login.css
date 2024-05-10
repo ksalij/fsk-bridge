@@ -7,6 +7,10 @@ input[type="submit"] { cursor: pointer; } */
     font-family: "Poppins";
 }
 
+form#login-form {
+    display: contents;
+}
+
 body {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -104,6 +108,24 @@ body {
     font-weight: 600;
     text-align: center;
     transition-duration: 0.5s;
+}
+
+.screen-1 #register-button.submit-button {
+    padding: 1em;
+    background: white;
+    color: white;
+    border: 3px;
+    border-color: #3e4684;
+    border-radius: 30px;
+    font-weight: 600;
+    text-align: center;
+    transition-duration: 0.5s;
+    text-decoration: none;
+}
+
+.screen-1 #register-button.submit-button {
+    background-color: #3e4684;
+    opacity: 0.8;
 }
 
 .screen-1 .submit-button:hover {
