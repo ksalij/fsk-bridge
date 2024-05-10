@@ -332,8 +332,8 @@ class Game:
             NS_score: int
             EW_score: int
             players: dict (keys: directions, values: playernames)
-            current_player: int
-            your_direction: int
+            current_player: str
+            your_direction: str
             your_hand: list of strings "suitrank"
             hand_sizes: dict (keys: direction ints, values: numCards (int))
         "END"
@@ -342,8 +342,8 @@ class Game:
             valid_bids: list of strings
         "PLAY"
             current_trick: dict (keys: directions, values: cards (int, int))
-            leader: int 
-            dummy_direction: int
+            leader: str
+            dummy_direction: str
             dummy_hand: list of strings "suitrank"
             contract: string
             playable_cards: list of strings or null
@@ -365,14 +365,14 @@ class Game:
                 current_trick = None
             else:
                 current_trick = self.current_bridgehand.play[-1].copy()
-                leader = PLAYER_MAP[current_trick['lead']]
+                leader = current_trick['lead']
             
                 current_trick.pop('lead')
                 current_trick = {pos:str(card) for pos, card in current_trick.items()}
 
             phase_data = {"current_trick": current_trick,
                         "leader": leader,
-                        "dummy_direction": PLAYER_MAP[dummy],
+                        "dummy_direction": dummy,
                         "dummy_hand": dummy_hand,
                         "contract": self.current_bridgehand.contract}
 
@@ -401,8 +401,8 @@ class Game:
                     "NS_score": NS_score,
                     "EW_score": EW_score,
                     "players": self.current_bridgehand.players,
-                    "current_player": PLAYER_MAP[self.current_player],
-                    "your_direction": PLAYER_MAP[your_direction],
+                    "current_player": self.current_player,
+                    "your_direction": your_direction,
                     "your_hand": your_hand,
                     "hand_sizes": hand_sizes}
         
