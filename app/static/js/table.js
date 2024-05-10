@@ -271,7 +271,6 @@ function buildTableStructure() {
       - inform the user that the table is waiting for other players
 */
 function readyUp() {
-    displayAuction();
     // Remove the start button
     document.getElementById("start-button").remove();
 
@@ -287,6 +286,7 @@ function readyUp() {
     waitMessage.setAttribute("id", "waiting");
     waitMessage.innerHTML = "Waiting for other players to ready up...";
     document.getElementById("game").appendChild(waitMessage);
+    displayAuction();
 }
 
 /*
