@@ -348,6 +348,26 @@ class Game:
             contract: string
             playable_cards: list of strings or null
         '''
+        # info required regardless of game state
+        your_direction = None
+        for dir, name in self.current_bridgehand.players.items():
+            if name == playername:
+                your_direction = dir
+                your_hand = [str(card) for card in self.current_bridgehand.hands[your_direction]]
+        
+        if your_direction == None:
+            your_direction = 'Error: Player Not Found'
+            your_hand = None
+
+        hand_sizes = [0, 0, 0, 0]
+        for pos, hand in self.current_bridgehand.hands.items():
+            hand_sizes[PLAYER_MAP[pos]] = len(hand)
+
+        NS_score = running_tables[self.table_id].NS_score
+        EW_score = running_tables[self.table_id].EW_score
+
+        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+
         # info that varies based on the game phase
         if self.game_phase == 'END':
             phase_data = {'bridgehand_lin': running_tables[self.table_id].linwrite()}
@@ -369,35 +389,18 @@ class Game:
             
                 current_trick.pop('lead')
                 current_trick = {pos:str(card) for pos, card in current_trick.items()}
+            
+            playable_cards = []
+            if your_direction != dummy:
+                if your_direction == self.current_player or (your_direction == self.current_bridgehand.declarer and dummy == self.current_player):
+                    playable_cards = [str(card) for card in self.get_playable_cards()]
 
             phase_data = {"current_trick": current_trick,
                         "leader": leader,
                         "dummy_direction": dummy,
                         "dummy_hand": dummy_hand,
-                        "contract": self.current_bridgehand.contract}
-
-        your_direction = None
-        for dir, name in self.current_bridgehand.players.items():
-            if name == playername:
-                your_direction = dir
-                your_hand = [str(card) for card in self.current_bridgehand.hands[your_direction]]
-        
-        if your_direction == None:
-            your_direction = 'Error: Player Not Found'
-            your_hand = None
-
-        hand_sizes = [0, 0, 0, 0]
-        for pos, hand in self.current_bridgehand.hands.items():
-            hand_sizes[PLAYER_MAP[pos]] = len(hand)
-
-        NS_score = running_tables[self.table_id].NS_score
-        EW_score = running_tables[self.table_id].EW_score
-
-        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
-
-        if self.game_phase == "PLAY" and your_direction != dummy:
-            if your_direction == self.current_player or (your_direction == self.current_bridgehand.declarer and dummy == self.current_player):
-                return_dict["playable_cards"] = [str(card) for card in self.get_playable_cards()]
+                        "contract": self.current_bridgehand.contract,
+                        "playable_cards": playable_cards}
 
         return_dict = {"game_phase": self.game_phase,
                     "NS_score": NS_score,
