@@ -35,20 +35,27 @@ img {
     font-size: 18px;
 }
 
-#start-button {
+#ready-button {
     top: 50%;
     transform: translateY(calc(-50% - 15px));
 }
 
-#waiting {
-    margin-top: -50%;
+#ready-info,
+#play-area {
+    margin: -50% auto 0;
+    transform: translateY(-50%);
 }
 
-#play_area {
-    margin-top: -50%;
+#ready-info {
+    width: 300px;
 }
 
-#client_team {
+#play-area {
+    width: 250px;
+    height: 250px;
+}
+
+.client-team {
     width: 50%;
     height: 100%;
     position: relative;
@@ -60,7 +67,7 @@ img {
     justify-content: space-between;
 }
 
-#opp_team {
+.opp-team {
     width: 50%;
     height: 100%;
     position: relative;
@@ -73,16 +80,25 @@ img {
     justify-content: space-between;
 }
 
-.hand {
-    width: 100%;
+.hand,
+.in-trick {
     margin: 10px;
     display: flex;
-    align-items: flex-end;
     justify-content: center;
 }
 
+.hand {
+    width: 100%;
+}
+
+.in-trick {
+    width: 180%;
+}
+
 #partner_hand,
-#oppL_hand {
+#oppL_hand,
+#partner-trick-card,
+#oppL-trick-card {
     transform: rotate(180deg);
 }
 
@@ -92,54 +108,60 @@ img {
     z-index: 0;
 }
 
-.card img:hover {
-    border: 2px solid blue;
-    transition: border-color 0.5s ease;
-    transform: translateY(-10px);
-}
-
 .card + .card {
     margin-left: -17.5%;
 }
 
-
-input.glow{
-    -webkit-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
--moz-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+.card:hover {
+    cursor: default;
 }
 
+.playable:hover {
+    border: 2px solid blue;
+    transition: border-color 0.5s ease;
+    transform: translateY(-10px);
+    cursor: pointer;
+}
+
+.current-turn {
+    box-shadow: 0px 0px 22px #8fd7d2;
+}
+
+input.glow {
+    -webkit-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+    -moz-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+    box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+}
 
 /* Add a black background color to the top navigation */
 .topnav {
-  background-color: #333;
-  overflow: hidden;
+    background-color: #333;
+    overflow: hidden;
 }
 
 /* Style the links inside the navigation bar */
 .topnav a {
-  float: right;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 14px 16px;
-  font-size: 13px;
+    float: right;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    font-size: 13px;
 }
 
 .logo {
-  float: left;
-  text-align: center;
-  padding: 14px 16px;
-  font-size: 13px;
-  color: #f2f2f3;
+    float: left;
+    text-align: center;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #f2f2f3;
 }
 
 .source-code-pro {
-  font-family: "Source Code Pro", monospace;
-  font-optical-sizing: auto;
-  font-weight: <weight>;
-  font-style: normal;
+    font-family: "Source Code Pro", monospace;
+    font-optical-sizing: auto;
+    /* font-weight: <weight>; */
+    /* font-style: normal; */
 }
-
 
 /* Style the tab */
 .tab {
@@ -150,7 +172,7 @@ box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
     height: 50px;
     margin-left: auto;
     margin-right: auto;
-  }
+}
 
 /* Style the buttons that are used to open the tab content */
 .tab button {
@@ -167,12 +189,12 @@ box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
 /* Change background color of buttons on hover */
 .tab button:hover {
     background-color: #ddd;
-  }
+}
 
-   /* Create an active/current tablink class */
-   .tab button.active {
+/* Create an active/current tablink class */
+.tab button.active {
     background-color: #ddd;
-  }
+}
 
 
 .suit {
@@ -220,8 +242,8 @@ box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
     color: #ffffff;
 }
   
-  /* Style the tab content */
-  .tabcontent {
+/* Style the tab content */
+.tabcontent {
     background-color: gray;
     display: none;
     padding: 6px 12px;
@@ -229,5 +251,5 @@ box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
     border-top: none;
     width: 45.8%;
     margin-left: auto;
-    margin-right: auto;  
+    margin-right: auto;
 }
