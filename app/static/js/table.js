@@ -30,6 +30,13 @@
 // Some global variables to keep track of the client relative to the rest of the table
 let user = "";
 let tableID = 0;
+// Directions are strings, seats are numbers
+const SEATMAP = {
+    "E" : 0,
+    "S" : 1,
+    "W" : 2,
+    "N" : 3
+};
 
 /*
     Build a card object.
@@ -189,13 +196,13 @@ function buildPlayArea() {
     playArea.appendChild(oppTeam);
 }
 
-function fillPlayArea(clientDirection, cardsPlayed) {
+function fillPlayArea(clientSeat, cardsPlayed) {
     const playArea = document.getElementById("play-area");
     const seats = [null, null, null, null];
-    seats[clientDirection] = document.getElementById("client-trick-card");
-    seats[(clientDirection + 2) % 4] = document.getElementById("partner-trick-card");
-    seats[(clientDirection + 1) % 4] = document.getElementById("oppL-trick-card");
-    seats[(clientDirection + 3) % 4] = document.getElementById("oppR-trick-card");
+    seats[clientSeat] = document.getElementById("client-trick-card");
+    seats[(clientSeat + 2) % 4] = document.getElementById("partner-trick-card");
+    seats[(clientSeat + 1) % 4] = document.getElementById("oppL-trick-card");
+    seats[(clientSeat + 3) % 4] = document.getElementById("oppR-trick-card");
     for (let i = 0; i < 4; i++) {
         if (seats[i].firstChild) {
             seats[i].removeChild(seats[i].firstChild);
@@ -329,10 +336,10 @@ function readyDown() {
 */
 function renderUpdate(jsonData) {
     const seats = [null, null, null, null];
-    seats[jsonData.your_direction] = document.getElementById("client_hand");
-    seats[(jsonData.your_direction + 2) % 4] = document.getElementById("partner_hand");
-    seats[(jsonData.your_direction + 1) % 4] = document.getElementById("oppL_hand");
-    seats[(jsonData.your_direction + 3) % 4] = document.getElementById("oppR_hand");
+    seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
+    seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
+    seats[(SEATMAP[jsonData.your_direction] + 1) % 4] = document.getElementById("oppL_hand");
+    seats[(SEATMAP[jsonData.your_direction] + 3) % 4] = document.getElementById("oppR_hand");
     for (let i = 0; i < 4; i++) {
         while (seats[i].firstChild) {
             seats[i].removeChild(seats[i].firstChild);
@@ -340,21 +347,24 @@ function renderUpdate(jsonData) {
     }
     
     const hands = [];
-    for (let i = 0; i < 4; i++) {
-        hands[i] = Array(jsonData.hand_sizes[i]).fill("back");
+    for (direction in jsonData.hand_sizes) {
+        hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
     }
-    hands[jsonData.your_direction] = jsonData.your_hand;
-    hands[jsonData.dummy_direction] = jsonData.dummy_hand;
+    // for (let i = 0; i < 4; i++) {
+    //     hands[i] = Array(jsonData.hand_sizes[i]).fill("back");
+    // }
+    hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
+    hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
 
     for (let i = 0; i < 4; i++) {
-        buildHand(seats[i], hands[i], jsonData.playable_cards, i, jsonData.current_player, jsonData.your_direction, jsonData.dummy_direction, Object.values(jsonData.players)[parseInt(jsonData.dummy_direction)]);
+        buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
     }
 
-    let currentTrick = false;
-    if (jsonData.current_trick) {
-        currentTrick = Object.values(jsonData.current_trick);
+    const currentTrick = Array(4).fill(null);
+    for (direction in jsonData.current_trick) {
+        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
     }
-    fillPlayArea(jsonData.your_direction, currentTrick);
+    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
 }
 
 // Function to preload images, called by fetchImages below
