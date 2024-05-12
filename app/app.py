@@ -73,7 +73,26 @@ def index():
 
 @app.route('/home')
 def home():
-    return render_template("home.html", app_data=app_data, current_user=session['username'])
+    if session.get('currentTable') is not None and session.get('userInGame') is not None:
+        print('currenttable and useringame exist', file=sys.stderr)
+        if session['currentTable'] is not None and session['userInGame'] == False:
+            print('User can rejoin game', file=sys.stderr)
+
+    print(str(session.items()), file=sys.stderr)
+    
+    if session.get('rejoin') is not None:
+        if session['rejoin'] == True:
+            return render_template("home.html", app_data=app_data, current_user=session['username'], rejoin=True)
+    return render_template("home.html", app_data=app_data, current_user=session['username'], rejoin=False)
+
+@app.route('/redirect/home')
+def redirect_to_home():
+    if session['userInGame'] == True:
+        session['userInGame'] = False
+
+    session['rejoin'] = True
+    
+    return redirect('/home')
 
 @app.route('/chat')
 def chat():
@@ -137,6 +156,7 @@ def openTable():
 @app.route('/table/<table_id>')
 def joinTable(table_id):
     session['currentTable'] = table_id
+    session['userInGame'] = True
     Server.client_list[session['username']] = table_id
 
     for direction, player in Server.active_tables[table_id].players.items():
@@ -146,7 +166,7 @@ def joinTable(table_id):
             break
         elif player == session['username']:
             Server.active_tables[table_id].players[direction] == None
-            return redirect('/home')
+            return redirect('/redirect/home')
     socketio.emit("updateUsers", genUsers(table_id))
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id), session_table=session['currentTable'])
 
@@ -255,11 +275,6 @@ def connect():
 def disconnect():
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    if session.get('currentTable') is not None:
-        #if Server.active_tables[session.get('currentTable')]:
-        session['currentTable'] = 'reload'
-        print('table exists', file=sys.stderr)
-            #emit("updateUsers", genUsers(session['currentTable']), broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)
