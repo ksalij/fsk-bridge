@@ -340,6 +340,8 @@ class Game:
             bridgehand_lin: str
         "AUCTION"
             valid_bids: list of strings
+            dealer_direction: str
+            bids: list of strings
         "PLAY"
             current_trick: dict (keys: directions, values: cards (int, int))
             leader: str
@@ -373,7 +375,9 @@ class Game:
             phase_data = {'bridgehand_lin': running_tables[self.table_id].linwrite()}
 
         elif self.game_phase == 'AUCTION':
-            phase_data = {'valid_bids': self.valid_bids}
+            phase_data = {'valid_bids': self.valid_bids,
+                          'dealer': self.current_bridgehand.dealer,
+                          'bids': self.current_bridgehand.bids}
 
         else:
             dummy = get_partner(self.current_bridgehand.declarer)
