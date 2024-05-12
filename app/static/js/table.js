@@ -320,7 +320,7 @@ function readyUp() {
 
     document.getElementById("game").appendChild(readyInfo);
 
-    displayAuction();
+    //displayAuction();
 }
 
 /*
@@ -532,6 +532,11 @@ socket.on('gameState', (jsonInput) => {
 
 socket.on('readyInfo', (data) => {
     console.log(data);
+});
+
+socket.on('usersReady', (response) => {
+    document.getElementById("unready-button").remove();
+    document.getElementById("waiting").remove();
 });
 
 socket.on('isCardGood', (bool, json) => {

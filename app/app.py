@@ -68,31 +68,18 @@ def genUsers(table_id: str) -> str:
 @app.route('/')
 def index():
     if session.get('username') is not None:
-        return redirect('/home')
+        return 'Cannot sign in on multiple tabs'
+        #return redirect('/home')
     return redirect('/login')
 
 @app.route('/home')
 def home():
-    if session.get('currentTable') is not None and session.get('userInGame') is not None:
-        print('currenttable and useringame exist', file=sys.stderr)
-        if session['currentTable'] is not None and session['userInGame'] == False:
-            print('User can rejoin game', file=sys.stderr)
-
-    print(str(session.items()), file=sys.stderr)
-    
-    if session.get('rejoin') is not None:
-        if session['rejoin'] == True:
-            return render_template("home.html", app_data=app_data, current_user=session['username'], rejoin=True)
     return render_template("home.html", app_data=app_data, current_user=session['username'], rejoin=False)
 
-@app.route('/redirect/home')
-def redirect_to_home():
-    if session['userInGame'] == True:
-        session['userInGame'] = False
-
-    session['rejoin'] = True
-    
-    return redirect('/home')
+@app.route('/rejoin')
+def rejoin():
+    session['userInGame'] = True
+    return redirect('/table/' + session['currentTable'])
 
 @app.route('/chat')
 def chat():
@@ -119,7 +106,10 @@ def login():
         print(correct_pass, file=sys.stderr)
         print(hash(user_password, salt), file=sys.stderr)
 
-        if hash(user_password, salt) == correct_pass:      
+        if hash(user_password, salt) == correct_pass:    
+            if session.get('username') is not None:
+                if session['username'] == request.form['username']:
+                    return 'error'
             session['username'] = request.form['username']
             return redirect(url_for('home'))
         else:
@@ -156,17 +146,14 @@ def openTable():
 @app.route('/table/<table_id>')
 def joinTable(table_id):
     session['currentTable'] = table_id
-    session['userInGame'] = True
     Server.client_list[session['username']] = table_id
 
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
             Server.active_tables[table_id].players[direction] = session['username']
             session['userPosition'] = direction
+            session['connected'] = True
             break
-        elif player == session['username']:
-            Server.active_tables[table_id].players[direction] == None
-            return redirect('/redirect/home')
     socketio.emit("updateUsers", genUsers(table_id))
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id), session_table=session['currentTable'])
 
@@ -207,6 +194,7 @@ def user_ready(table_id, user):
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
+        socketio.emit('usersReady')
         start_auction(table_id)
 
 @socketio.on('unready')
@@ -282,6 +270,13 @@ def connect():
 def disconnect():
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
+
+    if session.get('connected') is not None:
+        if session['connected'] == True:
+            Server.active_tables[session['currentTable']].players[session['userPosition']] = None
+            session['connected'] == False
+
+    socketio.emit("updateUsers", genUsers(session['currentTable']))
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)

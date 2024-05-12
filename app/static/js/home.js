@@ -7,7 +7,7 @@ $(document).ready(function() {
 
 
   $('#rejoin').submit(function(){
-    var id = 
+    $(this).attr('action', "/rejoin")
   })
 
 });
