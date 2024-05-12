@@ -204,10 +204,16 @@ def user_ready(table_id, user):
     if table_id not in ready_users.keys():
         ready_users[table_id] = set()
     ready_users[table_id].add(user)
+    # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
         start_auction(table_id)
 
+@socketio.on('unready')
+def user_unready(table_id, user):
+    if table_id in ready_users.keys():
+        ready_users[table_id].remove(user)
+    # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
 
 @socketio.on('cardPlayed')
 def handle_message(user, card):
@@ -215,10 +221,10 @@ def handle_message(user, card):
     table_id = Server.client_list[user]
     user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
     if not Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
-        emit(False, to=request.sid)
+        emit('isCardGood', (False, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
         print('bad card')
     else:
-        emit(True, to=request.sid)
+        emit('isCardGood', (True, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
         print('good card')
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
         emit('requestGameState', to=table_id)
@@ -249,12 +255,13 @@ def update_game_state(user):
 @socketio.on('startAuction')
 def start_auction(table_id):
     game = Server.active_tables[table_id].current_game
-    game.deal()
+    # game.deal()
     emit('requestGameState', to=table_id)
     # TODO START AUCTION
-    game.current_bridgehand.bids = ['1C', 'p', 'p', 'p']
-    game.begin_play_phase()
-    game.update_current_player()
+    game.make_bid('N', '1C')
+    game.make_bid('E', 'p')
+    game.make_bid('S', 'p')
+    game.make_bid('W', 'p')
     emit('requestGameState', to=table_id)
     
 # Count the number of connected clients
