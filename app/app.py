@@ -231,11 +231,12 @@ def start_auction(table_id):
     game = Server.active_tables[table_id].current_game
     game.deal()
     emit('requestGameState', to=table_id)
-    # TODO START AUCTION
-    game.current_bridgehand.bids = ['1C', 'p', 'p', 'p']
-    game.begin_play_phase()
-    game.update_current_player()
-    emit('requestGameState', to=table_id)
+
+@socketio.on('sendBid')
+def send_bid(bid, user):
+    game = Server.active_tables[Server.client_list[user].current_game]
+    game.make_bid(bid, user)
+
     
 # Count the number of connected clients
 @socketio.on('connect')

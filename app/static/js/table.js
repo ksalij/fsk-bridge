@@ -593,5 +593,6 @@ function openBid(evt, level) {
   }
 
 function makeBid(bid){
+    socket.emit('sendBid', bid, user);
     window.alert("You are trying to make a bid!!! The bid is " + bid);
 }
