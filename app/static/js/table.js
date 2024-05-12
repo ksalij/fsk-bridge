@@ -284,9 +284,10 @@ function readyUp() {
     // Inform the user that the table is waiting for other players
     const waitMessage = document.createElement("p");
     waitMessage.setAttribute("id", "waiting");
-    waitMessage.innerHTML = "Waiting for other players to ready up...";
+    // waitMessage.innerHTML = "Waiting for other players to ready up...";
     document.getElementById("game").appendChild(waitMessage);
     displayAuction();
+    displayBids();
 }
 
 /*
@@ -479,31 +480,78 @@ socket.on('gameState', (jsonInput) => {
 
 function displayAuction(){
     const gameDiv = document.getElementById("game");
+    const auction = document.createElement("table");
+    auction.setAttribute("class", "auction");
+    const header = document.createElement("tr");
+
+    // corresponds to N
+    currentPlayer = 0;
+    bids = ['2C', 'd', 'r', 'p', 'p', 'p'];
+    directions = ['N', "E", 'S', 'W'];
+    dealer = 0;
+    auctionList = [...Array(dealer)].fill('none').concat(bids);
+    if (auctionList.length < 16){
+        auctionList = auctionList.concat([...Array(16 - auctionList.length)].fill('none'));
+    }
+
+    for (let i = 0; i < 4; i++){
+        const playerHeader = document.createElement('th');
+        playerHeader.innerText = directions[(i + currentPlayer + 1) % 4]
+        header.appendChild(playerHeader);
+    }
+    auction.appendChild(header);
+
+    for (let i = 0; i < Math.ceil(auctionList.length/4); i++){
+        const row = document.createElement("tr");
+        for (let j = 0; j < 4; j++){
+            if ((4*i + j) < auctionList.length){
+                const rowEntry =  document.createElement('td');
+                if (auctionList[4*i + j] == 'none'){
+                    rowEntry.innerText = 'NONE';
+                } else if (auctionList[4*i + j] == 'p'){
+                    rowEntry.setAttribute("id", "p");
+                    rowEntry.innerText = 'PASS';
+                } else if (auctionList[4*i + j] == 'd'){
+                    rowEntry.setAttribute("id", "d");
+                    rowEntry.innerText = 'X';
+                } else if (auctionList[4*i + j] == 'r'){
+                    rowEntry.setAttribute("id", "r");
+                    rowEntry.innerText = 'XX';
+                } else {
+                    rowEntry.setAttribute("id", auctionList[4*i + j][1]);
+                    rowEntry.innerText = auctionList[4*i + j];
+                }
+                // rowEntry.innerText = auctionList[4*i + j];
+                row.appendChild(rowEntry);
+            } 
+        }
+        auction.appendChild(row);
+    }
+
+    gameDiv.appendChild(auction);
+}
+
+function displayBids(){
+    const gameDiv = document.getElementById("game");
     const bidding = document.createElement("div");
     bidding.setAttribute("id", "bidding");
     const tab = document.createElement("div");
     tab.setAttribute("class", "tab");
-    // window.alert(jsonData.valid_bids);
-    // parseInt(jsonData['valid_bids'][0][0])
-    validBids = ["1C", "1D", "1H", "1S", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"];
+    validBids = ["1C", "1D", "1H", "1S", "1N", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"];
     for (let i = parseInt(validBids[0][0]); i < 8; i++){
         const level = document.createElement("button");
         level.setAttribute('class', 'tablinks');
-        level.onclick = function(event){ 
-                                    openBid(event, i); 
-                                }
+        level.onclick = function(event){openBid(event, i);}
         level.innerText = i;
-        // level.innerHTML = (
-        //     "<button class=\"tablinks\" onclick=\"openBid(event, '" + i + "')\">" + i + "</button>");
         tab.appendChild(level);
     }
     bidding.appendChild(tab);
     for (let i = 1; i < 8; i++){
         const tabcontent = document.createElement("div");
         suitButtons = "<div id=\"" + i + "\" class=\"tabcontent\">";
-        suitName = ["C", "D", "H", "S"];
-        suits = ['\u2663', '\u2666', '\u2665', '\u2660'];
-        for (let j = 0; j < 4; j++){
+        suitName = ["C", "D", "H", "S", "N"];
+        suits = ['\u2663', '\u2666', '\u2665', '\u2660', 'NT'];
+        for (let j = 0; j < 5; j++){
             if (validBids.includes(i + suitName[j])){
                 suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
             }
