@@ -1,46 +1,5 @@
 //var socket = io.connect('http://localhost:80');;
 
-// Sample jsonData for test purposes
-// jsonData = {
-//     "cardsPlayed": [null, null, null, null],
-//     "yourHand": [
-//         "C2",
-//         "C3",
-//         "C4",
-//         "C5",
-//         "C6",
-//         "C7",
-//         "C8",
-//         "C9",
-//         "CT",
-//         "CJ",
-//         "CQ",
-//         "CK",
-//         "CA",
-//     ],
-//     "hand_sizes": [13, 13, 13, 13],
-//     "dummyHand": null,
-//     "auctionValue": [0, 0],
-//     "playerNames": ["You", "Player2", "Player3", "Player4"],
-//     "your_direction": 0,
-//     "dummy_direction": null,
-//     "current_player": 0
-// }
-
-jsonData = {"game_phase": "AUCTION", 
-            "valid_bids:": ["2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"], 
-            "current_trick": null, 
-            "leader": null, 
-            "your_direction": 1, 
-            "your_hand": ["2C", "3C", "5C", "QC", "3D", "6D", "7D", "3H", "9H", "TH", "5S", "7S", "8S"], 
-            "hand_sizes": {"3": 13, "0": 13, "1": 13, "2": 13}, 
-            "dummy_direction": null, 
-            "dummy_hand": null, 
-            "contract": null, 
-            "players": {"E": "user0", "S": "user1", "W": "user2", "N": "user3"}, 
-            "current_player": 1
-        }
-
 // Some global variables to keep track of the client relative to the rest of the table
 let user = "";
 let tableID = 0;
@@ -319,9 +278,6 @@ function readyUp() {
     readyInfo.appendChild(unreadyButton);
 
     document.getElementById("game").appendChild(readyInfo);
-
-    displayAuction();
-    displayBids();
 }
 
 /*
@@ -393,13 +349,12 @@ function displayAuction(){
     gameDiv.appendChild(auction);
 }
 
-function displayBids(){
+function displayBids(validBids){
     const gameDiv = document.getElementById("game");
     const bidding = document.createElement("div");
     bidding.setAttribute("id", "bidding");
     const tab = document.createElement("div");
     tab.setAttribute("class", "tab");
-    validBids = ["1C", "1D", "1H", "1S", "1N", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"];
     for (let i = parseInt(validBids[0][0]); i < 8; i++){
         const level = document.createElement("button");
         level.setAttribute('class', 'tablinks');
@@ -470,6 +425,19 @@ function makeBid(bid){
       - rebuild the div showcasing the current trick
 */
 function renderUpdate(jsonData) {
+    if (jsonData.game_phase == "AUCTION") {
+        displayHandsDuringAuction(jsonData);
+        displayAuction();
+        displayBids(jsonData.validBids);
+    }
+    else if (jsonData.game_phase == "PLAY") {
+        displayPlay(jsonData);
+    } else if (jsonData.game_phase == "END") {
+        displayEndGame(jsonData);
+    }
+}
+
+function displayPlay(jsonData) {
     const seats = [null, null, null, null];
     seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
     seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
@@ -485,9 +453,6 @@ function renderUpdate(jsonData) {
     for (direction in jsonData.hand_sizes) {
         hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
     }
-    // for (let i = 0; i < 4; i++) {
-    //     hands[i] = Array(jsonData.hand_sizes[i]).fill("back");
-    // }
     hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
     hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
 
@@ -501,6 +466,37 @@ function renderUpdate(jsonData) {
     }
     fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
 }
+
+function displayHandsDuringAuction(jsonData) {
+
+    const seats = [null, null, null, null];
+    seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
+    seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
+    seats[(SEATMAP[jsonData.your_direction] + 1) % 4] = document.getElementById("oppL_hand");
+    seats[(SEATMAP[jsonData.your_direction] + 3) % 4] = document.getElementById("oppR_hand");
+    for (let i = 0; i < 4; i++) {
+        while (seats[i].firstChild) {
+            seats[i].removeChild(seats[i].firstChild);
+        }
+    }
+    
+    const hands = [];
+    for (direction in jsonData.hand_sizes) {
+        hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
+    }
+    hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
+
+    for (let i = 0; i < 4; i++) {
+        buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
+    }
+
+    const currentTrick = Array(4).fill(null);
+    for (direction in jsonData.current_trick) {
+        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
+    }
+    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
+}
+
 
 // Function to preload images, called by fetchImages below
 function preloadImages(imageUrls) {
@@ -579,174 +575,7 @@ function showAllCards() {
       - set the display style of each cardImage element to be "none" (from "inline")
       - change the hide button to a display button
 */
-function readyDown() {
-    document.getElementById("game").innerHTML = `<button id="ready-button" onclick="readyUp()">Ready Up!</button>`;
 
-    // Notify the server that the user is ready
-    socket.emit('unready', tableID, user);
-}
-
-function displayAuction(){
-    const gameDiv = document.getElementById("game");
-    const bidding = document.createElement("div");
-    bidding.setAttribute("id", "bidding");
-    const tab = document.createElement("div");
-    tab.setAttribute("class", "tab");
-    // window.alert(jsonData.valid_bids);
-    // parseInt(jsonData['valid_bids'][0][0])
-    validBids = ["1C", "1D", "1H", "1S", "2D", "2H", "2S", "2N", "3C", "3D", "3H", "3S", "3N", "4C", "4D", "4H", "4S", "4N", "5C", "5D", "5H", "5S", "5N", "6C", "6D", "6H", "6S", "6N", "7C", "7D", "7H", "7S", "7N", "r"];
-    for (let i = parseInt(validBids[0][0]); i < 8; i++){
-        const level = document.createElement("button");
-        level.setAttribute('class', 'tablinks');
-        level.onclick = function(event){ 
-                                    openBid(event, i); 
-                                }
-        level.innerText = i;
-        // level.innerHTML = (
-        //     "<button class=\"tablinks\" onclick=\"openBid(event, '" + i + "')\">" + i + "</button>");
-        tab.appendChild(level);
-    }
-    bidding.appendChild(tab);
-    for (let i = 1; i < 8; i++){
-        const tabcontent = document.createElement("div");
-        suitButtons = "<div id=\"" + i + "\" class=\"tabcontent\">";
-        suitName = ["C", "D", "H", "S", "N"];
-        suits = ['\u2663', '\u2666', '\u2665', '\u2660', 'NT'];
-        for (let j = 0; j < 5; j++){
-            if (validBids.includes(i + suitName[j])){
-                suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
-            }
-        }
-        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = p> PASS </button>";
-        if (validBids.includes('d')){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = d> X </button>";
-        }
-        if (validBids.includes('r')){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = r> XX </button>";
-        }
-        suitButtons = suitButtons + "</div>";
-        tabcontent.innerHTML = (suitButtons);
-        bidding.appendChild(tabcontent);
-    }
-    gameDiv.appendChild(bidding);
-    openBid(event, "1");
-}
-
-function openBid(evt, level) {
-    // Declare all variables
-    var i, tabcontent, tablinks;
-  
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
-    }
-  
-    // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-      tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-  
-    // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(level).style.display = "block";
-    evt.currentTarget.className += " active";
-  }
-
-function makeBid(bid){
-    socket.emit('sendBid', bid, user);
-    window.alert("You are trying to make a bid!!! The bid is " + bid);
-}
-
-/*
-    Update the hands for each player.
-
-    Parameters:
-      - jsonData, a dictionary defined in /app/bridge/server.py > get_json()
-    
-    Functionality:
-      - clear all of the hands and make new hands for each player, based on the information available in jsonData
-      - rebuild the div showcasing the current trick
-*/
-function renderUpdate(jsonData) {
-    const seats = [null, null, null, null];
-    seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 1) % 4] = document.getElementById("oppL_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 3) % 4] = document.getElementById("oppR_hand");
-    for (let i = 0; i < 4; i++) {
-        while (seats[i].firstChild) {
-            seats[i].removeChild(seats[i].firstChild);
-        }
-    }
-    
-    const hands = [];
-    for (direction in jsonData.hand_sizes) {
-        hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
-    }
-    // for (let i = 0; i < 4; i++) {
-    //     hands[i] = Array(jsonData.hand_sizes[i]).fill("back");
-    // }
-    hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
-    hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
-
-    for (let i = 0; i < 4; i++) {
-        buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
-    }
-
-    const currentTrick = Array(4).fill(null);
-    for (direction in jsonData.current_trick) {
-        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
-    }
-    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
-}
-
-// Function to preload images, called by fetchImages below
-function preloadImages(imageUrls) {
-    imageUrls.forEach(url => {
-      const fullUrl = `/getimages${url}`;
-
-      const link = document.createElement('a');
-      link.href = fullUrl;
-
-      const img = new Image(); // Create an image object
-      img.className = "cardImage";
-      img.src = fullUrl;
-
-      img.style.display = 'none'; // Hide the image
-
-      link.appendChild(img);
-
-      document.body.appendChild(link); // Append to body to trigger loading
-
-      // Add event listeners for mouseover and mouseout
-      link.addEventListener('mouseover', function() {
-        img.style.border = '2px solid blue'; // Add border on mouseover
-        img.style.transition = 'border-color 0.5s ease';
-        });
-    
-      link.addEventListener('mouseout', function() {
-        img.style.border = '2px transparent'; // Remove border on mouseout
-        img.style.transition = 'border-color 0.5s ease';
-        });
-    });
-}
-  
-// Query the server for the names of each of the card images, then call preloadImages() on the list of filenames.
-function fetchImages(){
-    fetch('/getimages')
-        .then(response => response.json())
-        .then(data => {
-        // Preload the images
-        preloadImages(data);
-        })
-        .catch(error => {
-        console.error('Error fetching image URLs:', error);
-        });
-}
-
-// Call the fetchImages function when the page loads
-window.addEventListener("load", (event) => { fetchImages(); });
 
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
@@ -754,7 +583,7 @@ window.addEventListener("load", (event) => { fetchImages(); });
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected');
-    socket.emit('joinRoom', window.location.pathname.substring(7))
+    socket.emit('joinRoom', window.location.pathname.substring(7));
 });
 
 socket.on('yourLocalInfo', (your_user, your_table_id) => {
@@ -781,6 +610,10 @@ socket.on('gameState', (jsonInput) => {
 socket.on('readyInfo', (data) => {
     console.log(data);
 });
+
+socket.on('displayAuction'), (response) => {
+    displayAuction();
+}
 
 socket.on('isCardGood', (bool, json) => {
     if(bool) {

@@ -232,10 +232,8 @@ def update_game_state(user):
     json = game.get_json(user)
     emit('gameState', json, to=request.sid)
 
-@socketio.on('startAuction')
 def start_auction(table_id):
-    game = Server.active_tables[table_id].current_game
-    # game.deal()
+    emit('displayAuction', to=table_id)
     emit('requestGameState', to=table_id)
 
 @socketio.on('sendBid')
