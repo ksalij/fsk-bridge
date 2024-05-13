@@ -24,7 +24,7 @@ app_data = {
     "name": "Formerly Peter's Starter Template for a Flask Web App (Now our project)",
     "description": "A basic Flask app using bootstrap for layout",
     "author": "Peter Simeth",
-    "html_title": "Oliver and Cole's Bridge Website (and fsk bridge group)",
+    "html_title": "FSK Bridge",
     "project_name": "Bridge Stuff",
     "keywords": "flask, webapp, bridge",
 }
@@ -194,8 +194,10 @@ def user_ready(table_id, user):
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
-        socketio.emit('usersReady')
-        start_auction(table_id)
+        #socketio.emit('usersReady')
+        #start_auction(table_id)
+        emit('buildAuction', to=table_id)
+        emit('requestGameState', to=table_id)
 
 @socketio.on('unready')
 def user_unready(table_id, user):
@@ -240,18 +242,14 @@ def update_game_state(user):
     json = game.get_json(user)
     emit('gameState', json, to=request.sid)
 
-@socketio.on('startAuction')
-def start_auction(table_id):
+@socketio.on('sendBid')
+def send_bid(user, bid):
+    table_id = Server.client_list[user]
     game = Server.active_tables[table_id].current_game
-    # game.deal()
+    user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
+    game.make_bid(user_dir, bid)
     emit('requestGameState', to=table_id)
-    # TODO START AUCTION
-    game.make_bid('N', '1C')
-    game.make_bid('E', 'p')
-    game.make_bid('S', 'p')
-    game.make_bid('W', 'p')
-    emit('requestGameState', to=table_id)
-    
+
 # Count the number of connected clients
 @socketio.on('connect')
 def connect():

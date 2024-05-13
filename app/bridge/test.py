@@ -16,10 +16,12 @@ def play_full_hand():
 
     for i in range(51):
         # table.current_game.update_current_player()
+        print()
         print("current_player", table.current_game.current_player)
         print("Hand", table.current_game.current_bridgehand.hands[table.current_game.current_player])
         print("playable cards", table.current_game.get_playable_cards())
         print("Play", table.current_game.current_bridgehand.play)
+        print()
         for j in range(len(table.current_game.current_bridgehand.hands[table.current_game.current_player].cards)):
             if table.current_game.play_card(table.current_game.current_player, table.current_game.current_bridgehand.hands[table.current_game.current_player][j]):
                 break
@@ -129,9 +131,9 @@ def testing_deal():
     print(table.current_game.current_bridgehand.hands)
 
 if __name__=="__main__": 
-    # play_full_hand()
+    play_full_hand()
     # test_auction()
     # test_lin_file()
     # auction_then_play()
     # play_2_boards_lin()
-    testing_deal()
+    # testing_deal()

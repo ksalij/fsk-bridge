@@ -168,7 +168,7 @@ input.glow {
     overflow: hidden;
     /* border: 1px solid #ccc; */
     background-color: #f1f1f1;
-    width: 50%;
+    width: 55%;
     height: 50px;
     margin-left: auto;
     margin-right: auto;
@@ -181,7 +181,7 @@ input.glow {
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 4px 16px;
+    padding: 4px 18px;
     transition: 0.3s;
     font-size: 16px;
 }
@@ -199,12 +199,12 @@ input.glow {
 
 .suit {
     border: none;
-    padding: 6px 7px;
+    padding: 6px 6px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
-    margin: 4px;
+    margin: 3px;
 }
 
 #C {
@@ -249,7 +249,24 @@ input.glow {
     padding: 6px 12px;
     /* border: 1px solid #ccc; */
     border-top: none;
-    width: 45.8%;
+    width: 50.8%;
     margin-left: auto;
     margin-right: auto;
+}
+
+.auction {
+    position: relative;
+    top: -150px;
+    width: 50%;
+    height: 50px;
+    max-height: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-y:auto;
+    background-color: #f1f1f1;
+}
+
+#bidding {
+    position: relative;
+    top: -100px;
 }
