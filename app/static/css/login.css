@@ -7,7 +7,7 @@ input[type="submit"] { cursor: pointer; } */
     font-family: "Poppins";
 }
 
-form#login-form {
+form {
     display: contents;
 }
 
@@ -46,6 +46,7 @@ body {
     margin-top: -3em;
 }
 .screen-1 .username input {
+    width: 80%;
     outline: none;
     border: none;
 }
@@ -76,6 +77,7 @@ body {
     color: #4d4d4d;
 }
 .screen-1 .password input {
+    width: 80%;
     outline: none;
     border: none;
 }
@@ -110,24 +112,20 @@ body {
     transition-duration: 0.5s;
 }
 
-.screen-1 #register-button.submit-button {
-    padding: 1em;
-    background: white;
-    color: white;
-    border: 3px;
-    border-color: #3e4684;
-    border-radius: 30px;
-    font-weight: 600;
-    text-align: center;
-    transition-duration: 0.5s;
-    text-decoration: none;
-}
-
-.screen-1 #register-button.submit-button {
-    background-color: #3e4684;
-    opacity: 0.8;
-}
-
 .screen-1 .submit-button:hover {
     opacity: 0.8;
 }
+
+.screen-1 input#link-button {
+    padding: 1em;
+    background: white;
+    color: #3e4684;
+    width: 100%;
+    font-family: sans-serif;
+}
+
+.screen-1 input#link-button:hover {
+    background-color: #b1b5cd;
+    opacity: 100%;
+}
+

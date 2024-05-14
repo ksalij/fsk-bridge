@@ -26,14 +26,13 @@
       <a href="/logout" class="">logout</a>
       <a href="" class="">{{session['username']}}</a>
       <div href="" class="logo">fsk-bridge</div>
-    </div>
-    <p id="clients">Clients: 0</p>
-    {% block body %}
-    {% endblock %}
-    <div>
-      <br>
       <p id="clients">Clients: 0</p>
     </div>
+
+
+    {% block body %}
+    {% endblock %}
+
   </body>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>

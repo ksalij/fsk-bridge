@@ -8,8 +8,7 @@
 {% block body %}
 <div class="screen-1">
 
-	<!-- <img src="/getimages/otherimages/bridge-icon.svg" alt="Bridge Icon" class="logo"> -->
-	<img src="{{ url_for('static', filename='otherimages/bridge-icon.svg') }}" alt="Bridge Icon" class="logo">
+	<img src="{{ url_for('static', filename='otherimages/bridge-icon.svg') }}" alt="Bridge Icon" class="iconp-04r5">
 
 	<form action="/login" method="POST" id="login-form">
 		<div class="username">
@@ -32,10 +31,9 @@
 		<!-- <input type="submit" name="register" value="Register" id="register-button"> -->
 	</form>
 
-	<div class="submit-button" id="register-button">
-		<a href="/register">Register</a>
-	</div>
-	<!-- <input class="submit-button" type="submit" name="register" value="Sign Up" id="register-button"> -->
+	<form id="link-button">
+		<input type="submit" class="submit-button" name="register" value="Register" id="link-button" formaction="/register">
+	</form>
 
 </div>
 {% endblock %}
