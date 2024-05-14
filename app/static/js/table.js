@@ -584,6 +584,19 @@ function displayHandsDuringAuction(jsonData) {
     fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
 }
 
+function displayEndGame(jsonData) {
+    // display scores
+    console.log(jsonData.NS_score);
+    console.log(jsonData.EW_score);
+    
+    // should clear the ready_users set
+    socket.emit('unready', tableID, user);
+
+    // call database function to store the finished game
+
+    // display button for new game (same as readyup just instead says start new game)
+    document.getElementById("game").innerHTML = `<button id="ready-button" onclick="readyUp()">Start New Game</button>`;
+}
 
 // Function to preload images, called by fetchImages below
 function preloadImages(imageUrls) {
