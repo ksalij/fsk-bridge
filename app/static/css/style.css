@@ -121,6 +121,7 @@ img {
     transition: border-color 0.5s ease;
     transform: translateY(-10px);
     cursor: pointer;
+    z-index: 3000;
 }
 
 .current-turn {
