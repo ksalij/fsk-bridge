@@ -60,7 +60,7 @@ class Game:
 
     def begin_play_phase(self):
         if self.current_bridgehand.bids[-5:] == ['p', 'p', 'p', 'p']:
-            self.end_game(passout = True)
+            running_tables[self.table_id].end_game(passout = True)
         self.game_phase = "PLAY"
         self.set_contract()
         self.set_declarer()
