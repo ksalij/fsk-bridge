@@ -194,8 +194,7 @@ def user_ready(table_id, user):
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
-        #socketio.emit('usersReady')
-        #start_auction(table_id)
+        socketio.emit('usersReady')
         emit('buildAuction', to=table_id)
         emit('requestGameState', to=table_id)
 
