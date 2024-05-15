@@ -1,16 +1,49 @@
-{% extends 'layout.html' %}
+ {% extends 'layout.html' %}
 
+ {% block css %}
+ <link href="{{ url_for('static', filename='css/login.css') }}" rel="stylesheet" />
+ <!-- <link href="/static/css/login.css" rel="stylesheet"> -->
+ {% endblock %}
+ 
 {% block body %}
+<div class="screen-1">
 
+<<<<<<< HEAD
 <link rel="stylesheet" href="login.css">
 
-<form action="/login" method="POST" id="login-form">
-  <input type="text" id="username" name="username" placeholder="Username"><br>
-  <input type="password" id="password" name="password" placeholder="Password"><br>
-  <input type="submit" name="login" value="Sign in" id="login-button">
-</form>
+	<img src="{{ url_for('static', filename='otherimages/bridge-icon.svg') }}" alt="Bridge Icon" class="iconp-04r5">
 
-<br>
-<a href="/register">Register<a>
+	<form action="/login" method="POST" id="login-form">
+		<div class="username">
+			<label for="username">Username</label>
+			<div>
+				<ion-icon name="mail-outline"></ion-icon>
+				<input type="text" name="username" placeholder="Username">
+			</div>
+		</div>
+		<div class="password">
+			<label for="password">Password</label>
+			<div>
+				<ion-icon name="lock-closed-outline"></ion-icon>
+				<input class="pas" type="password" id="password" name="password" placeholder="············"></ion-input>
+				<ion-icon id="eye" name="eye-outline"></ion-icon>
+			</div>
+		</div>
 
+		<input type="submit" class="submit-button" name="login" value="Login" id="login-button">
+		<!-- <input type="submit" name="register" value="Register" id="register-button"> -->
+	</form>
+
+	<form id="link-button">
+		<input type="submit" class="submit-button" name="register" value="Register" id="link-button" formaction="/register">
+	</form>
+
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 {% endblock %}

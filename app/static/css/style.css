@@ -1,15 +1,7 @@
 body {
     background-color: darkslategray;
-}
-
-body p {
-    margin: 5% auto;
-    text-align: center;
-    color: bisque;
-}
-
-div p {
-    margin: 10px auto;
+    margin: 0;
+    padding: 0;
 }
 
 button {
@@ -113,4 +105,39 @@ input.glow{
     -webkit-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
 -moz-box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
 box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
+}
+
+/* Add a black background color to the top navigation */
+.topnav {
+    overflow: hidden;
+    background-color: #3e4684;
+    position: fixed; /* Set the navbar to fixed position */
+    top: 0; /* Position the navbar at the top of the page */
+    width: 100%; /* Full width */
+    color: white;
+}
+
+
+/* Style the links inside the navigation bar */
+.topnav a {
+  float: right;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  font-size: 13px;
+}
+
+.logo {
+  float: left;
+  text-align: center;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #f2f2f3;
+}
+
+.source-code-pro {
+  font-family: "Source Code Pro", monospace;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
 }

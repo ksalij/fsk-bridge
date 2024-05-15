@@ -9,14 +9,11 @@
 {% endblock %}
 
 {% block body %}
-<p> Table created. Table ID is {{table.table_id}} </p>
-<div class="centered">Current Players:</div>
+<div> Table created. Table ID is {{table.table_id}} </div>
+<div class="centered">Current Players: {{session_table}}</div>
 <div class="centered" id="users">
   {{users|safe}}
 </div>
-
-<div class="centered">Your Hand:</div>
-<div class="centered" id="hand"></div>
 
 <div id="currentPlayers">
 </div>

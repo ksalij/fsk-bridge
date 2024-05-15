@@ -67,6 +67,8 @@ def genUsers(table_id: str) -> str:
 
 @app.route('/')
 def index():
+    if session.get('username') is not None:
+        return redirect('/home')
     return redirect('/login')
 
 @app.route('/home')
@@ -76,6 +78,11 @@ def home():
 @app.route('/chat')
 def chat():
     return render_template("chat.html", app_data=app_data, current_user=session['username'])
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -129,17 +136,19 @@ def openTable():
 
 @app.route('/table/<table_id>')
 def joinTable(table_id):
+    session['currentTable'] = table_id
     Server.client_list[session['username']] = table_id
+
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
             Server.active_tables[table_id].players[direction] = session['username']
             session['userPosition'] = direction
             break
         elif player == session['username']:
-            break
-    socketio.emit("userJoined", genUsers(table_id))
-    session['currentTable'] = table_id
-    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id))
+            Server.active_tables[table_id].players[direction] == None
+            return redirect('/home')
+    socketio.emit("updateUsers", genUsers(table_id))
+    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id), session_table=session['currentTable'])
 
 @app.route('/startGame/<tableID>/<seat>')
 def watchgame(tableID, seat):
@@ -167,7 +176,7 @@ def put_user_in_room(table_id):
     socketio.emit("yourLocalInfo", (session['username'], table_id), to=request.sid)
     join_room(table_id)
     # Server.active_tables[table_id].players.values()[:-1]
-    socketio.emit("userJoined", genUsers(table_id), to=table_id)
+    socketio.emit("updateUsers", genUsers(table_id), to=table_id)
 
 ready_users = {}
 @socketio.on('ready')
@@ -246,7 +255,11 @@ def connect():
 def disconnect():
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    #emit("userJoined", str(Server.active_tables[table_id].players.items()))
+    if session.get('currentTable') is not None:
+        #if Server.active_tables[session.get('currentTable')]:
+        session['currentTable'] = 'reload'
+        print('table exists', file=sys.stderr)
+            #emit("updateUsers", genUsers(session['currentTable']), broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)
