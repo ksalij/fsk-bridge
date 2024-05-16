@@ -68,8 +68,8 @@ def genUsers(table_id: str) -> str:
 @app.route('/')
 def index():
     if session.get('username') is not None:
-        return 'Cannot sign in on multiple tabs'
-        #return redirect('/home')
+        # return 'Cannot sign in on multiple tabs'
+        return redirect('/home')
     return redirect('/login')
 
 @app.route('/home')
