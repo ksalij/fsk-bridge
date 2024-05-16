@@ -58,10 +58,10 @@ class Game:
             'W': W_hand
         }
 
-                
     def begin_play_phase(self):
         if self.current_bridgehand.bids[-5:] == ['p', 'p', 'p', 'p']:
-            self.end_game(passout = True)
+            running_tables[self.table_id].end_game(passout = True)
+            return
         self.game_phase = "PLAY"
         self.set_contract()
         self.set_declarer()
@@ -340,6 +340,8 @@ class Game:
             bridgehand_lin: str
         "AUCTION"
             valid_bids: list of strings
+            dealer_direction: str
+            bids: list of strings
         "PLAY"
             current_trick: dict (keys: directions, values: cards (int, int))
             leader: str
@@ -373,7 +375,9 @@ class Game:
             phase_data = {'bridgehand_lin': running_tables[self.table_id].linwrite()}
 
         elif self.game_phase == 'AUCTION':
-            phase_data = {'valid_bids': self.valid_bids}
+            phase_data = {'valid_bids': self.valid_bids,
+                          'dealer': self.current_bridgehand.dealer,
+                          'bids': self.current_bridgehand.bids}
 
         else:
             dummy = get_partner(self.current_bridgehand.declarer)
@@ -428,7 +432,7 @@ class Table:
     '''
     Stores information about tables of players.
 
-    players: dict (keys: positions)
+    players: dict {positions: usernames}
     seed: int
     '''
     def __init__(self, players: dict, seed: int = None):
@@ -479,14 +483,17 @@ class Table:
             print("Tricks made", self.current_game.current_bridgehand.made)
             print("Final Score", score)
 
-        # store the finished game somewhere (lin format eventually)
+            # store the finished game somewhere (lin format eventually)
         
-        # resets the bridgehands to their original configuration
-        self.current_game.game_random = random.Random(self.current_game.seed)
-        self.current_game.deal()
+            # resets the bridgehands to their original configuration
+            self.current_game.game_random = random.Random(self.current_game.seed)
+            self.current_game.deal()
 
-        # sets the game phase to "END" for the get_json
-        self.current_game.game_phase = "END"
+            # sets the game phase to "END" for the get_json
+            self.current_game.game_phase = "END"
+        
+        else: #passout
+            self.new_game()
 
         # return most recent score update?
     
@@ -506,9 +513,8 @@ class Table:
         output += 'pn|' + bridge_hand.players['S'] + ',' + bridge_hand.players['W'] + ',' + bridge_hand.players['N'] + ',' + bridge_hand.players['E'] + '|st||md|'
         output += str(DEALER_MAP[bridge_hand.dealer])
 
-        for dir in bridge_hand.hands:
-            if dir == 'E':
-                break
+        order = ['S', 'W', 'N']
+        for dir in order:
             cards_str = 'S' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'S') + \
                         'H' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'H') + \
                         'D' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'D') + \
@@ -516,6 +522,8 @@ class Table:
             output += cards_str + ','
 
         vuln = {'NS': 'n','WE': 'e','none': 'o', 'both': 'b'}
+        if bridge_hand.vuln == "EW":
+            bridge_hand.vuln = "WE"
         output += '|rh||ah|Board ' + str(self.game_count) + '|sv|' + vuln[bridge_hand.vuln]
         for bid in bridge_hand.bids:
             output += '|mb'

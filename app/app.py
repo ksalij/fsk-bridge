@@ -24,7 +24,7 @@ app_data = {
     "name": "Formerly Peter's Starter Template for a Flask Web App (Now our project)",
     "description": "A basic Flask app using bootstrap for layout",
     "author": "Peter Simeth",
-    "html_title": "Oliver and Cole's Bridge Website (and fsk bridge group)",
+    "html_title": "FSK Bridge",
     "project_name": "Bridge Stuff",
     "keywords": "flask, webapp, bridge",
 }
@@ -96,7 +96,7 @@ def login():
         user_username = request.form['username']
         user_password = request.form['password']
 
-        cur.execute("SELECT password,salt FROM users WHERE login='{0}';".format(user_username))
+        cur.execute("SELECT password,salt FROM users WHERE login= %s;", (user_username,))
         pass_info = cur.fetchone()
         correct_pass, salt = tuple([item.tobytes() for item in pass_info])
 
@@ -124,9 +124,14 @@ def register():
         user_password = request.form['password']
         user_confirm = request.form['confirm']
 
+        cur.execute("SELECT login FROM users WHERE login = %s;", (user_username,))
+        if cur.fetchone() is not None:
+            error = "There is already a user with that name in our database. Please choose another."
+            return render_template("register.html", app_data=app_data, error=error)
+
         if user_password == user_confirm:
             salt = gen_salt(16)
-            cur.execute("INSERT INTO users VALUES ('{0}', '{1}', '{2}')".format(user_username, hash(user_password, salt).decode(), salt.decode()))
+            cur.execute("INSERT INTO users VALUES (%s, %s, %s)", (user_username, hash(user_password, salt).decode(), salt.decode()))
             conn.commit()
 
         return redirect('/login')
@@ -138,7 +143,6 @@ def openTable():
 
     new_table = Table({'E' : None, 'S' : None, 'W' : None, 'N' : None})
     Server.active_tables[str(new_table.table_id)] = new_table
-    new_table.new_game()
     # TODO replace clients list with database?
 
     return redirect('/table/' + str(new_table.table_id))
@@ -195,7 +199,9 @@ def user_ready(table_id, user):
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
         socketio.emit('usersReady')
-        start_auction(table_id)
+        emit('buildAuction', to=table_id)
+        emit('requestGameState', to=table_id)
+        Server.active_tables[table_id].new_game()
 
 @socketio.on('unready')
 def user_unready(table_id, user):
@@ -240,18 +246,14 @@ def update_game_state(user):
     json = game.get_json(user)
     emit('gameState', json, to=request.sid)
 
-@socketio.on('startAuction')
-def start_auction(table_id):
+@socketio.on('sendBid')
+def send_bid(user, bid):
+    table_id = Server.client_list[user]
     game = Server.active_tables[table_id].current_game
-    # game.deal()
+    user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
+    game.make_bid(user_dir, bid)
     emit('requestGameState', to=table_id)
-    # TODO START AUCTION
-    game.make_bid('N', '1C')
-    game.make_bid('E', 'p')
-    game.make_bid('S', 'p')
-    game.make_bid('W', 'p')
-    emit('requestGameState', to=table_id)
-    
+
 # Count the number of connected clients
 @socketio.on('connect')
 def connect():
@@ -277,6 +279,21 @@ def disconnect():
             session['connected'] == False
 
     socketio.emit("updateUsers", genUsers(session['currentTable']))
+
+@socketio.on('storeFinishedGame')
+def store_finished_game(table_id, lin_file):
+    table = Server.active_tables[table_id]
+    players = table.players
+    game_num = table.game_count
+
+    cur.execute("SELECT table_id FROM tables WHERE table_id = %s;", (int(table_id),))
+    result = cur.fetchone()
+    if result == None:
+        cur.execute("INSERT INTO tables VALUES (%s, %s, %s, %s, %s);", (int(table_id), players['E'], players['S'], players['W'], players['N']))
+
+        cur.execute("INSERT INTO games VALUES (%s, %s, %s);", (int(table_id), int(game_num), lin_file))
+
+    conn.commit()
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)
