@@ -58,10 +58,9 @@ class Game:
             'W': W_hand
         }
 
-                
     def begin_play_phase(self):
         if self.current_bridgehand.bids[-5:] == ['p', 'p', 'p', 'p']:
-            self.end_game(passout = True)
+            running_tables[self.table_id].end_game(passout = True)
         self.game_phase = "PLAY"
         self.set_contract()
         self.set_declarer()
@@ -483,14 +482,17 @@ class Table:
             print("Tricks made", self.current_game.current_bridgehand.made)
             print("Final Score", score)
 
-        # store the finished game somewhere (lin format eventually)
+            # store the finished game somewhere (lin format eventually)
         
-        # resets the bridgehands to their original configuration
-        self.current_game.game_random = random.Random(self.current_game.seed)
-        self.current_game.deal()
+            # resets the bridgehands to their original configuration
+            self.current_game.game_random = random.Random(self.current_game.seed)
+            self.current_game.deal()
 
-        # sets the game phase to "END" for the get_json
-        self.current_game.game_phase = "END"
+            # sets the game phase to "END" for the get_json
+            self.current_game.game_phase = "END"
+        
+        else: #passout
+            self.new_game()
 
         # return most recent score update?
     

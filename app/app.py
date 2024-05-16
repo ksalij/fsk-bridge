@@ -129,7 +129,6 @@ def openTable():
 
     new_table = Table({'E' : None, 'S' : None, 'W' : None, 'N' : None})
     Server.active_tables[str(new_table.table_id)] = new_table
-    new_table.new_game()
     # TODO replace clients list with database?
 
     return redirect('/table/' + str(new_table.table_id))
@@ -189,6 +188,7 @@ def user_ready(table_id, user):
     if len(ready_users[table_id]) >= 4:
         emit('buildAuction', to=table_id)
         emit('requestGameState', to=table_id)
+        Server.active_tables[table_id].new_game()
 
 @socketio.on('unready')
 def user_unready(table_id, user):

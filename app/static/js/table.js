@@ -81,6 +81,7 @@ function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, 
             // 
             if (playableCards && playableCards.includes(hand[i])) {
                 card.setAttribute("class", card.getAttribute("class") + " playable");
+                card.setAttribute("id", "playable_card")
                 if (clientSeat != dummySeat && seat == clientSeat) {
                     card.setAttribute("onclick", `cardPlayed("${user}", "${hand[i]}")`);
                 } else if (seat == dummySeat && dummySeat == ((clientSeat + 2) % 4)) {
@@ -431,12 +432,12 @@ function displayBids(validBids){
                 suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
             }
         }
-        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = p> PASS </button>";
+        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = \"p\"> PASS </button>";
         if (validBids.includes('d')){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = d> X </button>";
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = \"d\"> X </button>";
         }
         if (validBids.includes('r')){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = r> XX </button>";
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = \"r\"> XX </button>";
         }
         suitButtons = suitButtons + "</div>";
         tabcontent.innerHTML = (suitButtons);
@@ -589,6 +590,19 @@ function displayHandsDuringAuction(jsonData) {
     fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
 }
 
+function displayEndGame(jsonData) {
+    // display scores
+    console.log(jsonData.NS_score);
+    console.log(jsonData.EW_score);
+    
+    // should clear the ready_users set
+    socket.emit('unready', tableID, user);
+
+    // call database function to store the finished game
+
+    // display button for new game (same as readyup just instead says start new game)
+    document.getElementById("game").innerHTML = `<button id="ready-button" onclick="readyUp()">Start New Game</button>`;
+}
 
 // Function to preload images, called by fetchImages below
 function preloadImages(imageUrls) {
