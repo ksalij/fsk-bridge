@@ -431,7 +431,7 @@ class Table:
     '''
     Stores information about tables of players.
 
-    players: dict (keys: positions)
+    players: dict {positions: usernames}
     seed: int
     '''
     def __init__(self, players: dict, seed: int = None):
