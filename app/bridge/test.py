@@ -1,5 +1,6 @@
 from server import *
 from linparse import *
+import random
 # from linwrite import *
 
 def play_full_hand():
@@ -118,9 +119,19 @@ def play_2_boards_lin():
             if table.current_game.play_card(table.current_game.current_player, table.current_game.current_bridgehand.hands[table.current_game.current_player][j]):
                 break
 
+def testing_deal():
+    players = {'E': 'user0', 'S': 'user1', 'W': 'user2', 'N': 'user3'}
+    table = Table(players, seed = 1234)
+    table.new_game()
+    print(table.current_game.current_bridgehand.hands)
+    table.current_game.game_random = random.Random(table.current_game.seed)
+    table.current_game.deal()
+    print(table.current_game.current_bridgehand.hands)
+
 if __name__=="__main__": 
     # play_full_hand()
     # test_auction()
     # test_lin_file()
-    auction_then_play()
+    # auction_then_play()
     # play_2_boards_lin()
+    testing_deal()

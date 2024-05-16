@@ -1,15 +1,17 @@
 from bridge.linparse import *
-# from linwrite import *
 import random, math
 from datetime import datetime
 from bridge.score import calculate_score
 import json
 
+DEALER_MAP = {'S':1, 'W':2, 'N':3, 'E':4}
+SUITS = {0:'C', 1:'D', 2:'H', 3:'S'}
+RANK_NAMES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
 '''
 table_id to Table object
 '''
 running_tables = {}
-game_counter = 0
 finished_bridgehands = {}
 
 class Game:
@@ -21,8 +23,10 @@ class Game:
     def __init__(self, players: dict, table_id: int, seed: int = None):
         # sets seed to the current time if not included, seed used for the deal
         if seed == None:
-            seed = int(datetime.now().timestamp())
-        self.game_random = random.Random(seed)
+            self.seed = int(datetime.now().timestamp())
+        else:
+            self.seed = seed
+        self.game_random = random.Random(self.seed)
         
         # creates a new BridgeHand object that is continually updated as play progresses
         self.current_bridgehand = BridgeHand(players, dealer = None, hands = {}, bids = [], play = None, contract = None, declarer = None, doubled = None, vuln = None, made = 0, claimed = 0)
@@ -118,8 +122,9 @@ class Game:
         output:
             returns True of card is successfully played, False otherwise
         '''
-        print(player)
-        print(self.current_bridgehand.hands[player])
+        if self.game_phase != "PLAY":
+            return False
+
         # check if the card is in the players hand
         if not self.current_bridgehand.hands[player].has(card):
             return False
@@ -200,6 +205,9 @@ class Game:
         If so, update the BridgeHand auction state.
         Update valid bids for the next player.
         '''
+        if self.game_phase != "AUCTION":
+            return False
+
         if not (bid in self.valid_bids or bid == 'p'):
             return False
 
@@ -319,51 +327,28 @@ class Game:
         PLAYER_MAP = {'E': 0, 'S': 1, 'W': 2, 'N': 3}
 
         json:
-            game_phase: str ("AUCTION" or "PLAY")
-            valid_bids: list of strings
-            current_trick: dict (keys: directions, values: cards (int, int))
-            leader: int 
-            your_direction: int
+        All phases
+            game_phase: str ("AUCTION" or "PLAY" or "END")
+            NS_score: int
+            EW_score: int
+            players: dict (keys: directions, values: playernames)
+            current_player: str
+            your_direction: str
             your_hand: list of strings "suitrank"
             hand_sizes: dict (keys: direction ints, values: numCards (int))
-            dummy_direction: int or null
+        "END"
+            bridgehand_lin: str
+        "AUCTION"
+            valid_bids: list of strings
+        "PLAY"
+            current_trick: dict (keys: directions, values: cards (int, int))
+            leader: str
+            dummy_direction: str
             dummy_hand: list of strings "suitrank"
             contract: string
-            players: dict (keys: directions, values: playernames)
-            current_player: int
+            playable_cards: list of strings or null
         '''
-        # info that varies based on the game phase
-        if self.game_phase == 'AUCTION':
-            valid_bids = self.valid_bids
-
-            current_trick = None
-            leader = None
-
-            dummy = None
-            dummy_direction = None
-            dummy_hand = None
-
-            contract = None
-        else:
-            valid_bids = None
-        
-            dummy = get_partner(self.current_bridgehand.declarer)
-            dummy_direction = PLAYER_MAP[dummy]
-            dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
-            # TODO REPLACE BACKEND: OUTPUT JSON WHEN THE FIRST TRICK HASN'T BEEN PLAYED
-            if len(self.current_bridgehand.play) == 0:
-                leader = (PLAYER_MAP[dummy] - 1) % 4
-                current_trick = {'lead': leader}
-            else:
-                current_trick = self.current_bridgehand.play[-1]
-                leader = PLAYER_MAP[self.current_bridgehand.play[-1]['lead']]
-            
-            current_trick.pop('lead')
-            current_trick = {pos:str(card) for pos, card in current_trick.items()}
-
-
-            contract = self.current_bridgehand.contract
-
+        # info required regardless of game state
         your_direction = None
         for dir, name in self.current_bridgehand.players.items():
             if name == playername:
@@ -374,24 +359,59 @@ class Game:
             your_direction = 'Error: Player Not Found'
             your_hand = None
 
-        hand_sizes = {PLAYER_MAP[pos]:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+        hand_sizes = [0, 0, 0, 0]
+        for pos, hand in self.current_bridgehand.hands.items():
+            hand_sizes[PLAYER_MAP[pos]] = len(hand)
 
-        players = self.current_bridgehand.players
+        NS_score = running_tables[self.table_id].NS_score
+        EW_score = running_tables[self.table_id].EW_score
 
-        current_player = PLAYER_MAP[self.current_player]
+        hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+
+        # info that varies based on the game phase
+        if self.game_phase == 'END':
+            phase_data = {'bridgehand_lin': running_tables[self.table_id].linwrite()}
+
+        elif self.game_phase == 'AUCTION':
+            phase_data = {'valid_bids': self.valid_bids}
+
+        else:
+            dummy = get_partner(self.current_bridgehand.declarer)
+            dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
+           
+            # first trick hasn't been played
+            if len(self.current_bridgehand.play) == 0:
+                leader = self.current_player
+                current_trick = None
+            else:
+                current_trick = self.current_bridgehand.play[-1].copy()
+                leader = current_trick['lead']
+            
+                current_trick.pop('lead')
+                current_trick = {pos:str(card) for pos, card in current_trick.items()}
+            
+            playable_cards = []
+            if your_direction != dummy:
+                if your_direction == self.current_player or (your_direction == self.current_bridgehand.declarer and dummy == self.current_player):
+                    playable_cards = [str(card) for card in self.get_playable_cards()]
+
+            phase_data = {"current_trick": current_trick,
+                        "leader": leader,
+                        "dummy_direction": dummy,
+                        "dummy_hand": dummy_hand,
+                        "contract": self.current_bridgehand.contract,
+                        "playable_cards": playable_cards}
 
         return_dict = {"game_phase": self.game_phase,
-                    "valid_bids:": valid_bids,
-                    "current_trick": current_trick,
-                    "leader": leader,
-                    "your_direction": PLAYER_MAP[your_direction],
+                    "NS_score": NS_score,
+                    "EW_score": EW_score,
+                    "players": self.current_bridgehand.players,
+                    "current_player": self.current_player,
+                    "your_direction": your_direction,
                     "your_hand": your_hand,
-                    "hand_sizes": hand_sizes,
-                    "dummy_direction": dummy_direction,
-                    "dummy_hand": dummy_hand,
-                    "contract": contract,
-                    "players": players,
-                    "current_player": current_player}
+                    "hand_sizes": hand_sizes}
+        
+        return_dict.update(phase_data)
         return json.dumps(return_dict)
 
 def get_partner(position: str):
@@ -426,14 +446,7 @@ class Table:
     def new_game(self):
         '''
         creates a new game at this table
-        gives it a game_id based on the global game_counter variable 
-        (should be replaced by something with regards to the database so game_ids are not repeated)
-        
         '''
-        global game_counter
-        game_counter += 1
-        game_id = game_counter
-
         self.game_count += 1
 
         if self.seed == None:
@@ -466,9 +479,16 @@ class Table:
             print("Tricks made", self.current_game.current_bridgehand.made)
             print("Final Score", score)
 
-        # set current_game to none
-        self.current_game = None
         # store the finished game somewhere (lin format eventually)
+        
+        # resets the bridgehands to their original configuration
+        self.current_game.game_random = random.Random(self.current_game.seed)
+        self.current_game.deal()
+
+        # sets the game phase to "END" for the get_json
+        self.current_game.game_phase = "END"
+
+        # return most recent score update?
     
     def join_table(self, playername: str, direction: str):
         '''
@@ -479,6 +499,41 @@ class Table:
             self.players[direction] = playername
             return True
         return False
+    
+    def linwrite(self):
+        bridge_hand = self.current_game.current_bridgehand
+        output = ''
+        output += 'pn|' + bridge_hand.players['S'] + ',' + bridge_hand.players['W'] + ',' + bridge_hand.players['N'] + ',' + bridge_hand.players['E'] + '|st||md|'
+        output += str(DEALER_MAP[bridge_hand.dealer])
+
+        for dir in bridge_hand.hands:
+            if dir == 'E':
+                break
+            cards_str = 'S' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'S') + \
+                        'H' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'H') + \
+                        'D' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'D') + \
+                        'C' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'C')
+            output += cards_str + ','
+
+        vuln = {'NS': 'n','WE': 'e','none': 'o', 'both': 'b'}
+        output += '|rh||ah|Board ' + str(self.game_count) + '|sv|' + vuln[bridge_hand.vuln]
+        for bid in bridge_hand.bids:
+            output += '|mb'
+            output += '|' + bid
+        for trick in bridge_hand.play:
+            player = trick['lead']
+            output += '|pg|'
+            for i in range(4):
+                output += '|pc'
+                card = trick[PLAYERS[(PLAYER_MAP[player] + i) % 4]]
+                card_num = card.rankname
+                if card_num == '10':
+                    card_num = 'T'
+                suit = card.suitname
+                output += '|' + suit + card_num
+        output += '|pg||'
+
+        return output
     
 
 if __name__=="__main__": 

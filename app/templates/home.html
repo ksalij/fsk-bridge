@@ -9,7 +9,7 @@
 
 <p>User: {{current_user}}</p>
 <form action="/openTable">
-  <input type="submit" value="New Table"/>
+  <input type="submit" id="newtable" value="New Table"/>
 </form>
 
 </hr>
@@ -24,6 +24,13 @@
 <form action="/chat">
   <input type="submit" value="Chat"/>
 </form>
+
+{% if rejoin == True %}
+<div>You were disconnected!</div>
+<form action="" name='rejoin' id='rejoin'>
+  <button action="submit">Rejoin Room</button>
+</form>
+{% endif %}
 
 {% endblock %}
 
