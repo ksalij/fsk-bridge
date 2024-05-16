@@ -281,7 +281,7 @@ def store_finished_game(table_id, lin_file):
     if result == None:
         cur.execute("INSERT INTO tables VALUES (%s, %s, %s, %s, %s);", (int(table_id), players['E'], players['S'], players['W'], players['N']))
 
-    cur.execute("INSERT INTO games VALUES (%s, %s, %s);", (int(table_id), int(game_num), lin_file))
+        cur.execute("INSERT INTO games VALUES (%s, %s, %s);", (int(table_id), int(game_num), lin_file))
 
     conn.commit()
 
