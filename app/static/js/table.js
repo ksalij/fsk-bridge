@@ -325,13 +325,17 @@ function removeAuction(){
 
 function displayAuction(bids, dealer, direction){
     clearAuction();
-
+    const suitSymbolMap = {'C': '\u2663', 'D': '\u2666', 'H': '\u2665', 'S': '\u2660', 'N': 'NT'};
     const header = document.createElement("tr");
 
+    vulnerability = 'both';
     directions = ['N', "E", 'S', 'W'];
     for (let i = 0; i < 4; i++){
         const playerHeader = document.createElement('th');
         playerHeader.innerText = directions[(i + SEATMAP[direction] + 2) % 4];
+        if (vulnerability == 'both'){
+            playerHeader.setAttribute("id", "vul");
+        }
         header.appendChild(playerHeader);
     }
     auction.appendChild(header);
@@ -346,8 +350,9 @@ function displayAuction(bids, dealer, direction){
         for (let j = 0; j < 4; j++){
             if ((4*i + j) < auctionList.length){
                 const rowEntry =  document.createElement('td');
+                rowEntry.setAttribute('class', 'auctionBid');
                 if (auctionList[4*i + j] == 'none'){
-                    rowEntry.innerText = 'NONE';
+                    // rowEntry.innerText = 'NONE';
                 } else if (auctionList[4*i + j] == 'p'){
                     rowEntry.setAttribute("id", "p");
                     rowEntry.innerText = 'PASS';
@@ -359,7 +364,7 @@ function displayAuction(bids, dealer, direction){
                     rowEntry.innerText = 'XX';
                 } else {
                     rowEntry.setAttribute("id", auctionList[4*i + j][1]);
-                    rowEntry.innerText = auctionList[4*i + j];
+                    rowEntry.innerText = auctionList[4*i + j][0] + suitSymbolMap[auctionList[4*i + j][1]];
                 }
                 // rowEntry.innerText = auctionList[4*i + j];
                 row.appendChild(rowEntry);
