@@ -502,6 +502,7 @@ function makeBid(bid){
 */
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION") {
+        duringAuction = Boolean(true);
         displayHandsDuringAuction(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction);
         if (jsonData.current_player == jsonData.your_direction) {
