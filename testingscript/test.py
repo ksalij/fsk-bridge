@@ -99,4 +99,5 @@ for i in range(52):
         playRandomCard(handle)
 
 driver.switch_to.new_window('tab')
+
 driver.close()

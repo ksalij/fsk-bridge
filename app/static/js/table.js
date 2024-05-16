@@ -721,6 +721,10 @@ socket.on('readyInfo', (data) => {
 
 socket.on('buildAuction', (response) => {
     buildAuctionStructure();
+  
+socket.on('usersReady', (response) => {
+    document.getElementById("unready-button").remove();
+    document.getElementById("waiting").remove();
 });
 
 socket.on('isCardGood', (bool, json) => {

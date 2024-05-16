@@ -68,12 +68,18 @@ def genUsers(table_id: str) -> str:
 @app.route('/')
 def index():
     if session.get('username') is not None:
-        return redirect('/home')
+        return 'Cannot sign in on multiple tabs'
+        #return redirect('/home')
     return redirect('/login')
 
 @app.route('/home')
 def home():
-    return render_template("home.html", app_data=app_data, current_user=session['username'])
+    return render_template("home.html", app_data=app_data, current_user=session['username'], rejoin=False)
+
+@app.route('/rejoin')
+def rejoin():
+    session['userInGame'] = True
+    return redirect('/table/' + session['currentTable'])
 
 @app.route('/chat')
 def chat():
@@ -100,7 +106,10 @@ def login():
         print(correct_pass, file=sys.stderr)
         print(hash(user_password, salt), file=sys.stderr)
 
-        if hash(user_password, salt) == correct_pass:      
+        if hash(user_password, salt) == correct_pass:    
+            if session.get('username') is not None:
+                if session['username'] == request.form['username']:
+                    return 'error'
             session['username'] = request.form['username']
             return redirect(url_for('home'))
         else:
@@ -147,10 +156,8 @@ def joinTable(table_id):
         if player == None:
             Server.active_tables[table_id].players[direction] = session['username']
             session['userPosition'] = direction
+            session['connected'] = True
             break
-        elif player == session['username']:
-            Server.active_tables[table_id].players[direction] == None
-            return redirect('/home')
     socketio.emit("updateUsers", genUsers(table_id))
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id), session_table=session['currentTable'])
 
@@ -191,6 +198,7 @@ def user_ready(table_id, user):
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
+        socketio.emit('usersReady')
         emit('buildAuction', to=table_id)
         emit('requestGameState', to=table_id)
         Server.active_tables[table_id].new_game()
@@ -264,11 +272,13 @@ def connect():
 def disconnect():
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    if session.get('currentTable') is not None:
-        #if Server.active_tables[session.get('currentTable')]:
-        session['currentTable'] = 'reload'
-        print('table exists', file=sys.stderr)
-            #emit("updateUsers", genUsers(session['currentTable']), broadcast=True)
+
+    if session.get('connected') is not None:
+        if session['connected'] == True:
+            Server.active_tables[session['currentTable']].players[session['userPosition']] = None
+            session['connected'] == False
+
+    socketio.emit("updateUsers", genUsers(session['currentTable']))
 
 @socketio.on('storeFinishedGame')
 def store_finished_game(table_id, lin_file):

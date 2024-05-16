@@ -25,6 +25,13 @@
   <input type="submit" value="Chat"/>
 </form>
 
+{% if rejoin == True %}
+<div>You were disconnected!</div>
+<form action="" name='rejoin' id='rejoin'>
+  <button action="submit">Rejoin Room</button>
+</form>
+{% endif %}
+
 {% endblock %}
 
 {% block javascript %}

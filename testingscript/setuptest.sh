@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+!/usr/bin/bash
 
 echo "Changing to home directory..."
 pushd "$HOME"
@@ -42,5 +42,4 @@ python3 -m pip install selenium
 
 echo "Removing archive files"
 rm chrome-linux64.zip  chromedriver-linux64.zip
-
 popd
