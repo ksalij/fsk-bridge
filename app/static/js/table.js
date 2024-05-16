@@ -594,6 +594,7 @@ function displayEndGame(jsonData) {
     socket.emit('unready', tableID, user);
 
     // call database function to store the finished game
+    socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin)
 
     // display button for new game (same as readyup just instead says start new game)
     document.getElementById("game").innerHTML = `<button id="ready-button" onclick="readyUp()">Start New Game</button>`;

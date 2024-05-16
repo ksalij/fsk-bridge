@@ -90,7 +90,7 @@ def login():
         user_username = request.form['username']
         user_password = request.form['password']
 
-        cur.execute("SELECT password,salt FROM users WHERE login='{0}';".format(user_username))
+        cur.execute("SELECT password,salt FROM users WHERE login= %s;", (user_username,))
         pass_info = cur.fetchone()
         correct_pass, salt = tuple([item.tobytes() for item in pass_info])
 
@@ -115,9 +115,14 @@ def register():
         user_password = request.form['password']
         user_confirm = request.form['confirm']
 
+        cur.execute("SELECT login FROM users WHERE login = %s;", (user_username,))
+        if cur.fetchone() is not None:
+            error = "There is already a user with that name in our database. Please choose another."
+            return render_template("register.html", app_data=app_data, error=error)
+
         if user_password == user_confirm:
             salt = gen_salt(16)
-            cur.execute("INSERT INTO users VALUES ('{0}', '{1}', '{2}')".format(user_username, hash(user_password, salt).decode(), salt.decode()))
+            cur.execute("INSERT INTO users VALUES (%s, %s, %s)", (user_username, hash(user_password, salt).decode(), salt.decode()))
             conn.commit()
 
         return redirect('/login')
@@ -264,6 +269,21 @@ def disconnect():
         session['currentTable'] = 'reload'
         print('table exists', file=sys.stderr)
             #emit("updateUsers", genUsers(session['currentTable']), broadcast=True)
+
+@socketio.on('storeFinishedGame')
+def store_finished_game(table_id, lin_file):
+    table = Server.active_tables[table_id]
+    players = table.players
+    game_num = table.game_count
+
+    cur.execute("SELECT table_id FROM tables WHERE table_id = %s;", (int(table_id),))
+    result = cur.fetchone()
+    if result == None:
+        cur.execute("INSERT INTO tables VALUES (%s, %s, %s, %s, %s);", (int(table_id), players['E'], players['S'], players['W'], players['N']))
+
+    cur.execute("INSERT INTO games VALUES (%s, %s, %s);", (int(table_id), int(game_num), lin_file))
+
+    conn.commit()
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)

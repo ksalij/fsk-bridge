@@ -513,9 +513,8 @@ class Table:
         output += 'pn|' + bridge_hand.players['S'] + ',' + bridge_hand.players['W'] + ',' + bridge_hand.players['N'] + ',' + bridge_hand.players['E'] + '|st||md|'
         output += str(DEALER_MAP[bridge_hand.dealer])
 
-        for dir in bridge_hand.hands:
-            if dir == 'E':
-                break
+        order = ['S', 'W', 'N']
+        for dir in order:
             cards_str = 'S' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'S') + \
                         'H' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'H') + \
                         'D' + ''.join(RANK_NAMES[card.rank-2] for card in bridge_hand.hands[dir] if card.suitname == 'D') + \
@@ -523,6 +522,8 @@ class Table:
             output += cards_str + ','
 
         vuln = {'NS': 'n','WE': 'e','none': 'o', 'both': 'b'}
+        if bridge_hand.vuln == "EW":
+            bridge_hand.vuln = "WE"
         output += '|rh||ah|Board ' + str(self.game_count) + '|sv|' + vuln[bridge_hand.vuln]
         for bid in bridge_hand.bids:
             output += '|mb'
