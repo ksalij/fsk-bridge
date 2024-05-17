@@ -8,7 +8,7 @@
     <meta name="description" content="{{ app_data['description'] }}">
     <!-- <meta name="keywords" content="{{ app_data['keywords'] }}"> -->
     <meta name="author" content="{{ app_data['author'] }}">
-    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/table.css" rel="stylesheet">
     <!-- <link rel="icon" href="../../../../favicon.ico"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,14 +23,18 @@
 
   <body>
     <div class="topnav source-code-pro">
-      <a href="/logout" id="logout" class="">logout</a>
+      <a href="/logout" class="" id="logout">logout</a>
       <a href="" class="">{{session['username']}}</a>
       <div href="" class="logo">fsk-bridge</div>
+      <p id="clients">Clients: 0</p>
     </div>
-    <p id="clients">Clients: 0</p>
+
+
     {% block body %}
     {% endblock %}
+
   </body>
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
   <script src="/static/js/index.js"></script>
