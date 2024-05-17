@@ -2,12 +2,7 @@ $(document).ready(function() {
 
   $('#join').submit(function(){
     var id = $('#id').val();
-    $(this).attr('action', "/table/" + id);
+    $(this).attr('action', "/table/" + id + "/" + user);
   }); 
-
-
-  $('#rejoin').submit(function(){
-    $(this).attr('action', "/rejoin")
-  })
 
 });
