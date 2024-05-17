@@ -16,14 +16,28 @@ img {
     /* border: 1px solid black; */
 }
 
+#play-container {
+    display: flex;
+    box-sizing: border-box;
+    /* width: 75vh;
+    height: 75vh; */
+    width: 75%;
+    height: 100%;
+}
+
+#chatbox {
+    flex: 30%;
+}
+
 #game {
-    width: 75vh;
-    height: 75vh;
     border: 1px solid black;
     background-color: darkgreen;
-    position: relative;
+    /* position: relative;
     padding: 0 0 0 0;
-    margin: 0 auto;
+    margin: 0 auto; */
+    flex: 70%;
+    width: 75vh;
+    height: 75vh;
 }
 
 .centered {
