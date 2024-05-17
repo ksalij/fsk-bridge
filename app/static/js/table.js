@@ -1,5 +1,3 @@
-//var socket = io.connect('http://localhost:80');;
-
 // Some global variables to keep track of the client relative to the rest of the table
 let user = "";
 let tableID = 0;
