@@ -86,10 +86,10 @@ def home(username):
 def chat():
     return render_template("chat.html", app_data=app_data, current_user=session['username'])
 
-#@app.route('/logout')
-#def logout():
-#    session.clear()
-#    return redirect('/')
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
