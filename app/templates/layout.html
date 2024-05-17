@@ -8,14 +8,15 @@
     <meta name="description" content="{{ app_data['description'] }}">
     <!-- <meta name="keywords" content="{{ app_data['keywords'] }}"> -->
     <meta name="author" content="{{ app_data['author'] }}">
-    <link href="/static/css/table.css" rel="stylesheet">
     <!-- <link rel="icon" href="../../../../favicon.ico"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
 
     <title>{{ app_data['html_title'] }}</title>
-
+    
+    <link href="{{ url_for('static', filename='css/navbar.css')}}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/layout.css')}}" rel="stylesheet">
     {% block css %}
     {% endblock %}
 
