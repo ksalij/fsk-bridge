@@ -69,26 +69,26 @@ def auction_then_play():
     table = Table(players, seed = 0)
     table.new_game()
 
-    print(table.current_game.get_json("user1"))
-    print()
+    # print(table.current_game.get_json("user1"))
+    # print()
 
     table.current_game.make_bid('N', '2C')
     table.current_game.make_bid('E', 'd')
 
-    print(table.current_game.get_json("user1"))
-    print()
-    
+    # print(table.current_game.get_json("user1"))
+    # print()
+    print(table.current_game.current_bridgehand.hands)
     table.current_game.make_bid('S', 'r')
     table.current_game.make_bid('W', 'p')
     table.current_game.make_bid('N', 'p')
     table.current_game.make_bid('E', 'p')
-
+    print(table.current_game.current_bridgehand.hands)
     for i in range(26):
         for j in range(len(table.current_game.current_bridgehand.hands[table.current_game.current_player].cards)):
             if table.current_game.play_card(table.current_game.current_player, table.current_game.current_bridgehand.hands[table.current_game.current_player][j]):
                 break
 
-    print(table.current_game.get_json("user1"))
+    # print(table.current_game.get_json("user1"))
 
 def play_2_boards_lin():
     players = {'E': 'user0', 'S': 'user1', 'W': 'user2', 'N': 'user3'}
@@ -131,9 +131,9 @@ def testing_deal():
     print(table.current_game.current_bridgehand.hands)
 
 if __name__=="__main__": 
-    play_full_hand()
+    # play_full_hand()
     # test_auction()
     # test_lin_file()
-    # auction_then_play()
+    auction_then_play()
     # play_2_boards_lin()
     # testing_deal()

@@ -67,6 +67,15 @@ class Game:
         self.set_declarer()
         self.current_bridgehand.play = []
 
+        if not self.current_bridgehand.contract[1] == 'N':
+            contract_num = SUITMAP[self.current_bridgehand.contract[1]]
+            starting_sorder = [3,2,0,1]
+            rotation = starting_sorder.index(contract_num)
+            sorder = starting_sorder[rotation:] + starting_sorder[:rotation]
+            # resort the hands with trump on the left
+            for direction in self.current_bridgehand.hands:
+                self.current_bridgehand.hands[direction] = self.current_bridgehand.hands[direction].sort(sorder)
+
     def update_current_player(self) -> None:
         ''' 
         Check that the card is in the players hand.

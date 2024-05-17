@@ -145,7 +145,7 @@ class Hand(object):
         """
         return self.cards.pop(i)
     
-    def sort(self, sorder=(0,1,2,3)):
+    def sort(self, sorder=(3,2,0,1)):
         """Since comparison is not implemented for Card we
         have to implement card order here. Note that suitorder
         must be passed to the compare method of Card.
@@ -153,7 +153,7 @@ class Hand(object):
         suitorder: tuple of suits (numerical) from low-to-high
         """
 
-        keyfunc = cmp_to_key(lambda x,y: x.compare(y, sorder))
+        keyfunc = cmp_to_key(lambda x,y: y.compare(x, sorder[::-1]))
 
         return Hand(initial=sorted(self, key=keyfunc))
 
