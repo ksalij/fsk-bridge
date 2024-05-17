@@ -1,5 +1,5 @@
 body {
-    background-color: darkslategray;
+    background-color: #dde5f4;
     margin: 0;
     padding: 0;
 }
@@ -19,8 +19,8 @@ img {
 #game {
     width: 75vh;
     height: 75vh;
-    /* border: 1px solid black; */
-    background-color: #dde5f4;
+    border: 1px solid black;
+    background-color: darkgreen;
     position: relative;
     padding: 0 0 0 0;
     margin: 0 auto;
