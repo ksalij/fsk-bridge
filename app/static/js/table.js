@@ -134,7 +134,9 @@ function buildHandStructure(handID) {
       - for each card in cardsPlayed, create an HTML element for the card and add the element to the play-area
 */
 function buildPlayArea() {
-    const playArea = document.getElementById("play-area");
+    // Create an area for cards played during a trick
+    const playArea = document.createElement("div");
+    playArea.setAttribute("id", "play-area");
 
     const clientTeam = document.createElement("div");
     clientTeam.setAttribute("class", "client-team");
@@ -157,15 +159,18 @@ function buildPlayArea() {
     oppRCard.setAttribute("id", "oppR-trick-card");
     oppRCard.setAttribute("class", "in-trick");
 
-    // Add each card div to the correct containers
+    // Add each card to the correct container
     clientTeam.appendChild(clientCard);
     clientTeam.appendChild(partnerCard);
     oppTeam.appendChild(oppLCard);
     oppTeam.appendChild(oppRCard);
 
-    // Add the new structures back into the document
+    // Add the new structures into the play area div
     playArea.appendChild(clientTeam);
     playArea.appendChild(oppTeam);
+
+    // Add the play area into the game div
+    document.getElementById("game").appendChild(playArea);
 }
 
 function fillPlayArea(clientSeat, cardsPlayed) {
@@ -225,15 +230,10 @@ function buildTableStructure() {
     clientTeam.appendChild(partnerHand);
     oppTeam.appendChild(oppLHand);
     oppTeam.appendChild(oppRHand);
-    
-    // Create an area for cards played during a trick
-    const playArea = document.createElement("div");
-    playArea.setAttribute("id", "play-area");
 
     // Add the new structures back into the document
     gameDiv.appendChild(clientTeam);
     gameDiv.appendChild(oppTeam);
-    gameDiv.appendChild(playArea);
 }
 
 /*
@@ -258,8 +258,7 @@ function readyUp() {
 
     // Create the div structuring
     buildTableStructure();
-    buildPlayArea();
-    
+
     // Create ready message structuring
     const readyInfo = document.createElement("div");
     readyInfo.setAttribute("id", "ready-info");
@@ -313,7 +312,7 @@ function clearAuction(){
             // Kill all the children
         }
         auction.removeChild(auction.firstChild);
-    } 
+    }
 }
 
 function removeAuction(){
@@ -376,6 +375,7 @@ function displayAuction(bids, dealer, direction){
 
 function clearBids() {
     console.log('Clearing Bids');
+    // document.getElementById("bidding").innerHTML = "";
     const bidding = document.getElementById("bidding");
 
     if (bidding) {
@@ -521,6 +521,7 @@ function renderUpdate(jsonData) {
             clearBids();
             clearAuction();
             removeAuction();
+            buildPlayArea();
             duringAuction = Boolean(false);
         }
         displayPlay(jsonData);
