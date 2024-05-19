@@ -512,7 +512,7 @@ function makeBid(bid){
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION") {
         duringAuction = Boolean(true);
-        displayHandsDuringAuction(jsonData);
+        displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
             console.log(jsonData.current_player);
@@ -535,13 +535,13 @@ function renderUpdate(jsonData) {
             buildPlayArea();
             duringAuction = Boolean(false);
         }
-        displayPlay(jsonData);
+        displayHands(jsonData);
     } else if (jsonData.game_phase == "END") {
         displayEndGame(jsonData);
     }
 }
 
-function displayPlay(jsonData) {
+function displayHands(jsonData) {
     const seats = [null, null, null, null];
     seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
     seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
@@ -558,47 +558,21 @@ function displayPlay(jsonData) {
         hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
     }
     hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
-    hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
+    if (jsonData.display_dummy) {
+        hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
+    }
 
     for (let i = 0; i < 4; i++) {
         buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
     }
 
-    const currentTrick = Array(4).fill(null);
-    for (direction in jsonData.current_trick) {
-        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
-    }
-    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
-}
-
-function displayHandsDuringAuction(jsonData) {
-
-    const seats = [null, null, null, null];
-    seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 1) % 4] = document.getElementById("oppL_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 3) % 4] = document.getElementById("oppR_hand");
-    for (let i = 0; i < 4; i++) {
-        while (seats[i].firstChild) {
-            seats[i].removeChild(seats[i].firstChild);
+    if (jsonData.game_phase == "PLAY") {
+        const currentTrick = Array(4).fill(null);
+        for (direction in jsonData.current_trick) {
+            currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
         }
+        fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
     }
-    
-    const hands = [];
-    for (direction in jsonData.hand_sizes) {
-        hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
-    }
-    hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
-
-    for (let i = 0; i < 4; i++) {
-        buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
-    }
-
-    const currentTrick = Array(4).fill(null);
-    for (direction in jsonData.current_trick) {
-        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
-    }
-    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
 }
 
 function displayEndGame(jsonData) {
