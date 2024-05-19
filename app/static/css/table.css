@@ -188,7 +188,6 @@ input.glow {
     outline: none;
     cursor: pointer;
     padding: 1.44vh 2.23vh;
-    transition: 0.3s;
     font-size: 2.37vh;
     margin: 0px;
 }
@@ -210,8 +209,8 @@ input.glow {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
-    margin: 3px;
+    font-size: 2vh;
+    margin: .4vh;
 }
 
 #C {
@@ -235,12 +234,12 @@ input.glow {
 }
 
 #p {
-    background-color: #235939; /* Green */
+    background-color: #34784f; /* Green */
     color: #ffffff;
 }
 
 #d {
-    background-color: #8a0803; /* Red */
+    background-color: #bd4a4a; /* Red */
     color: #ffffff;
 }
 
@@ -263,12 +262,13 @@ input.glow {
 }
 
 .auctionContainer {
-    margin-top: -68%;
+    margin-top: -75%;
     width: 50%;
     height: 25%;
     margin-left: auto;
     margin-right: auto;
     overflow-y: auto;
+    font-size: 2vh;
 }
 
 .auction {
@@ -282,7 +282,7 @@ input.glow {
 
 #bidding {
     position: relative;
-    margin-top: 6%;
+    margin-top: 4%;
 }
 
 .auctionBid {
@@ -292,13 +292,13 @@ input.glow {
     text-align: center;
 }
 
-#vul {
+.vul {
     background-color: #d9635f;
     position: sticky;
     top: 0;
 }
 
-#nonvul {
+.nonvul {
     background-color: #cfcfcf;
     position: sticky;
     top: 0;

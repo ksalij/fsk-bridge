@@ -337,10 +337,10 @@ function displayAuction(bids, dealer, direction, vulnerability){
         NS_vul = vulnerability == 'NS' && (directions[(i + SEATMAP[direction] + 2) % 4] == 'N' || directions[(i + SEATMAP[direction] + 2) % 4] == 'S');
         EW_vul = vulnerability == 'EW' && (directions[(i + SEATMAP[direction] + 2) % 4] == 'E' || directions[(i + SEATMAP[direction] + 2) % 4] == 'W');
         if (all_vul || NS_vul || EW_vul){
-            playerHeader.setAttribute("id", "vul");
+            playerHeader.setAttribute("class", "vul");
         }
         else{
-            playerHeader.setAttribute("id", "nonvul");
+            playerHeader.setAttribute("class", "nonvul");
         }
         header.appendChild(playerHeader);
     }
