@@ -20,7 +20,7 @@ img {
     width: 75vh;
     height: 75vh;
     border: 1px solid black;
-    background-color: darkgreen;
+    background-color: #57965b;
     position: relative;
     padding: 0 0 0 0;
     margin: 0 auto;
@@ -262,16 +262,22 @@ input.glow {
     top: -12vh;
 }
 
-.auction {
-    position: relative;
-    margin-top: -75%;
+.auctionContainer {
+    margin-top: -68%;
     width: 50%;
-    height: 50px;
-    max-height: 50px;
+    height: 25%;
     margin-left: auto;
     margin-right: auto;
-    overflow-y:auto;
+    overflow-y: auto;
+}
+
+.auction {
+    table-layout: fixed;
+    border-collapse: collapse;    
     background-color: #f1f1f1;
+    position: sticky;
+    top: 0;
+    width: 100%
 }
 
 #bidding {
@@ -281,10 +287,15 @@ input.glow {
 
 .auctionBid {
     height: 3vh;
+    width: 2vh;
+    border: 1px solid #f1f1f1;
     text-align: center;
 }
 
 #vul {
-    background-color: #cc3e39;
-    margin: 0px;
+    background-color: #d9635f;
+}
+
+#nonvul {
+    background-color: #cfcfcf;
 }

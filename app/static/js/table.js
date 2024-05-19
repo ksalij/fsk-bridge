@@ -298,10 +298,13 @@ function readyDown() {
 function buildAuctionStructure(){
     console.log("this is called");
     const gameDiv = document.getElementById("game");
+    const auctionContainer = document.createElement("div");
+    auctionContainer.setAttribute("class", "auctionContainer");
+    gameDiv.appendChild(auctionContainer);
     const auction = document.createElement("table");
     auction.setAttribute("class", "auction");
     auction.setAttribute("id", "auction");
-    gameDiv.appendChild(auction);
+    auctionContainer.appendChild(auction);
 }
 
 function clearAuction(){
@@ -309,7 +312,6 @@ function clearAuction(){
     while (auction.firstChild){
         while (auction.firstChild.firstChild) {
             auction.firstChild.removeChild(auction.firstChild.firstChild);
-            // Kill all the children
         }
         auction.removeChild(auction.firstChild);
     }
@@ -321,18 +323,24 @@ function removeAuction(){
     gameDiv.removeChild(auction);
 }
 
-function displayAuction(bids, dealer, direction){
+function displayAuction(bids, dealer, direction, vulnerability){
     clearAuction();
+    const auction = document.getElementById("auction");
     const suitSymbolMap = {'C': '\u2663', 'D': '\u2666', 'H': '\u2665', 'S': '\u2660', 'N': 'NT'};
     const header = document.createElement("tr");
 
-    vulnerability = 'both';
     directions = ['N', "E", 'S', 'W'];
     for (let i = 0; i < 4; i++){
         const playerHeader = document.createElement('th');
         playerHeader.innerText = directions[(i + SEATMAP[direction] + 2) % 4];
-        if (vulnerability == 'both'){
+        all_vul = vulnerability == 'both';
+        NS_vul = vulnerability == 'NS' && (directions[(i + SEATMAP[direction] + 2) % 4] == 'N' || directions[(i + SEATMAP[direction] + 2) % 4] == 'S');
+        EW_vul = vulnerability == 'EW' && (directions[(i + SEATMAP[direction] + 2) % 4] == 'E' || directions[(i + SEATMAP[direction] + 2) % 4] == 'W');
+        if (all_vul || NS_vul || EW_vul){
             playerHeader.setAttribute("id", "vul");
+        }
+        else{
+            playerHeader.setAttribute("id", "nonvul");
         }
         header.appendChild(playerHeader);
     }
@@ -342,7 +350,10 @@ function displayAuction(bids, dealer, direction){
     if (auctionList.length < 16){
         auctionList = auctionList.concat([...Array(16 - auctionList.length)].fill('none'));
     }
-    
+
+    // delete this line
+    auctionList = auctionList.concat([...Array(50)].fill('none'));
+
     for (let i = 0; i < Math.ceil(auctionList.length/4); i++){
         const row = document.createElement("tr");
         for (let j = 0; j < 4; j++){
@@ -502,7 +513,7 @@ function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION") {
         duringAuction = Boolean(true);
         displayHandsDuringAuction(jsonData);
-        displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction);
+        displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
             console.log(jsonData.current_player);
             console.log(jsonData.your_direction);
