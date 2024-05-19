@@ -346,6 +346,7 @@ class Game:
             your_hand: list of strings "suitrank"
             hand_sizes: dict (keys: direction ints, values: numCards (int))
             vulnerability: str
+            display_dummy: bool
         "END"
             bridgehand_lin: str
         "AUCTION"
@@ -381,6 +382,10 @@ class Game:
         hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
 
         vulnerability = self.current_bridgehand.vuln
+
+        display_dummy = False
+        if self.game_phase == "PLAY" and len(self.current_bridgehand.play) > 0:
+                display_dummy = True
 
         # info that varies based on the game phase
         if self.game_phase == 'END':
@@ -426,7 +431,8 @@ class Game:
                     "your_direction": your_direction,
                     "your_hand": your_hand,
                     "hand_sizes": hand_sizes,
-                    "vulnerability": vulnerability}
+                    "vulnerability": vulnerability,
+                    "display_dummy": display_dummy}
         
         return_dict.update(phase_data)
         return json.dumps(return_dict)
