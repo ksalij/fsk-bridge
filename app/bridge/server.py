@@ -269,7 +269,7 @@ class Game:
                            'NS', 'EW', 'both', 'none',
                            'EW', 'both', 'none', 'NS',
                            'both', 'none', 'NS', 'EW']
-        self.current_bridgehand.vuln = vulnerabilities[running_tables[self.table_id].game_count % 16]
+        self.current_bridgehand.vuln = vulnerabilities[running_tables[self.table_id].game_count - 1 % 16]
     
     def set_contract(self):
         '''
@@ -345,6 +345,7 @@ class Game:
             your_direction: str
             your_hand: list of strings "suitrank"
             hand_sizes: dict (keys: direction ints, values: numCards (int))
+            vulnerability: str
         "END"
             bridgehand_lin: str
         "AUCTION"
@@ -378,6 +379,8 @@ class Game:
         EW_score = running_tables[self.table_id].EW_score
 
         hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+
+        vulnerability = self.current_bridgehand.vuln
 
         # info that varies based on the game phase
         if self.game_phase == 'END':
@@ -422,7 +425,8 @@ class Game:
                     "current_player": self.current_player,
                     "your_direction": your_direction,
                     "your_hand": your_hand,
-                    "hand_sizes": hand_sizes}
+                    "hand_sizes": hand_sizes,
+                    "vulnerability": vulnerability}
         
         return_dict.update(phase_data)
         return json.dumps(return_dict)

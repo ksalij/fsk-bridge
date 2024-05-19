@@ -71,7 +71,7 @@ def auction_then_play():
 
     # print(table.current_game.get_json("user1"))
     # print()
-
+    print("vuln", table.current_game.current_bridgehand.vuln)
     table.current_game.make_bid('N', '2C')
     table.current_game.make_bid('E', 'd')
 
