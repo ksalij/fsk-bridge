@@ -134,7 +134,9 @@ function buildHandStructure(handID) {
       - for each card in cardsPlayed, create an HTML element for the card and add the element to the play-area
 */
 function buildPlayArea() {
-    const playArea = document.getElementById("play-area");
+    // Create an area for cards played during a trick
+    const playArea = document.createElement("div");
+    playArea.setAttribute("id", "play-area");
 
     const clientTeam = document.createElement("div");
     clientTeam.setAttribute("class", "client-team");
@@ -157,15 +159,18 @@ function buildPlayArea() {
     oppRCard.setAttribute("id", "oppR-trick-card");
     oppRCard.setAttribute("class", "in-trick");
 
-    // Add each card div to the correct containers
+    // Add each card to the correct container
     clientTeam.appendChild(clientCard);
     clientTeam.appendChild(partnerCard);
     oppTeam.appendChild(oppLCard);
     oppTeam.appendChild(oppRCard);
 
-    // Add the new structures back into the document
+    // Add the new structures into the play area div
     playArea.appendChild(clientTeam);
     playArea.appendChild(oppTeam);
+
+    // Add the play area into the game div
+    document.getElementById("game").appendChild(playArea);
 }
 
 function fillPlayArea(clientSeat, cardsPlayed) {
@@ -225,15 +230,10 @@ function buildTableStructure() {
     clientTeam.appendChild(partnerHand);
     oppTeam.appendChild(oppLHand);
     oppTeam.appendChild(oppRHand);
-    
-    // Create an area for cards played during a trick
-    const playArea = document.createElement("div");
-    playArea.setAttribute("id", "play-area");
 
     // Add the new structures back into the document
     gameDiv.appendChild(clientTeam);
     gameDiv.appendChild(oppTeam);
-    gameDiv.appendChild(playArea);
 }
 
 /*
@@ -258,8 +258,7 @@ function readyUp() {
 
     // Create the div structuring
     buildTableStructure();
-    buildPlayArea();
-    
+
     // Create ready message structuring
     const readyInfo = document.createElement("div");
     readyInfo.setAttribute("id", "ready-info");
@@ -315,7 +314,7 @@ function clearAuction(){
             auction.firstChild.removeChild(auction.firstChild.firstChild);
         }
         auction.removeChild(auction.firstChild);
-    } 
+    }
 }
 
 function removeAuction(){
@@ -383,6 +382,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
 
 function clearBids() {
     console.log('Clearing Bids');
+    // document.getElementById("bidding").innerHTML = "";
     const bidding = document.getElementById("bidding");
 
     if (bidding) {
@@ -483,7 +483,7 @@ function makeBid(bid){
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION") {
         duringAuction = Boolean(true);
-        displayHandsDuringAuction(jsonData);
+        displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
             console.log(jsonData.current_player);
@@ -503,15 +503,16 @@ function renderUpdate(jsonData) {
             clearBids();
             clearAuction();
             removeAuction();
+            buildPlayArea();
             duringAuction = Boolean(false);
         }
-        displayPlay(jsonData);
+        displayHands(jsonData);
     } else if (jsonData.game_phase == "END") {
         displayEndGame(jsonData);
     }
 }
 
-function displayPlay(jsonData) {
+function displayHands(jsonData) {
     const seats = [null, null, null, null];
     seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
     seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
@@ -528,47 +529,21 @@ function displayPlay(jsonData) {
         hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
     }
     hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
-    hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
+    if (jsonData.display_dummy) {
+        hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
+    }
 
     for (let i = 0; i < 4; i++) {
         buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
     }
 
-    const currentTrick = Array(4).fill(null);
-    for (direction in jsonData.current_trick) {
-        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
-    }
-    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
-}
-
-function displayHandsDuringAuction(jsonData) {
-
-    const seats = [null, null, null, null];
-    seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 1) % 4] = document.getElementById("oppL_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 3) % 4] = document.getElementById("oppR_hand");
-    for (let i = 0; i < 4; i++) {
-        while (seats[i].firstChild) {
-            seats[i].removeChild(seats[i].firstChild);
+    if (jsonData.game_phase == "PLAY") {
+        const currentTrick = Array(4).fill(null);
+        for (direction in jsonData.current_trick) {
+            currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
         }
+        fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
     }
-    
-    const hands = [];
-    for (direction in jsonData.hand_sizes) {
-        hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
-    }
-    hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
-
-    for (let i = 0; i < 4; i++) {
-        buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
-    }
-
-    const currentTrick = Array(4).fill(null);
-    for (direction in jsonData.current_trick) {
-        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
-    }
-    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
 }
 
 function displayEndGame(jsonData) {
