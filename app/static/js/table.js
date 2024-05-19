@@ -319,8 +319,8 @@ function clearAuction(){
 
 function removeAuction(){
     const gameDiv = document.getElementById("game");
-    const auction = document.getElementById("auction");
-    gameDiv.removeChild(auction);
+    const auctionContainer = document.getElementsByClassName("auctionContainer");
+    gameDiv.removeChild(auctionContainer[0]);
 }
 
 function displayAuction(bids, dealer, direction, vulnerability){
@@ -351,9 +351,6 @@ function displayAuction(bids, dealer, direction, vulnerability){
         auctionList = auctionList.concat([...Array(16 - auctionList.length)].fill('none'));
     }
 
-    // delete this line
-    auctionList = auctionList.concat([...Array(50)].fill('none'));
-
     for (let i = 0; i < Math.ceil(auctionList.length/4); i++){
         const row = document.createElement("tr");
         for (let j = 0; j < 4; j++){
@@ -361,7 +358,6 @@ function displayAuction(bids, dealer, direction, vulnerability){
                 const rowEntry =  document.createElement('td');
                 rowEntry.setAttribute('class', 'auctionBid');
                 if (auctionList[4*i + j] == 'none'){
-                    // rowEntry.innerText = 'NONE';
                 } else if (auctionList[4*i + j] == 'p'){
                     rowEntry.setAttribute("id", "p");
                     rowEntry.innerText = 'PASS';
@@ -453,25 +449,10 @@ function displayBids(validBids){
         bidding.appendChild(tabcontent);
     }
     gameDiv.appendChild(bidding);
-
-    // Declare all variables
-    var i, tabcontent, tablinks;
-
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
-    
-    // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    
+  
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(validBids[0][0]).style.display = "block";
-    tab.firstChild.currentTarget.className += " active";
+    document.getElementById(validBids[0][0]).className += " active";
 }
 
 function openBid(evt, level) {

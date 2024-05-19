@@ -294,8 +294,12 @@ input.glow {
 
 #vul {
     background-color: #d9635f;
+    position: sticky;
+    top: 0;
 }
 
 #nonvul {
     background-color: #cfcfcf;
+    position: sticky;
+    top: 0;
 }
