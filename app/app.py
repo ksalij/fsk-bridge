@@ -61,10 +61,12 @@ def hash(password: str, b_salt: bytes) -> bytes:
     return sha256.hexdigest().encode()
 
 def genUsers(table_id: str) -> str:
-    html = ""
+    user_pos_dict = {"N": None, "E": None, "S": None, "W": None}
     for position,user in Server.active_tables[table_id].players.items():
-        html += '<div id="user">{0}: {1}</div>'.format(position, user)
-    return html
+        user_pos_dict[position] = user
+        # html += '<div id="user">{0}: {1}</div>'.format(position, user)
+    return json.dumps(user_pos_dict)
+    # return html
 
 @app.route('/')
 def index():
@@ -161,7 +163,7 @@ def joinTable(table_id):
             session['connected'] = True
             break
     socketio.emit("updateUsers", genUsers(table_id))
-    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id), session_table=session['currentTable'])
+    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'])
 
 @app.route('/getimages')
 def get_image_urls():
@@ -276,6 +278,22 @@ def disconnect():
             session['connected'] == False
 
     socketio.emit("updateUsers", genUsers(session['currentTable']))
+
+@socketio.on('switchSeat')
+def switch_seat(direction, user):
+    table_id = Server.client_list[user]
+    temp_player = Server.active_tables[table_id].players[direction]
+    temp_direction = session['userPosition']
+    session['userPosition'] = direction
+    Server.active_tables[table_id].players[direction] = user
+    Server.active_tables[table_id].players[temp_direction] = temp_player
+    emit("seatSwitched", (temp_player, temp_direction), to=table_id)
+    socketio.emit("updateUsers", genUsers(table_id))
+
+@socketio.on('updateSeatSession')
+def update_seat_session(player, new_direction):
+    if session['username'] == player:
+        session['userPosition'] = new_direction
 
 @socketio.on('storeFinishedGame')
 def store_finished_game(table_id, lin_file):

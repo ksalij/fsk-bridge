@@ -288,3 +288,9 @@ input.glow {
     background-color: #cc3e39;
     margin: 0px;
 }
+
+.direction-div { 
+	display: flex; 
+	flex-direction: row; 
+	flex-wrap: wrap; 
+} 

@@ -698,9 +698,66 @@ socket.on('yourLocalInfo', (your_user, your_table_id) => {
     console.log("my local info");
 });
 
+function hideSwitchButtons(){
+    players = document.getElementById("users");
+    for (let i = 0; i < 4; i++) {
+        directionDiv = players.firstChild;
+        if(directionDiv) {
+            directionDiv.removeChild(directionDiv.firstChild);
+            directionDiv.removeChild(directionDiv.firstChild);
+            players.removeChild(directionDiv);
+        }
+    }
+}
+
 socket.on('updateUsers', (response) => {
     players = document.getElementById("users");
-    players.innerHTML = response;
+    hideSwitchButtons();
+    const directions = ["N", "E", "S", "W"]
+    const directionsJson = JSON.parse(response);
+    for (let i = 0; i < 4; i++) {
+        const direction = directions[i];
+        const directionDiv = document.createElement("div");
+        directionDiv.setAttribute("class", "direction-div");
+        const directionText = document.createElement("p");
+        directionText.innerHTML = direction;
+        directionDiv.appendChild(directionText);
+        const switchButton = document.createElement("button");
+        switchButton.setAttribute("id", "switch-button");
+        switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
+        console.log(direction);
+        console.log(directionsJson[direction]);
+        if (directionsJson[direction]) {
+            switchButton.innerHTML = "Switch with " + directionsJson[direction];
+        }
+        else {
+            switchButton.innerHTML = "Take Seat";
+        }
+        directionDiv.appendChild(switchButton);
+        players.appendChild(directionDiv);
+    }
+    console.log(response);
+});
+
+/*
+    Switch a user with a seat, occupied or unoccupied.
+
+    Parameters:
+    - direction, the seat which the user wants to switch to
+
+    Functionality:
+      - set the display style of each cardImage element to be "inline" (from "none")
+      - change the display button to a hide button
+*/
+function switchSeat(direction) {
+    console.log("direction");
+    socket.emit('switchSeat', direction, user);
+}
+
+socket.on('seatSwitched', (player, new_direction) => {
+    if(player == user) {
+        socket.emit('updateSeatSession', player, new_direction);
+    }
 });
 
 socket.on('requestGameState', (response) => {
