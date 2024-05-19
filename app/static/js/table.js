@@ -420,20 +420,10 @@ function displayBids(validBids){
     for (let i = 1; i < 8; i++){
         const tabcontent = document.createElement("div");
         suitButtons = "<div id=\"" + i + "\" class=\"tabcontent\">";
-        
-        // const suitButtons = document.createElement("div");
-        // suitButtons.setAttribute('id', i);
-        // suitButtons.setAttribute('class', 'tabcontent');
-
         suitName = ["C", "D", "H", "S", "N"];
         suits = ['\u2663', '\u2666', '\u2665', '\u2660', 'NT'];
         for (let j = 0; j < 5; j++){
             if (validBids.includes(i + suitName[j])){
-
-                // const suitButton = document.createElement("button");
-                // suitButton.setAttribute('class', 'suit');
-                // level.onclick = function(event){makeBid(event, i + suitName[j]);}
-                
                 suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
             }
         }
