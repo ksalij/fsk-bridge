@@ -725,11 +725,16 @@ socket.on('updateUsers', (response, ready_users) => {
         directionUser = directionsJson[direction];
         // console.log(direction);
         // console.log(directionsJson[direction]);
+        console.log(directionUser);
         if (directionUser) {
             if (directionUser != user) {
                 if (ready_users.includes(directionUser)) {
                     const readyText = document.createElement("p");
                     readyText.innerHTML = directionUser + " is ready to go.";
+                    directionDiv.appendChild(readyText);
+                } else if (ready_users.includes(user)) {
+                    const readyText = document.createElement("p");
+                    readyText.innerHTML = directionUser + " is not ready to go.";
                     directionDiv.appendChild(readyText);
                 } else {
                     const switchButton = document.createElement("button");
@@ -744,11 +749,15 @@ socket.on('updateUsers', (response, ready_users) => {
                 directionDiv.appendChild(readyText);
             }
         }
-        else {
+        else if (ready_users.includes(user)) {
+            const readyText = document.createElement("p");
+            readyText.innerHTML = "Empty seat";
+            directionDiv.appendChild(readyText);
+        } else {
             const switchButton = document.createElement("button");
             switchButton.setAttribute("id", "switch-button");
             switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
-            switchButton.innerHTML = "Switch with " + directionsJson[direction];
+            switchButton.innerHTML = "Take " + direction + " seat";
             directionDiv.appendChild(switchButton);
         }
         players.appendChild(directionDiv);

@@ -185,15 +185,15 @@ def give_favicon():
 def put_user_in_room(table_id):
     socketio.emit("yourLocalInfo", (session['username'], table_id), to=request.sid)
     join_room(table_id)
+    if table_id not in ready_users:
+        ready_users[table_id] = set()
     # Server.active_tables[table_id].players.values()[:-1]
-    socketio.emit("updateUsers", genUsers(table_id), list(ready_users[table_id]), to=table_id)
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 
 ready_users = {}
 @socketio.on('ready')
 def user_ready(table_id, user):
-    if table_id not in ready_users.keys():
-        ready_users[table_id] = set()
     ready_users[table_id].add(user)
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
@@ -203,13 +203,14 @@ def user_ready(table_id, user):
         emit('requestGameState', to=table_id)
         Server.active_tables[table_id].new_game()
     else:
-        socketio.emit("updateUsers", genUsers(table_id), list(ready_users[table_id]), to=table_id)
+        socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('unready')
 def user_unready(table_id, user):
     if table_id in ready_users.keys():
         ready_users[table_id].remove(user)
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('cardPlayed')
 def handle_message(user, card):
@@ -279,7 +280,7 @@ def disconnect():
             Server.active_tables[session['currentTable']].players[session['userPosition']] = None
             session['connected'] == False
     table_id = session["currentTable"]
-    socketio.emit("updateUsers", genUsers(table_id), list(ready_users[table_id]), to=table_id)
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('switchSeat')
 def switch_seat(direction, user):
@@ -290,7 +291,7 @@ def switch_seat(direction, user):
     Server.active_tables[table_id].players[direction] = user
     Server.active_tables[table_id].players[temp_direction] = temp_player
     emit("seatSwitched", (temp_player, temp_direction), to=table_id)
-    socketio.emit("updateUsers", genUsers(table_id), list(ready_users[table_id]), to=table_id)
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 
 @socketio.on('updateSeatSession')
