@@ -41,8 +41,8 @@ cur = conn.cursor()
 class Server:
     client_count = 0
     client_list = {}
-    message_history = {}
     active_tables = {}
+    table_chat = {}
     nextUserID = 0
     store = {}
 
@@ -75,12 +75,8 @@ def index():
 
 @app.route('/home/<username>')
 def home(username):
-    return render_template("home.html", app_data=app_data, current_user=username)
+    return render_template("home.html", app_data=app_data, current_user=session['username'])
 
-#@app.route('/rejoin')
-#def rejoin():
-#    session['userInGame'] = True
-#    return redirect('/table/' + session['currentTable'])
 
 @app.route('/chat')
 def chat():
@@ -101,7 +97,8 @@ def login():
         pass_info = cur.fetchone()
         correct_pass, salt = tuple([item.tobytes() for item in pass_info])
 
-        if hash(user_password, salt) == correct_pass:    
+        if hash(user_password, salt) == correct_pass:   
+            session['username'] = user_username
             return redirect('/home/' + user_username)
         else:
             return redirect('/test/' + user_password + '/' + correct_pass)
@@ -137,25 +134,25 @@ def openTable(username):
     new_table.new_game()
     # TODO replace clients list with database?
 
+    Server.table_chat[str(new_table.table_id)] = []
+    Server.table_chat[str(new_table.table_id)].append("Server/Room created with id " + str(new_table.table_id))
+
     return redirect('/table/' + str(new_table.table_id) + "/" + username)
 
 @app.route('/table/<table_id>/<username>')
 def joinTable(table_id, username):
     session['currentTable'] = table_id
-    Server.client_list[username] = table_id
+    #Server.client_list[session['username']] = table_id
 
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
-            Server.active_tables[table_id].players[direction] = username
+            Server.active_tables[table_id].players[direction] = session['username']
             session['userPosition'] = direction
             session['connected'] = True
             break
-    socketio.emit("updateUsers", genUsers(table_id))
-    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id), session_table=session['currentTable'])
 
-#@app.route('/startGame/<tableID>/<seat>')
-#def watchgame(tableID, seat):
-#    return json.dumps("{} is ready to start!".format(seat))
+    socketio.emit("updateUsers", genUsers(table_id))
+    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id), session_table=session['currentTable'], current_user=session['username'])
 
 @app.route('/getimages')
 def get_image_urls():
@@ -223,10 +220,24 @@ def broadcast_gamestate(user):
     emit('gameState', game_state, to=request.sid)
 
 @socketio.on('sendMessage')
-def send_message(user, message):
-    #global Server.message_history
-    Server.message_history[user] = message
-    emit('updateChat', (user, message), broadcast=True)
+def send_message(user, message, game_room):
+    Server.table_chat[session['currentTable']].append(user + "/" + message)
+    emit('updateChat', (user, message), room=game_room)
+    #emit('updateChat', (user, message), broadcast=True)
+    print(game_room, file=sys.stderr)
+
+@socketio.on('populateChat')
+def populate_chat():
+    for message in Server.table_chat[session['currentTable']]:
+        split = message.split("/")
+        emit('updateChat', (split[0], split[1]), to=request.sid)
+
+@socketio.on('userJoined')
+def user_joined(user, game_room):
+    join_room(game_room)
+    Server.table_chat[session['currentTable']].append("Server/" + user + " has joined the room")
+    emit('updateChat', ('Server', user  + ' has joined the room'), room=game_room)
+    #emit('updateChat', ('Server', user + ' has joined the room'), broadcast=True)
 
 # Update the whole game state
 # This should be called from the client table whenever a change is made to the table
@@ -266,9 +277,9 @@ def connect():
 
     Server.client_count += 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    for key, value in Server.message_history.items():
-        if key != session['username']:
-            emit('updateChat', (key, value), to=request.sid)
+    #for key, value in Server.message_history.items():
+    #    if key != session['username']:
+    #        emit('updateChat', (key, value), to=request.sid)
 
 @socketio.on('disconnect')
 def disconnect():

@@ -686,9 +686,13 @@ function showAllCards() {
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
+// Populate the chat when the page loads
+socket.emit('populateChat');
+socket.emit('userJoined', username, window.location.pathname.split("/")[2])
+
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
-    console.log('Socket Connected');
+    console.log('Socket Connected & Room Joined');
     socket.emit('joinRoom', window.location.pathname.substring(7));
 });
 

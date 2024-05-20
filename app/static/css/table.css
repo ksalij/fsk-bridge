@@ -19,14 +19,36 @@ img {
 #play-container {
     display: flex;
     box-sizing: border-box;
-    /* width: 75vh;
-    height: 75vh; */
-    width: 75%;
     height: 100%;
+}
+
+#game-container {
+    flex: 70%;
+    margin-left: 20%;
 }
 
 #chatbox {
     flex: 30%;
+    float: left;
+    margin-right: 20%;
+}
+
+#username {
+    display: None;
+}
+
+#serverChat {
+    color: red;
+}
+
+#chat {
+    width: 100%;
+    overflow-y: auto;
+    max-height: 400px;
+    height: 400px;
+    background-color: white;
+    border: 2px;
+    border-color: black;
 }
 
 #game {
@@ -35,9 +57,9 @@ img {
     /* position: relative;
     padding: 0 0 0 0;
     margin: 0 auto; */
-    flex: 70%;
     width: 75vh;
     height: 75vh;
+    float: right;
 }
 
 .centered {

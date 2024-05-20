@@ -5,6 +5,9 @@
 {% endblock %}
 
 {% block javascript %}
+<script type="text/javascript">
+  var username = "{{current_user}}"
+</script>
 <script src="{{ url_for('static', filename='js/table.js') }}"></script>
 <script src="/static/js/chat.js"></script>
 {% endblock %}
@@ -26,8 +29,10 @@
 <div id="logPrinting"> </div>
 
 <div id="play-container">
-    <div id="game">
-        <button id="ready-button" onclick="readyUp()">Ready Up!</button>a
+    <div id="game-container">
+        <div id="game">
+            <button id="ready-button" onclick="readyUp()">Ready Up!</button>
+        </div>
     </div>
     <div id="chatbox">
         <div id="chat">
