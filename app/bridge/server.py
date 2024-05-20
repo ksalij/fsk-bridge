@@ -67,6 +67,15 @@ class Game:
         self.set_declarer()
         self.current_bridgehand.play = []
 
+        if not self.current_bridgehand.contract[1] == 'N':
+            contract_num = SUITMAP[self.current_bridgehand.contract[1]]
+            starting_sorder = [3,2,0,1]
+            rotation = starting_sorder.index(contract_num)
+            sorder = starting_sorder[rotation:] + starting_sorder[:rotation]
+            # resort the hands with trump on the left
+            for direction in self.current_bridgehand.hands:
+                self.current_bridgehand.hands[direction] = self.current_bridgehand.hands[direction].sort(sorder)
+
     def update_current_player(self) -> None:
         ''' 
         Check that the card is in the players hand.
@@ -260,7 +269,7 @@ class Game:
                            'NS', 'EW', 'both', 'none',
                            'EW', 'both', 'none', 'NS',
                            'both', 'none', 'NS', 'EW']
-        self.current_bridgehand.vuln = vulnerabilities[running_tables[self.table_id].game_count % 16]
+        self.current_bridgehand.vuln = vulnerabilities[running_tables[self.table_id].game_count - 1 % 16]
     
     def set_contract(self):
         '''
@@ -336,6 +345,8 @@ class Game:
             your_direction: str
             your_hand: list of strings "suitrank"
             hand_sizes: dict (keys: direction ints, values: numCards (int))
+            vulnerability: str
+            display_dummy: bool
         "END"
             bridgehand_lin: str
         "AUCTION"
@@ -369,6 +380,12 @@ class Game:
         EW_score = running_tables[self.table_id].EW_score
 
         hand_sizes = {pos:len(hand) for pos, hand in self.current_bridgehand.hands.items()}
+
+        vulnerability = self.current_bridgehand.vuln
+
+        display_dummy = False
+        if self.game_phase == "PLAY" and len(self.current_bridgehand.play) > 0:
+                display_dummy = True
 
         # info that varies based on the game phase
         if self.game_phase == 'END':
@@ -413,7 +430,9 @@ class Game:
                     "current_player": self.current_player,
                     "your_direction": your_direction,
                     "your_hand": your_hand,
-                    "hand_sizes": hand_sizes}
+                    "hand_sizes": hand_sizes,
+                    "vulnerability": vulnerability,
+                    "display_dummy": display_dummy}
         
         return_dict.update(phase_data)
         return json.dumps(return_dict)

@@ -41,8 +41,8 @@ cur = conn.cursor()
 class Server:
     client_count = 0
     client_list = {}
-    message_history = {}
     active_tables = {}
+    table_chat = {}
     nextUserID = 0
     store = {}
 
@@ -79,10 +79,6 @@ def index():
 def home():
     return render_template("home.html", app_data=app_data, current_user=session['username'])
 
-#@app.route('/rejoin')
-#def rejoin():
-#    session['userInGame'] = True
-#    return redirect('/table/' + session['currentTable'])
 
 @app.route('/chat')
 def chat():
@@ -149,6 +145,9 @@ def openTable():
     new_table.new_game()
     # TODO replace clients list with database?
 
+    Server.table_chat[str(new_table.table_id)] = []
+    Server.table_chat[str(new_table.table_id)].append("server/room created with id " + str(new_table.table_id))
+
     return redirect('/table/' + str(new_table.table_id))
 
 @app.route('/table/<table_id>')
@@ -195,6 +194,10 @@ ready_users = {}
 @socketio.on('ready')
 def user_ready(table_id, user):
     ready_users[table_id].add(user)
+   
+    Server.table_chat[session['currentTable']].append("server/" + user + " is ready to play")
+    emit('updateChat', ('server', user  + ' is ready to play'), room=table_id)
+
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
@@ -234,10 +237,24 @@ def broadcast_gamestate(user):
     emit('gameState', game_state, to=request.sid)
 
 @socketio.on('sendMessage')
-def send_message(user, message):
-    #global Server.message_history
-    Server.message_history[user] = message
-    emit('updateChat', (user, message), broadcast=True)
+def send_message(user, message, game_room):
+    Server.table_chat[session['currentTable']].append(user + "/" + message)
+    emit('updateChat', (user, message), room=game_room)
+    #emit('updateChat', (user, message), broadcast=True)
+    print(game_room, file=sys.stderr)
+
+@socketio.on('populateChat')
+def populate_chat():
+    for message in Server.table_chat[session['currentTable']]:
+        split = message.split("/")
+        emit('updateChat', (split[0], split[1]), to=request.sid)
+
+@socketio.on('userJoined')
+def user_joined(user, game_room):
+    join_room(game_room)
+    Server.table_chat[session['currentTable']].append("server/" + user + " has joined the room")
+    emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
+    #emit('updateChat', ('server', user + ' has joined the room'), broadcast=True)
 
 # Update the whole game state
 # This should be called from the client table whenever a change is made to the table
@@ -266,9 +283,9 @@ def send_bid(user, bid):
 def connect():
     Server.client_count += 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    for key, value in Server.message_history.items():
-        if key != session['username']:
-            emit('updateChat', (key, value), to=request.sid)
+    #for key, value in Server.message_history.items():
+    #    if key != session['username']:
+    #        emit('updateChat', (key, value), to=request.sid)
 
 @socketio.on('disconnect')
 def disconnect():
