@@ -134,7 +134,9 @@ function buildHandStructure(handID) {
       - for each card in cardsPlayed, create an HTML element for the card and add the element to the play-area
 */
 function buildPlayArea() {
-    const playArea = document.getElementById("play-area");
+    // Create an area for cards played during a trick
+    const playArea = document.createElement("div");
+    playArea.setAttribute("id", "play-area");
 
     const clientTeam = document.createElement("div");
     clientTeam.setAttribute("class", "client-team");
@@ -157,15 +159,18 @@ function buildPlayArea() {
     oppRCard.setAttribute("id", "oppR-trick-card");
     oppRCard.setAttribute("class", "in-trick");
 
-    // Add each card div to the correct containers
+    // Add each card to the correct container
     clientTeam.appendChild(clientCard);
     clientTeam.appendChild(partnerCard);
     oppTeam.appendChild(oppLCard);
     oppTeam.appendChild(oppRCard);
 
-    // Add the new structures back into the document
+    // Add the new structures into the play area div
     playArea.appendChild(clientTeam);
     playArea.appendChild(oppTeam);
+
+    // Add the play area into the game div
+    document.getElementById("game").appendChild(playArea);
 }
 
 function fillPlayArea(clientSeat, cardsPlayed) {
@@ -225,15 +230,10 @@ function buildTableStructure() {
     clientTeam.appendChild(partnerHand);
     oppTeam.appendChild(oppLHand);
     oppTeam.appendChild(oppRHand);
-    
-    // Create an area for cards played during a trick
-    const playArea = document.createElement("div");
-    playArea.setAttribute("id", "play-area");
 
     // Add the new structures back into the document
     gameDiv.appendChild(clientTeam);
     gameDiv.appendChild(oppTeam);
-    gameDiv.appendChild(playArea);
 }
 
 /*
@@ -258,8 +258,7 @@ function readyUp() {
 
     // Create the div structuring
     buildTableStructure();
-    buildPlayArea();
-    
+
     // Create ready message structuring
     const readyInfo = document.createElement("div");
     readyInfo.setAttribute("id", "ready-info");
@@ -299,10 +298,13 @@ function readyDown() {
 function buildAuctionStructure(){
     console.log("this is called");
     const gameDiv = document.getElementById("game");
+    const auctionContainer = document.createElement("div");
+    auctionContainer.setAttribute("class", "auctionContainer");
+    gameDiv.appendChild(auctionContainer);
     const auction = document.createElement("table");
     auction.setAttribute("class", "auction");
     auction.setAttribute("id", "auction");
-    gameDiv.appendChild(auction);
+    auctionContainer.appendChild(auction);
 }
 
 function clearAuction(){
@@ -310,30 +312,35 @@ function clearAuction(){
     while (auction.firstChild){
         while (auction.firstChild.firstChild) {
             auction.firstChild.removeChild(auction.firstChild.firstChild);
-            // Kill all the children
         }
         auction.removeChild(auction.firstChild);
-    } 
+    }
 }
 
 function removeAuction(){
     const gameDiv = document.getElementById("game");
-    const auction = document.getElementById("auction");
-    gameDiv.removeChild(auction);
+    const auctionContainer = document.getElementsByClassName("auctionContainer");
+    gameDiv.removeChild(auctionContainer[0]);
 }
 
-function displayAuction(bids, dealer, direction){
+function displayAuction(bids, dealer, direction, vulnerability){
     clearAuction();
+    const auction = document.getElementById("auction");
     const suitSymbolMap = {'C': '\u2663', 'D': '\u2666', 'H': '\u2665', 'S': '\u2660', 'N': 'NT'};
     const header = document.createElement("tr");
 
-    vulnerability = 'both';
     directions = ['N', "E", 'S', 'W'];
     for (let i = 0; i < 4; i++){
         const playerHeader = document.createElement('th');
         playerHeader.innerText = directions[(i + SEATMAP[direction] + 2) % 4];
-        if (vulnerability == 'both'){
-            playerHeader.setAttribute("id", "vul");
+        all_vul = vulnerability == 'both';
+        NS_vul = vulnerability == 'NS' && (directions[(i + SEATMAP[direction] + 2) % 4] == 'N' || directions[(i + SEATMAP[direction] + 2) % 4] == 'S');
+        EW_vul = vulnerability == 'EW' && (directions[(i + SEATMAP[direction] + 2) % 4] == 'E' || directions[(i + SEATMAP[direction] + 2) % 4] == 'W');
+        if (all_vul || NS_vul || EW_vul){
+            playerHeader.setAttribute("class", "vul");
+        }
+        else{
+            playerHeader.setAttribute("class", "nonvul");
         }
         header.appendChild(playerHeader);
     }
@@ -343,7 +350,7 @@ function displayAuction(bids, dealer, direction){
     if (auctionList.length < 16){
         auctionList = auctionList.concat([...Array(16 - auctionList.length)].fill('none'));
     }
-    
+
     for (let i = 0; i < Math.ceil(auctionList.length/4); i++){
         const row = document.createElement("tr");
         for (let j = 0; j < 4; j++){
@@ -351,7 +358,6 @@ function displayAuction(bids, dealer, direction){
                 const rowEntry =  document.createElement('td');
                 rowEntry.setAttribute('class', 'auctionBid');
                 if (auctionList[4*i + j] == 'none'){
-                    // rowEntry.innerText = 'NONE';
                 } else if (auctionList[4*i + j] == 'p'){
                     rowEntry.setAttribute("id", "p");
                     rowEntry.innerText = 'PASS';
@@ -376,6 +382,7 @@ function displayAuction(bids, dealer, direction){
 
 function clearBids() {
     console.log('Clearing Bids');
+    // document.getElementById("bidding").innerHTML = "";
     const bidding = document.getElementById("bidding");
 
     if (bidding) {
@@ -413,20 +420,10 @@ function displayBids(validBids){
     for (let i = 1; i < 8; i++){
         const tabcontent = document.createElement("div");
         suitButtons = "<div id=\"" + i + "\" class=\"tabcontent\">";
-        
-        // const suitButtons = document.createElement("div");
-        // suitButtons.setAttribute('id', i);
-        // suitButtons.setAttribute('class', 'tabcontent');
-
         suitName = ["C", "D", "H", "S", "N"];
         suits = ['\u2663', '\u2666', '\u2665', '\u2660', 'NT'];
         for (let j = 0; j < 5; j++){
             if (validBids.includes(i + suitName[j])){
-
-                // const suitButton = document.createElement("button");
-                // suitButton.setAttribute('class', 'suit');
-                // level.onclick = function(event){makeBid(event, i + suitName[j]);}
-                
                 suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
             }
         }
@@ -442,25 +439,10 @@ function displayBids(validBids){
         bidding.appendChild(tabcontent);
     }
     gameDiv.appendChild(bidding);
-
-    // Declare all variables
-    var i, tabcontent, tablinks;
-
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
-    
-    // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    
+  
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(validBids[0][0]).style.display = "block";
-    tab.firstChild.currentTarget.className += " active";
+    document.getElementById(validBids[0][0]).className += " active";
 }
 
 function openBid(evt, level) {
@@ -501,8 +483,8 @@ function makeBid(bid){
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION") {
         duringAuction = Boolean(true);
-        displayHandsDuringAuction(jsonData);
-        displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction);
+        displayHands(jsonData);
+        displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
             console.log(jsonData.current_player);
             console.log(jsonData.your_direction);
@@ -521,15 +503,16 @@ function renderUpdate(jsonData) {
             clearBids();
             clearAuction();
             removeAuction();
+            buildPlayArea();
             duringAuction = Boolean(false);
         }
-        displayPlay(jsonData);
+        displayHands(jsonData);
     } else if (jsonData.game_phase == "END") {
         displayEndGame(jsonData);
     }
 }
 
-function displayPlay(jsonData) {
+function displayHands(jsonData) {
     const seats = [null, null, null, null];
     seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
     seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
@@ -546,47 +529,21 @@ function displayPlay(jsonData) {
         hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
     }
     hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
-    hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
+    if (jsonData.display_dummy) {
+        hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
+    }
 
     for (let i = 0; i < 4; i++) {
         buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
     }
 
-    const currentTrick = Array(4).fill(null);
-    for (direction in jsonData.current_trick) {
-        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
-    }
-    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
-}
-
-function displayHandsDuringAuction(jsonData) {
-
-    const seats = [null, null, null, null];
-    seats[SEATMAP[jsonData.your_direction]] = document.getElementById("client_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 2) % 4] = document.getElementById("partner_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 1) % 4] = document.getElementById("oppL_hand");
-    seats[(SEATMAP[jsonData.your_direction] + 3) % 4] = document.getElementById("oppR_hand");
-    for (let i = 0; i < 4; i++) {
-        while (seats[i].firstChild) {
-            seats[i].removeChild(seats[i].firstChild);
+    if (jsonData.game_phase == "PLAY") {
+        const currentTrick = Array(4).fill(null);
+        for (direction in jsonData.current_trick) {
+            currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
         }
+        fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
     }
-    
-    const hands = [];
-    for (direction in jsonData.hand_sizes) {
-        hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
-    }
-    hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
-
-    for (let i = 0; i < 4; i++) {
-        buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
-    }
-
-    const currentTrick = Array(4).fill(null);
-    for (direction in jsonData.current_trick) {
-        currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
-    }
-    fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
 }
 
 function displayEndGame(jsonData) {
