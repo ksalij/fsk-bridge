@@ -61,10 +61,12 @@ def hash(password: str, b_salt: bytes) -> bytes:
     return sha256.hexdigest().encode()
 
 def genUsers(table_id: str) -> str:
-    html = ""
+    user_pos_dict = {"N": None, "E": None, "S": None, "W": None}
     for position,user in Server.active_tables[table_id].players.items():
-        html += '<div id="user">{0}: {1}</div>'.format(position, user)
-    return html
+        user_pos_dict[position] = user
+        # html += '<div id="user">{0}: {1}</div>'.format(position, user)
+    return json.dumps(user_pos_dict)
+    # return html
 
 @app.route('/')
 def index():
@@ -159,9 +161,7 @@ def joinTable(table_id):
             session['userPosition'] = direction
             session['connected'] = True
             break
-
-    socketio.emit("updateUsers", genUsers(table_id))
-    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], users=genUsers(table_id), session_table=session['currentTable'], current_user=session['username'])
+    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'])
 
 @app.route('/getimages')
 def get_image_urls():
@@ -184,14 +184,15 @@ def give_favicon():
 def put_user_in_room(table_id):
     socketio.emit("yourLocalInfo", (session['username'], table_id), to=request.sid)
     join_room(table_id)
+    if table_id not in ready_users:
+        ready_users[table_id] = set()
     # Server.active_tables[table_id].players.values()[:-1]
-    socketio.emit("updateUsers", genUsers(table_id), to=table_id)
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+
 
 ready_users = {}
 @socketio.on('ready')
 def user_ready(table_id, user):
-    if table_id not in ready_users.keys():
-        ready_users[table_id] = set()
     ready_users[table_id].add(user)
    
     Server.table_chat[session['currentTable']].append("server/" + user + " is ready to play")
@@ -204,12 +205,15 @@ def user_ready(table_id, user):
         emit('buildAuction', to=table_id)
         emit('requestGameState', to=table_id)
         Server.active_tables[table_id].new_game()
+    else:
+        socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('unready')
 def user_unready(table_id, user):
     if table_id in ready_users.keys():
         ready_users[table_id].remove(user)
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('cardPlayed')
 def handle_message(user, card):
@@ -292,8 +296,25 @@ def disconnect():
         if session['connected'] == True:
             Server.active_tables[session['currentTable']].players[session['userPosition']] = None
             session['connected'] == False
+    table_id = session["currentTable"]
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
-    socketio.emit("updateUsers", genUsers(session['currentTable']))
+@socketio.on('switchSeat')
+def switch_seat(direction, user):
+    table_id = Server.client_list[user]
+    temp_player = Server.active_tables[table_id].players[direction]
+    temp_direction = session['userPosition']
+    session['userPosition'] = direction
+    Server.active_tables[table_id].players[direction] = user
+    Server.active_tables[table_id].players[temp_direction] = temp_player
+    emit("seatSwitched", (temp_player, temp_direction), to=table_id)
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+
+
+@socketio.on('updateSeatSession')
+def update_seat_session(player, new_direction):
+    if session['username'] == player:
+        session['userPosition'] = new_direction
 
 @socketio.on('storeFinishedGame')
 def store_finished_game(table_id, lin_file):

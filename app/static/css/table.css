@@ -354,3 +354,9 @@ input.glow {
     position: sticky;
     top: 0;
 }
+
+/* .direction-div { 
+	display: flex; 
+	flex-direction: row; 
+	flex-wrap: wrap; 
+}  */
