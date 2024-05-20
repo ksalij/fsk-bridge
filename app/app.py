@@ -73,8 +73,8 @@ def index():
     #    return redirect('/home')
     return redirect('/login')
 
-@app.route('/home/<username>')
-def home(username):
+@app.route('/home')
+def home():
     return render_template("home.html", app_data=app_data, current_user=session['username'])
 
 
@@ -99,7 +99,7 @@ def login():
 
         if hash(user_password, salt) == correct_pass:   
             session['username'] = user_username
-            return redirect('/home/' + user_username)
+            return redirect('/home')
         else:
             return redirect('/test/' + user_password + '/' + correct_pass)
 
@@ -126,8 +126,8 @@ def register():
 
     return render_template("register.html", app_data=app_data)
 
-@app.route('/openTable/<username>')
-def openTable(username):
+@app.route('/openTable')
+def openTable():
 
     new_table = Table({'E' : None, 'S' : None, 'W' : None, 'N' : None})
     Server.active_tables[str(new_table.table_id)] = new_table
@@ -137,12 +137,12 @@ def openTable(username):
     Server.table_chat[str(new_table.table_id)] = []
     Server.table_chat[str(new_table.table_id)].append("server/room created with id " + str(new_table.table_id))
 
-    return redirect('/table/' + str(new_table.table_id) + "/" + username)
+    return redirect('/table/' + str(new_table.table_id))
 
-@app.route('/table/<table_id>/<username>')
-def joinTable(table_id, username):
+@app.route('/table/<table_id>')
+def joinTable(table_id):
     session['currentTable'] = table_id
-    #Server.client_list[session['username']] = table_id
+    Server.client_list[session['username']] = table_id
 
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
