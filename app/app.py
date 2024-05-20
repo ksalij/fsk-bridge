@@ -68,9 +68,9 @@ def genUsers(table_id: str) -> str:
 
 @app.route('/')
 def index():
-    #if session.get('username') is not None:
-    #    # return 'Cannot sign in on multiple tabs'
-    #    return redirect('/home')
+    if session.get('username') is not None:
+        # return 'Cannot sign in on multiple tabs'
+        return redirect('/home')
     return redirect('/login')
 
 @app.route('/home')
@@ -84,26 +84,35 @@ def chat():
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect('/')
+   session.clear()
+   return redirect('/')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = ''
     if request.method == 'POST':
         user_username = request.form['username']
         user_password = request.form['password']
 
         cur.execute("SELECT password,salt FROM users WHERE login= %s;", (user_username,))
         pass_info = cur.fetchone()
+        if pass_info == None:
+            error = "There is not a user with that login in our database."
+            return render_template("login.html", app_data=app_data, error=error)
         correct_pass, salt = tuple([item.tobytes() for item in pass_info])
 
-        if hash(user_password, salt) == correct_pass:   
-            session['username'] = user_username
-            return redirect('/home')
+        if hash(user_password, salt) == correct_pass:
+            if session.get('username') is not None:
+                if session['username'] == request.form['username']:
+                    error = "Already logged in as this user."
+            else:
+                session['username'] = request.form['username']
+                return redirect(url_for('home'))    
         else:
-            return redirect('/test/' + user_password + '/' + correct_pass)
+            error = "Incorrect Password"
+            # return redirect('/test/' + user_password + '/' + correct_pass)
 
-    return render_template("login.html", app_data=app_data)
+    return render_template("login.html", app_data=app_data, error=error)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -253,9 +262,6 @@ def update_game_state(user):
     json = game.get_json(user)
     emit('gameState', json, to=request.sid)
 
-def get_sid():
-    emit('get')
-
 @socketio.on('startAuction')
 def start_auction(table_id):
     pass
@@ -271,14 +277,6 @@ def send_bid(user, bid):
 # Count the number of connected clients
 @socketio.on('connect')
 def connect():
-    #current_table = Server.active_tables[session['currentTable']]
-    #print(current_table.current_game.current_bridgehand.hands, file=sys.stderr)
-    #print(session['userPosition'], file=sys.stderr)
-    #emit('tableConnect', str(current_table.current_game.current_bridgehand.hands[session['userPosition']]))
-    
-    Server.store[request.sid] = {}
-    print(str(Server.store), file=sys.stderr)
-
     Server.client_count += 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     #for key, value in Server.message_history.items():
@@ -287,9 +285,6 @@ def connect():
 
 @socketio.on('disconnect')
 def disconnect():
-    Server.store.pop(request.sid, None)
-    print(str(Server.store), file=sys.stderr)
-
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
 

@@ -1,5 +1,5 @@
 body {
-    background-color: darkslategray;
+    background-color: #dde5f4;
     margin: 0;
     padding: 0;
 }
@@ -68,8 +68,8 @@ img {
 
 #game {
     border: 1px solid black;
-    background-color: darkgreen;
-    /* position: relative;
+    background-color: #57965b;
+    position: relative;
     padding: 0 0 0 0;
     margin: 0 auto; */
     width: 75vh;
@@ -160,7 +160,7 @@ img {
 }
 
 .card + .card {
-    margin-left: -17.5%;
+    margin-left: -15%;
 }
 
 .card:hover {
@@ -239,7 +239,6 @@ input.glow {
     outline: none;
     cursor: pointer;
     padding: 1.44vh 2.23vh;
-    transition: 0.3s;
     font-size: 2.37vh;
     margin: 0px;
 }
@@ -261,8 +260,8 @@ input.glow {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
-    margin: 3px;
+    font-size: 2vh;
+    margin: .4vh;
 }
 
 #C {
@@ -286,12 +285,12 @@ input.glow {
 }
 
 #p {
-    background-color: #235939; /* Green */
+    background-color: #34784f; /* Green */
     color: #ffffff;
 }
 
 #d {
-    background-color: #8a0803; /* Red */
+    background-color: #bd4a4a; /* Red */
     color: #ffffff;
 }
 
@@ -313,29 +312,45 @@ input.glow {
     top: -12vh;
 }
 
-.auction {
-    position: relative;
+.auctionContainer {
     margin-top: -75%;
     width: 50%;
-    height: 50px;
-    max-height: 50px;
+    height: 25%;
     margin-left: auto;
     margin-right: auto;
-    overflow-y:auto;
+    overflow-y: auto;
+    font-size: 2vh;
+}
+
+.auction {
+    table-layout: fixed;
+    border-collapse: collapse;    
     background-color: #f1f1f1;
+    position: sticky;
+    top: 0;
+    width: 100%
 }
 
 #bidding {
     position: relative;
-    margin-top: 6%;
+    margin-top: 4%;
 }
 
 .auctionBid {
     height: 3vh;
+    width: 2vh;
+    border: 1px solid #f1f1f1;
     text-align: center;
 }
 
-#vul {
-    background-color: #cc3e39;
-    margin: 0px;
+.vul {
+    background-color: #d9635f;
+    position: sticky;
+    top: 0;
+}
+
+.nonvul {
+    background-color: #cfcfcf;
+    position: sticky;
+    top: 0;
 }
