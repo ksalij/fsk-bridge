@@ -15,7 +15,7 @@ $(document).ready(function(){
 
     if (user == username) {
       newText.id = "currentUserChat";
-    } else if (user == "Server") {
+    } else if (user == "server") {
       newText.id = "serverChat"
     } else {
       newText.id = "userChat";

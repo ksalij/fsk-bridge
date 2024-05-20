@@ -4,7 +4,7 @@ body {
     padding: 0;
 }
 
-button {
+.ready-button {
     position: relative;
     margin: 15px auto;
     display: block;
@@ -38,7 +38,7 @@ img {
 }
 
 #serverChat {
-    color: red;
+    color: blue;
 }
 
 #chat {
@@ -49,6 +49,21 @@ img {
     background-color: white;
     border: 2px;
     border-color: black;
+    border-style: solid;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#textbox {
+    margin: auto;
+}
+
+#textinput {
+    min-width: 80%;
+}
+
+#send {
+    min-width: 10%;
 }
 
 #game {

@@ -273,6 +273,7 @@ function readyUp() {
     // Add the unready button
     const unreadyButton = document.createElement("button");
     unreadyButton.setAttribute("id", "unready-button");
+    unreadyButton.setAttribute("class", "ready-button")
     unreadyButton.setAttribute("onclick", "readyDown()");
     unreadyButton.innerHTML = "Unready";
     readyInfo.appendChild(unreadyButton);
@@ -290,7 +291,7 @@ function readyUp() {
       - notify the server that the user is no longer ready to start the game
 */
 function readyDown() {
-    document.getElementById("game").innerHTML = `<button id="ready-button" onclick="readyUp()">Ready Up!</button>`;
+    document.getElementById("game").innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Ready Up!</button>`;
 
     // Notify the server that the user is ready
     socket.emit('unready', tableID, user);
@@ -601,7 +602,7 @@ function displayEndGame(jsonData) {
     socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin)
 
     // display button for new game (same as readyup just instead says start new game)
-    document.getElementById("game").innerHTML = `<button id="ready-button" onclick="readyUp()">Start New Game</button>`;
+    document.getElementById("game").innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
 }
 
 // Function to preload images, called by fetchImages below
