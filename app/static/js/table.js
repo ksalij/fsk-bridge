@@ -710,7 +710,7 @@ function hideSwitchButtons(){
     }
 }
 
-socket.on('updateUsers', (response) => {
+socket.on('updateUsers', (response, ready_users) => {
     players = document.getElementById("users");
     hideSwitchButtons();
     const directions = ["N", "E", "S", "W"]
@@ -722,18 +722,35 @@ socket.on('updateUsers', (response) => {
         const directionText = document.createElement("p");
         directionText.innerHTML = direction;
         directionDiv.appendChild(directionText);
-        const switchButton = document.createElement("button");
-        switchButton.setAttribute("id", "switch-button");
-        switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
-        console.log(direction);
-        console.log(directionsJson[direction]);
-        if (directionsJson[direction]) {
-            switchButton.innerHTML = "Switch with " + directionsJson[direction];
+        directionUser = directionsJson[direction];
+        // console.log(direction);
+        // console.log(directionsJson[direction]);
+        if (directionUser) {
+            if (directionUser != user) {
+                if (ready_users.includes(directionUser)) {
+                    const readyText = document.createElement("p");
+                    readyText.innerHTML = directionUser + " is ready to go.";
+                    directionDiv.appendChild(readyText);
+                } else {
+                    const switchButton = document.createElement("button");
+                    switchButton.setAttribute("id", "switch-button");
+                    switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
+                    switchButton.innerHTML = "Switch with " + directionsJson[direction];
+                    directionDiv.appendChild(switchButton);
+                }
+            } else {
+                const readyText = document.createElement("p");
+                readyText.innerHTML = "Your seat, " + user;
+                directionDiv.appendChild(readyText);
+            }
         }
         else {
-            switchButton.innerHTML = "Take Seat";
+            const switchButton = document.createElement("button");
+            switchButton.setAttribute("id", "switch-button");
+            switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
+            switchButton.innerHTML = "Switch with " + directionsJson[direction];
+            directionDiv.appendChild(switchButton);
         }
-        directionDiv.appendChild(switchButton);
         players.appendChild(directionDiv);
     }
     console.log(response);
