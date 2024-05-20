@@ -267,7 +267,7 @@ function readyUp() {
     // Inform the user that the table is waiting for other players
     const waitMessage = document.createElement("p");
     waitMessage.setAttribute("id", "waiting");
-    // waitMessage.innerHTML = "Waiting for other players to ready up...";
+    waitMessage.innerHTML = "Waiting for other players to ready up...";
     readyInfo.appendChild(waitMessage);
 
     // Add the unready button
