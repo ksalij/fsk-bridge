@@ -166,7 +166,7 @@ def joinTable(table_id):
             session['userPosition'] = direction
             session['connected'] = True
             break
-    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'])
+    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'], current_user=session['username'])
 
 @app.route('/getimages')
 def get_image_urls():
