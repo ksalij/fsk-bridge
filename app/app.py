@@ -166,7 +166,7 @@ def joinTable(table_id):
     try:
         Server.active_tables[table_id]
     except KeyError:
-        return render_template('home.html', app_data=app_data, message='There is no table with that ID.')
+        return render_template('home.html', app_data=app_data, error='There is no table with that ID.')
 
     session['currentTable'] = table_id
     Server.client_list[session['username']] = table_id
