@@ -769,6 +769,7 @@ socket.on('buildAuction', (response) => {
 socket.on('usersReady', (response) => {
     document.getElementById("unready-button").remove();
     document.getElementById("waiting").remove();
+    socket.emit('setInGame');
 });
 
 socket.on('isCardGood', (bool, json) => {

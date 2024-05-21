@@ -68,6 +68,13 @@ def genUsers(table_id: str) -> str:
     return json.dumps(user_pos_dict)
     # return html
 
+def close_table(table_id):
+
+    try:
+        del Server.active_tables[table_id]
+    except KeyError:
+        return
+
 @app.route('/')
 def index():
     if session.get('username') is not None:
@@ -77,8 +84,12 @@ def index():
 
 @app.route('/home')
 def home():
-    return render_template("home.html", app_data=app_data, current_user=session['username'])
+    return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=session['in_game'])
 
+@app.route('rejoinTable')
+def rejointable():
+    table_id = session['currentTable']
+    return redirect('/' + table_id)
 
 @app.route('/chat')
 def chat():
@@ -206,7 +217,7 @@ def user_ready(table_id, user):
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
     if len(ready_users[table_id]) >= 4:
-        socketio.emit('usersReady')
+        emit('usersReady', to=table_id)
         emit('buildAuction', to=table_id)
         emit('requestGameState', to=table_id)
         Server.active_tables[table_id].new_game()
@@ -296,13 +307,19 @@ def connect():
 def disconnect():
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-
-    if session.get('connected') is not None:
-        if session['connected'] == True:
-            Server.active_tables[session['currentTable']].players[session['userPosition']] = None
-            session['connected'] == False
     table_id = session["currentTable"]
-    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+    if session.get('connected') is not None and session['connected'] == True:
+        # if not Server.active_tables[session['currentTable']].current_game:
+        if not session['in_game']:
+            Server.active_tables[session['currentTable']].players[session['userPosition']] = None
+            session['connected'] = False
+            session['currentTable'] = None
+            ready_users[table_id].remove()
+            socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+
+@socketio.on('setInGame')
+def set_in_game():
+    session['in_game'] = True
 
 @socketio.on('switchSeat')
 def switch_seat(direction, user):

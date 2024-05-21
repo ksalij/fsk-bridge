@@ -12,20 +12,30 @@
 </script> -->
 
 <p>User: {{session['username']}}</p>
-<form action="/openTable">
-  <input type="submit" id="newtable" value="New Table"/>
-</form>
 
-</hr>
+{% if in_table %}
+    
+  <button action="/rejoinTable" id="rejoinbutton">Rejoin Table</button>
+  <button action="/leaveTable" id="leavetable">Leave Table</button>
+  
+{% else %}
+    
+  <form action="/openTable">
+    <input type="submit" id="newtable" value="New Table"/>
+  </form>
 
-<form action="" name='join' id='join'>
-  <input type='text' name='id' id='id'>
-  <button action="submit">Join Room</button>
-</form>
+  </hr>
 
-</hr>
+  <form action="" name='join' id='join'>
+    <input type='text' name='id' id='id'>
+    <button action="submit">Join Room</button>
+  </form>
 
-{{message}}
+  </hr>
+
+  {{error}}
+
+{% endif %}
 
 <form action="/chat">
   <input type="submit" value="Chat"/>
