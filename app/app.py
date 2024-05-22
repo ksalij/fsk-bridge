@@ -84,7 +84,7 @@ def index():
 
 @app.route('/home')
 def home():
-    return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=session['in_game'])
+    return render_template("home.html", app_data=app_data, current_user=session['username']) #in_game=session['in_game'])
 
 @app.route('/rejoinTable')
 def rejointable():
