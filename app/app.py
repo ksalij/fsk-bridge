@@ -68,13 +68,6 @@ def genUsers(table_id: str) -> str:
     return json.dumps(user_pos_dict)
     # return html
 
-def close_table(table_id):
-
-    try:
-        del Server.active_tables[table_id]
-    except KeyError:
-        return
-
 @app.route('/')
 def index():
     if session.get('username') is not None:
@@ -84,12 +77,18 @@ def index():
 
 @app.route('/home')
 def home():
-    return render_template("home.html", app_data=app_data, current_user=session['username']) #in_game=session['in_game'])
+    return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=session['in_game'])
 
 @app.route('/rejoinTable')
-def rejointable():
+def rejoin_table():
     table_id = session['currentTable']
-    return redirect('/' + table_id)
+    try:
+        Server.active_tables[table_id]
+    except:
+        session['in_game'] = False
+        error = "whoopsie doopsie the table's gone TODO"
+        return redirect("home.html", app_data=app_data, current_user=session['username'], in_game=session['in_game'])
+    return redirect('/table/' + table_id)
 
 @app.route('/chat')
 def chat():
@@ -120,6 +119,7 @@ def login():
                     error = "Already logged in as this user."
             else:
                 session['username'] = request.form['username']
+                session['in_game'] = False
                 return redirect(url_for('home'))    
         else:
             error = "Incorrect Password"
@@ -178,6 +178,19 @@ def joinTable(table_id):
             session['connected'] = True
             break
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'], current_user=session['username'])
+
+@app.route('/leaveTable')
+def leave_table():
+    session['in_game'] = False
+    table_id = session['currentTable']
+    # add other things needs to close table
+    session['currentTable'] = None
+    
+    # if no one is left in the room
+    try:
+        del Server.active_tables[table_id]
+    except KeyError:
+        return
 
 @app.route('/getimages')
 def get_image_urls():
@@ -311,11 +324,23 @@ def disconnect():
     if session.get('connected') is not None and session['connected'] == True:
         # if not Server.active_tables[session['currentTable']].current_game:
         if not session['in_game']:
-            Server.active_tables[session['currentTable']].players[session['userPosition']] = None
+            Server.active_tables[table_id].players[session['userPosition']] = None
             session['connected'] = False
             session['currentTable'] = None
-            ready_users[table_id].remove()
+            ready_users[table_id].remove(session['username'])
+            leave_room(table_id)
             socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+        if len(Server.active_tables[table_id].players) == 0:
+            emit('closeTable', to=table_id)
+            del ready_users[table_id]
+            del Server.active_tables[table_id]
+
+@socketio.on('tableClosed')
+def table_closed():
+    table_id = session["currentTable"]
+    session['connected'] = False
+    session['currentTable'] = None
+    leave_room(table_id)
 
 @socketio.on('setInGame')
 def set_in_game():
