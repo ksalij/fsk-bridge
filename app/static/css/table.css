@@ -206,6 +206,7 @@ input.glow {
 }
 
 .topnav-padding {
+    position: absolute; /* Make sure it's on top */
     overflow: hidden;
     top: 0; /* Position the navbar at the top of the page */
     width: 100%; /* Full width */
