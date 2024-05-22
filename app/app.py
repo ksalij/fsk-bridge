@@ -86,7 +86,7 @@ def index():
 def home():
     return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=session['in_game'])
 
-@app.route('rejoinTable')
+@app.route('/rejoinTable')
 def rejointable():
     table_id = session['currentTable']
     return redirect('/' + table_id)
