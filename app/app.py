@@ -173,7 +173,7 @@ def joinTable(table_id):
 
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
-            Server.active_tables[table_id].players[direction] = session['username']
+            Server.active_tables[table_id].join_table[session['username'], direction]
             session['userPosition'] = direction
             session['connected'] = True
             break
