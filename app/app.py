@@ -185,12 +185,7 @@ def leave_table():
     table_id = session['currentTable']
     # add other things needs to close table
     session['currentTable'] = None
-    
-    # if no one is left in the room
-    try:
-        del Server.active_tables[table_id]
-    except KeyError:
-        return
+    Server.active_tables[table_id]
 
 @app.route('/getimages')
 def get_image_urls():
@@ -330,7 +325,12 @@ def disconnect():
             ready_users[table_id].remove(session['username'])
             leave_room(table_id)
             socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
-        if len(Server.active_tables[table_id].players) == 0:
+        
+        roomEmpty = True
+        for player in Server.active_tables[table_id].players.values():
+            if player != None:
+                roomEmpty = False
+        if roomEmpty:
             emit('closeTable', to=table_id)
             del ready_users[table_id]
             del Server.active_tables[table_id]

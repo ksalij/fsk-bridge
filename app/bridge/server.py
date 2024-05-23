@@ -463,6 +463,8 @@ class Table:
         self.current_game = None
         self.table_id = math.trunc(int(datetime.now().timestamp()))
 
+        self.connected_players = [player for player in self.players.values() if player != None]
+
         global running_tables
         running_tables[self.table_id] = self
 
