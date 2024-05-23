@@ -16,6 +16,13 @@ import hashlib
 import binascii
 import bridge.linparse
 
+'''
+session has several fields:
+    username: website username
+    currentTable: the table the user is currently at, if there is one (whether they are in_game or not)
+    userPosition: the seat the user is currently at in their table (whether they are in_game or not)
+'''
+
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = b'159151191247130924858171211'
 socketio = SocketIO(app)
@@ -77,7 +84,19 @@ def index():
 
 @app.route('/home')
 def home():
-    return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=session['in_game'])
+    table_id = session.get('currentTable')
+    socketio.emit('testoutput', f"table_id is {table_id}")
+    try:
+        Server.active_tables[table_id]
+    except:
+        socketio.emit('testoutput', "exception, no active table at table_id")
+        session['currentTable'] = None
+        table_id = None
+    if table_id != None:
+        socketio.emit('testoutput', f'current game is {Server.active_tables[table_id].current_game}')
+    # check whether the player is at a table, then check whether that table has started a game
+    in_game = (table_id != None) and (Server.active_tables[table_id].current_game != None)
+    return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=in_game)
 
 @app.route('/rejoinTable')
 def rejoin_table():
@@ -85,9 +104,8 @@ def rejoin_table():
     try:
         Server.active_tables[table_id]
     except:
-        session['in_game'] = False
         error = "whoopsie doopsie the table's gone TODO"
-        return redirect("home.html", app_data=app_data, current_user=session['username'], in_game=session['in_game'])
+        return redirect('/killTable/' + table_id)
     return redirect('/table/' + table_id)
 
 @app.route('/chat')
@@ -119,7 +137,6 @@ def login():
                     error = "Already logged in as this user."
             else:
                 session['username'] = request.form['username']
-                session['in_game'] = False
                 return redirect(url_for('home'))    
         else:
             error = "Incorrect Password"
@@ -153,7 +170,7 @@ def openTable():
 
     new_table = Table({'E' : None, 'S' : None, 'W' : None, 'N' : None})
     Server.active_tables[str(new_table.table_id)] = new_table
-    new_table.new_game()
+    
     # TODO replace clients list with database?
 
     Server.table_chat[str(new_table.table_id)] = []
@@ -168,24 +185,41 @@ def joinTable(table_id):
     except KeyError:
         return render_template('home.html', app_data=app_data, error='There is no table with that ID.')
 
+    # add functionality to make it such that you can't be in two tables at once
+    
     session['currentTable'] = table_id
     Server.client_list[session['username']] = table_id
 
     for direction, player in Server.active_tables[table_id].players.items():
         if player == None:
-            Server.active_tables[table_id].join_table[session['username'], direction]
+            Server.active_tables[table_id].join_table(session['username'], direction)
             session['userPosition'] = direction
-            session['connected'] = True
             break
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'], current_user=session['username'])
 
 @app.route('/leaveTable')
 def leave_table():
-    session['in_game'] = False
-    table_id = session['currentTable']
-    # add other things needs to close table
-    session['currentTable'] = None
-    Server.active_tables[table_id]
+    table_id = session.get('currentTable')
+    if table_id:
+        return redirect('/killTable/' + table_id)
+    else:
+        return redirect('/home')
+
+@app.route('/killTable/<table_id>')
+def kill_table(table_id):
+    '''
+    called when the kill table button is pressed. Only can happen after the game has begun
+    '''
+    emit('closeTable', to=table_id)
+
+    try:
+        Server.active_tables[session['currentTable']] # if there isn't a table actively running, return
+    except:
+        return redirect('/home')
+    
+    del Server.active_tables[table_id]
+    del ready_users[table_id]
+    return redirect('/home')
 
 @app.route('/getimages')
 def get_image_urls():
@@ -234,7 +268,7 @@ def user_ready(table_id, user):
 
 @socketio.on('unready')
 def user_unready(table_id, user):
-    if table_id in ready_users.keys():
+    if table_id in ready_users.keys() and user in ready_users[table_id]:
         ready_users[table_id].remove(user)
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
@@ -280,10 +314,13 @@ def user_joined(user, game_room):
     emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
     #emit('updateChat', ('server', user + ' has joined the room'), broadcast=True)
 
-# Update the whole game state
-# This should be called from the client table whenever a change is made to the table
+
 @socketio.on('updateGameState')
 def update_game_state(user):
+    '''
+    Update the whole game state
+    his should be called from the client table whenever a change is made to the table
+    '''
     # Get the data from the server and format it for the specific clients
     # Send it to each client based on their player id/position
     game = Server.active_tables[Server.client_list[user]].current_game
@@ -313,38 +350,48 @@ def connect():
 
 @socketio.on('disconnect')
 def disconnect():
+    '''
+    Called each time a tab is left or reloaded (double check)
+    '''
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    table_id = session["currentTable"]
-    if session.get('connected') is not None and session['connected'] == True:
-        # if not Server.active_tables[session['currentTable']].current_game:
-        if not session['in_game']:
-            Server.active_tables[table_id].players[session['userPosition']] = None
-            session['connected'] = False
+    socketio.emit('testoutput', 'disconnect called')
+    if session.get('currentTable') is not None:
+        table_id = session["currentTable"]
+        table = Server.active_tables[table_id]
+        table.connected_players.remove(session['username'])
+        socketio.emit('testoutput', f'current game is {table.current_game}')
+        if table.current_game == None:
+            socketio.emit('testoutput', 'before ' + str(Server.active_tables[table_id].players))
+            table.leave_table(session['userPosition'])
+            socketio.emit('testoutput', 'after ' + str(Server.active_tables[table_id].players))
             session['currentTable'] = None
-            ready_users[table_id].remove(session['username'])
-            leave_room(table_id)
-            socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+            session['userPosition'] = None
         
+        user_unready(table_id, session['username'])
+        leave_room(table_id)
+        
+        # checks if the room is empty, if so we close the table
         roomEmpty = True
-        for player in Server.active_tables[table_id].players.values():
+        for player in Server.active_tables[table_id].connected_players:
             if player != None:
                 roomEmpty = False
         if roomEmpty:
-            emit('closeTable', to=table_id)
-            del ready_users[table_id]
-            del Server.active_tables[table_id]
+            return redirect('/killTable/' + str(table_id))
 
 @socketio.on('tableClosed')
 def table_closed():
-    table_id = session["currentTable"]
-    session['connected'] = False
+    '''
+    sent to all users at a table when the table is closed, sets the session variables
+    and removes the user from the table
+    '''
+    table_id = session['currentTable']
+    
+    Server.active_tables[table_id].leave_table(session['userPosition'])
     session['currentTable'] = None
+    session['userPosition'] = None
     leave_room(table_id)
-
-@socketio.on('setInGame')
-def set_in_game():
-    session['in_game'] = True
+    return redirect('/home')
 
 @socketio.on('switchSeat')
 def switch_seat(direction, user):
