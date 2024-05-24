@@ -15,9 +15,12 @@
 
 {% if in_game %}
     
-  <button action="/rejoinTable" id="rejoinbutton">Rejoin Table</button>
-  <button action="/leaveTable" id="leavetable">Leave Table</button>
-  
+  <form action="/rejoinTable">
+    <input type="submit" id="rejointable" value="Rejoin Table"/>
+  </form>
+  <form action="/leaveTable">
+    <input type="submit" id="leavetable" value="Leave Table"/>
+  </form>
 {% else %}
     
   <form action="/openTable">

@@ -6,3 +6,7 @@ $(document).ready(function() {
   }); 
 
 });
+
+socket.on('closeTable', (response) => {
+  socket.emit('tableClosed');
+});

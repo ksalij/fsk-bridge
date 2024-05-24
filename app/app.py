@@ -105,7 +105,7 @@ def rejoin_table():
         Server.active_tables[table_id]
     except:
         error = "whoopsie doopsie the table's gone TODO"
-        return redirect('/killTable/' + table_id)
+        return redirect('/home') # not sure we should call kill table here, maybe redirect to home?
     return redirect('/table/' + table_id)
 
 @app.route('/chat')
@@ -210,7 +210,7 @@ def kill_table(table_id):
     '''
     called when the kill table button is pressed. Only can happen after the game has begun
     '''
-    emit('closeTable', to=table_id)
+    socketio.emit('closeTable', to=table_id)
 
     try:
         Server.active_tables[session['currentTable']] # if there isn't a table actively running, return
@@ -361,22 +361,21 @@ def disconnect():
         table = Server.active_tables[table_id]
         table.connected_players.remove(session['username'])
         socketio.emit('testoutput', f'current game is {table.current_game}')
+        
         if table.current_game == None:
+            if len(Server.active_tables[table_id].connected_players) == 0:
+                table.leave_table(session['userPosition'])
+                return redirect('/killTable/' + str(table_id))
             socketio.emit('testoutput', 'before ' + str(Server.active_tables[table_id].players))
             table.leave_table(session['userPosition'])
             socketio.emit('testoutput', 'after ' + str(Server.active_tables[table_id].players))
             session['currentTable'] = None
             session['userPosition'] = None
-        
-        user_unready(table_id, session['username'])
-        leave_room(table_id)
+            user_unready(table_id, session['username'])
+            leave_room(table_id)
         
         # checks if the room is empty, if so we close the table
-        roomEmpty = True
-        for player in Server.active_tables[table_id].connected_players:
-            if player != None:
-                roomEmpty = False
-        if roomEmpty:
+        if len(Server.active_tables[table_id].connected_players) == 0:
             return redirect('/killTable/' + str(table_id))
 
 @socketio.on('tableClosed')

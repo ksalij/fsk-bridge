@@ -640,7 +640,6 @@ function showAllCards() {
       - change the hide button to a display button
 */
 
-
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
