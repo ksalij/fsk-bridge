@@ -230,7 +230,7 @@ input.glow {
     box-shadow: 0px 0px 31px 9px rgba(143,215,210,1);
 }
 
-/* Add a black background color to the top navigation */
+/* Add a background color to the top navigation */
 .topnav {
     overflow: hidden;
     background-color: #3e4684;
@@ -238,6 +238,7 @@ input.glow {
     top: 0; /* Position the navbar at the top of the page */
     width: 100%; /* Full width */
     color: white;
+    font-size: 16px;
 }
 
 
@@ -247,7 +248,14 @@ input.glow {
     color: #f2f2f2;
     text-align: center;
     padding: 14px 16px;
-    font-size: 13px;
+}
+
+.topnav-padding {
+    overflow: hidden;
+    top: 0; /* Position the navbar at the top of the page */
+    width: 100%; /* Full width */
+    height: 64px; /* Full height */
+    position: absolute; /* Make sure it's on top */
 }
 
 .logo {

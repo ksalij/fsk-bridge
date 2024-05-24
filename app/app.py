@@ -152,6 +152,11 @@ def openTable():
 
 @app.route('/table/<table_id>')
 def joinTable(table_id):
+    try:
+        Server.active_tables[table_id]
+    except KeyError:
+        return render_template('home.html', app_data=app_data, message='There is no table with that ID.')
+
     session['currentTable'] = table_id
     Server.client_list[session['username']] = table_id
 
@@ -161,7 +166,7 @@ def joinTable(table_id):
             session['userPosition'] = direction
             session['connected'] = True
             break
-    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'])
+    return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'], current_user=session['username'])
 
 @app.route('/getimages')
 def get_image_urls():
@@ -253,8 +258,8 @@ def populate_chat():
 def user_joined(user, game_room):
     join_room(game_room)
     Server.table_chat[session['currentTable']].append("server/" + user + " has joined the room")
-    emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
-    #emit('updateChat', ('server', user + ' has joined the room'), broadcast=True)
+    #emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
+    emit('updateChat', ('none', "➝ " + user  + ' has joined the room'), room=game_room)
 
 # Update the whole game state
 # This should be called from the client table whenever a change is made to the table
