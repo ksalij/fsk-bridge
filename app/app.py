@@ -271,8 +271,8 @@ def populate_chat():
 def user_joined(user, game_room):
     join_room(game_room)
     Server.table_chat[session['currentTable']].append("server/" + user + " has joined the room")
-    emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
-    #emit('updateChat', ('server', user + ' has joined the room'), broadcast=True)
+    #emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
+    emit('updateChat', ('none', "➝ " + user  + ' has joined the room'), room=game_room)
 
 # Update the whole game state
 # This should be called from the client table whenever a change is made to the table
