@@ -11,10 +11,6 @@ const SEATMAP = {
     "N" : 3
 };
 
-function printHello() {
-    console.log("hello");
-}
-
 /*
     Switch a user with a seat, occupied or unoccupied.
 
@@ -30,52 +26,6 @@ function switchSeat(direction) {
     socket.emit('switchSeat', direction, user);
     clientDirection = direction;
 }
-
-// function fillSwitchSeatInfo(seatDiv, direction, resident) {
-//     const seatInfo = document.createElement("p");
-//     if (!resident) {
-//         seatInfo.innerHTML = "Empty seat.";
-//     } else if (readyUsers.includes(resident)) {
-//         seatInfo.innerHTML = resident + " is ready to go.";
-//     } else if (readyUsers.includes(user)) {
-//         seatInfo.innerHTML = resident + " is not ready to go.";
-//     }
-//     seatDiv.appendChild(seatInfo);
-
-//     if (!readyUsers.includes(user)) {
-//         const switchButton = document.createElement("button");
-//         // button.setAttribute("class", "switch-seat-button");
-//         button.setAttribute("onclick", `switchSeat("${direction}")`);
-//         if (!resident) {
-//             switchButton.innerHTML = "Take " + direction + " seat";
-//         } else if (!readyUsers.includes(resident)) {
-//             switchButton.innerHTML = "Switch with " + direction;
-//         }
-//         seatDiv.appendChild(switchButton);
-//     }
-// }
-
-// function addSwitchSeatButtons() {
-//     const clientTeam = document.getElementById("client-team-hands");
-//     const oppTeam = document.getElementById("opp-team-hands");
-
-//     const buttonA = document.createElement("button");
-//     buttonA.setAttribute("onclick", "printHello()");
-//     buttonA.appendChild(document.createTextNode("E"));
-//     clientTeam.appendChild(buttonA);
-//     const buttonB = document.createElement("button");
-//     buttonB.setAttribute("onclick", "printHello()");
-//     buttonB.appendChild(document.createTextNode("W"));
-//     clientTeam.appendChild(buttonB);
-//     const buttonC = document.createElement("button");
-//     buttonC.setAttribute("onclick", "printHello()");
-//     buttonC.appendChild(document.createTextNode("S"));
-//     oppTeam.appendChild(buttonC);
-//     const buttonD = document.createElement("button");
-//     buttonD.setAttribute("onclick", "printHello()");
-//     buttonD.appendChild(document.createTextNode("N"));
-//     oppTeam.appendChild(buttonD);
-// }
 
 function addSwitchSeatButtons(players, readyUsers) {
     console.log("clientDir: " + clientDirection);
@@ -149,8 +99,6 @@ function removeSwitchSeatButtons() {
     document.querySelectorAll(".switch-seat-div").forEach(e => e.remove());
 }
 
-// window.addEventListener("load", (event) => { addSwitchSeatButtons(); });
-
 /*
     Build a card object.
 */
@@ -211,15 +159,6 @@ function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, 
             }
         }
 
-        // link.addEventListener('mouseover', function() {
-        //     card.style.border = '2px solid blue'; // Add border on mouseover
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
-        // link.addEventListener('mouseout', function() {
-        //     card.style.border = '2px transparent'; // Remove border on mouseout
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
         handDiv.appendChild(card);
     }
 }
@@ -309,16 +248,6 @@ function readyUp() {
     waitMessage.setAttribute("id", "waiting");
     waitMessage.innerHTML = "Waiting for other players to ready up...";
     document.getElementById("ready-info").insertBefore(waitMessage, readyButton);
-
-    // // Add the unready button
-    // const unreadyButton = document.createElement("button");
-    // unreadyButton.setAttribute("id", "unready-button");
-    // unreadyButton.setAttribute("class", "ready-button")
-    // unreadyButton.setAttribute("onclick", "readyDown()");
-    // unreadyButton.innerHTML = "Unready";
-    // readyInfo.appendChild(unreadyButton);
-
-    // document.getElementById("game").appendChild(readyInfo);
 }
 
 /*
@@ -377,7 +306,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
     const suitSymbolMap = {'C': '\u2663', 'D': '\u2666', 'H': '\u2665', 'S': '\u2660', 'N': 'NT'};
     const header = document.createElement("tr");
 
-    directions = ['N', "E", 'S', 'W'];
+    const directions = ['N', "E", 'S', 'W'];
     for (let i = 0; i < 4; i++){
         const playerHeader = document.createElement('th');
         playerHeader.innerText = directions[(i + SEATMAP[direction] + 2) % 4];
@@ -394,7 +323,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
     }
     auction.appendChild(header);
     
-    auctionList = [...Array((SEATMAP[dealer] - (SEATMAP[direction] + 1) + 4) % 4)].fill('none').concat(bids);
+    let auctionList = [...Array((SEATMAP[dealer] - (SEATMAP[direction] + 1) + 4) % 4)].fill('none').concat(bids);
     if (auctionList.length < 16){
         auctionList = auctionList.concat([...Array(16 - auctionList.length)].fill('none'));
     }
@@ -403,7 +332,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
         const row = document.createElement("tr");
         for (let j = 0; j < 4; j++){
             if ((4*i + j) < auctionList.length){
-                const rowEntry =  document.createElement('td');
+                const rowEntry = document.createElement('td');
                 rowEntry.setAttribute('class', 'auctionBid');
                 if (auctionList[4*i + j] == 'none'){
                 } else if (auctionList[4*i + j] == 'p'){
@@ -739,41 +668,6 @@ function fetchImages(){
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
-/*
-    Display each card svg below the game board.
-
-    Parameters: none
-
-    Functionality:
-      - set the display style of each cardImage element to be "inline" (from "none")
-      - change the display button to a hide button
-*/
-function showAllCards() {
-    const allCards = document.getElementsByClassName("cardImage");
-    for (let i = 0; i < allCards.length; i++) {
-        allCards[i].style.display = 'inline';
-    }
-
-    const button = document.getElementById("show-cards-button");
-    button.id = "hide-cards-button";
-    button.setAttribute("onclick", "hideAllCards()");
-    button.innerHTML = ("Click me to hide cards!");
-}
-
-/*
-    Hide each card svg below the game board.
-
-    Parameters: none
-
-    Functionality:
-      - set the display style of each cardImage element to be "none" (from "inline")
-      - change the hide button to a display button
-*/
-
-
-// Call the fetchImages function when the page loads
-window.addEventListener("load", (event) => { fetchImages(); });
-
 // Populate the chat when the page loads
 socket.emit('populateChat');
 socket.emit('userJoined', username, window.location.pathname.split("/")[2])
@@ -790,73 +684,6 @@ socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
     clientDirection = your_direction;
     console.log("my local info");
 });
-
-// function hideSwitchButtons(){
-//     players = document.getElementById("users");
-//     for (let i = 0; i < 4; i++) {
-//         directionDiv = players.firstChild;
-//         if(directionDiv) {
-//             directionDiv.removeChild(directionDiv.firstChild);
-//             directionDiv.removeChild(directionDiv.firstChild);
-//             players.removeChild(directionDiv);
-//         }
-//     }
-// }
-
-// socket.on('updateUsers', (response, ready_users) => {
-//     players = document.getElementById("users");
-//     hideSwitchButtons();
-//     const directions = ["N", "E", "S", "W"]
-//     const directionsJson = JSON.parse(response);
-//     for (let i = 0; i < 4; i++) {
-//         const direction = directions[i];
-//         const directionDiv = document.createElement("div");
-//         directionDiv.setAttribute("class", "direction-div");
-//         const directionText = document.createElement("p");
-//         directionText.innerHTML = direction;
-//         directionDiv.appendChild(directionText);
-//         directionUser = directionsJson[direction];
-//         // console.log(direction);
-//         // console.log(directionsJson[direction]);
-//         console.log(directionUser);
-//         if (directionUser) {
-//             if (directionUser != user) {
-//                 if (ready_users.includes(directionUser)) {
-//                     const readyText = document.createElement("p");
-//                     readyText.innerHTML = directionUser + " is ready to go.";
-//                     directionDiv.appendChild(readyText);
-//                 } else if (ready_users.includes(user)) {
-//                     const readyText = document.createElement("p");
-//                     readyText.innerHTML = directionUser + " is not ready to go.";
-//                     directionDiv.appendChild(readyText);
-//                 } else {
-//                     const switchButton = document.createElement("button");
-//                     switchButton.setAttribute("id", "switch-button");
-//                     switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
-//                     switchButton.innerHTML = "Switch with " + directionsJson[direction];
-//                     directionDiv.appendChild(switchButton);
-//                 }
-//             } else {
-//                 const readyText = document.createElement("p");
-//                 readyText.innerHTML = "Your seat, " + user;
-//                 directionDiv.appendChild(readyText);
-//             }
-//         }
-//         else if (ready_users.includes(user)) {
-//             const readyText = document.createElement("p");
-//             readyText.innerHTML = "Empty seat";
-//             directionDiv.appendChild(readyText);
-//         } else {
-//             const switchButton = document.createElement("button");
-//             switchButton.setAttribute("id", "switch-button");
-//             switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
-//             switchButton.innerHTML = "Take " + direction + " seat";
-//             directionDiv.appendChild(switchButton);
-//         }
-//         players.appendChild(directionDiv);
-//     }
-//     console.log(response);
-// });
 
 socket.on('updateUsers', (response, readyUsers) => {
     let players = JSON.parse(response);
