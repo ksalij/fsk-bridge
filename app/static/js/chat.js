@@ -1,3 +1,23 @@
+var span;
+var makeIdCopy;
+var sendLocalMessage;
+
+makeIdCopy = function() {
+  span = document.getElementById('tableid');
+  span.onclick = function() {
+    document.execCommand("copy");
+    sendLocalMessage("table id has been copied to clipboard")
+  }
+
+  span.addEventListener("copy", function(event){
+    event.preventDefault();
+    if (event.clipboardData) {
+      event.clipboardData.setData("text/plain", span.textContent);
+      console.log(event.clipboardData.getData("text"));
+    }
+  })
+}
+
 $(document).ready(function(){
 
   var numOfMessages = 0;
@@ -57,25 +77,36 @@ $(document).ready(function(){
     console.log(response);
     const newText = document.createElement("div");
 
+    var isId;
     if (user == username) {
       newText.id = "currentUserChat";
     } else if (user == "server") {
       newText.id = "serverChat";
-    } else if (user == "none") {
-      newText.id = "none";
+    } else if (user == "enter") {
+      newText.id = "enter";
       newText.innerHTML = response;
+      newText.style.color = "green";
+    } else if (user == "leave") {
+      newText.id = "leave"
+      newText.innerHTML = response;
+      newText.style.color = "red";
+    } else if (user == "id") {
+      newText.id = "serverChat";
+      user = "server";
+      isId = true;
+      response = "room created with id <span id='tableid'>" + response + "</span>";
     } else {
       newText.id = "userChat";
     }
 
     // color the usernames
-    if (user === "none") {
+    if (user === "enter" || user === "leave") {
         newText.innerHTML = response;
     } else {
-        newText.innerHTML = user + ": " + response;
+        newText.innerHTML = "<b>" + user + ": " + "</b>" + response;
     }
     
-    if (user !== 'server') {
+    if (user !== 'server' && user !== 'enter' && user !== 'leave') {
         var chatColor = colorTag(user).hex();
         console.log(chatColor);
         newText.style.color = '#' + chatColor;
@@ -87,6 +118,10 @@ $(document).ready(function(){
     
     const parent = document.getElementById('chat')
     parent.appendChild(newTextContainer);
+
+    if (isId === true) {
+      makeIdCopy();
+    }
 	
     parent.scroll(0, 10000)
   });
@@ -96,5 +131,21 @@ $(document).ready(function(){
         $("#send").click();
     }
   });
+
+  sendLocalMessage = function(message) {
+    const newText = document.createElement("div");
+
+    newText.id = "serverChat";
+    newText.innerHTML = "<b>server:</b> " + message;
+
+    newTextContainer = document.createElement("div");
+    newTextContainer.id = "chatContainer"
+    newTextContainer.appendChild(newText);
+    
+    const parent = document.getElementById('chat')
+    parent.appendChild(newTextContainer);
+
+    parent.scroll(0, 10000)
+  }
 
 });

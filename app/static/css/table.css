@@ -24,6 +24,7 @@ img {
     flex: 30%;
     float: left;
     margin-right: 20%;
+    min-width: 280px;
 }
 
 #username {
@@ -32,6 +33,21 @@ img {
 
 #serverChat {
     color: blue;
+}
+
+#chatContainer {
+    padding-bottom: 3px;
+}
+
+#tableid {
+    cursor: pointer;
+}
+
+.roboto-regular {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
 }
 
 #chat {
@@ -49,14 +65,32 @@ img {
 
 #textbox {
     margin: auto;
+    width: 290px;
+    border-style: solid;
+    border-width: 2px;
+    border-top: none;
+    display: inline-flex;
 }
 
-#textinput {
-    min-width: 80%;
+#textInput {
+    width: 80%;
+    border-radius: 0px;
+    border: none;
+    height: 22px;
+}
+
+*:focus {
+    outline: none;
 }
 
 #send {
     min-width: 10%;
+    border-radius: 0px;
+    background-color: #3e4684;
+    border: none;
+    color: white;
+    width: 20%;
+    float: right;
 }
 
 #game {
