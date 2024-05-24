@@ -187,7 +187,7 @@ def give_favicon():
 
 @socketio.on('joinRoom')
 def put_user_in_room(table_id):
-    socketio.emit("yourLocalInfo", (session['username'], table_id), to=request.sid)
+    socketio.emit("yourLocalInfo", (session['username'], table_id, session['userPosition']), to=request.sid)
     join_room(table_id)
     if table_id not in ready_users:
         ready_users[table_id] = set()
