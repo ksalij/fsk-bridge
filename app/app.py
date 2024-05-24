@@ -146,7 +146,7 @@ def openTable():
     # TODO replace clients list with database?
 
     Server.table_chat[str(new_table.table_id)] = []
-    Server.table_chat[str(new_table.table_id)].append("server/room created with id " + str(new_table.table_id))
+    Server.table_chat[str(new_table.table_id)].append("id/" + str(new_table.table_id))
 
     return redirect('/table/' + str(new_table.table_id))
 
@@ -200,8 +200,8 @@ ready_users = {}
 def user_ready(table_id, user):
     ready_users[table_id].add(user)
    
-    Server.table_chat[session['currentTable']].append("server/" + user + " is ready to play")
-    emit('updateChat', ('server', user  + ' is ready to play'), room=table_id)
+    Server.table_chat[session['currentTable']].append("enter/" + user + " is ready to play!")
+    emit('updateChat', ('enter', user  + ' is ready to play!'), room=table_id)
 
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
@@ -217,7 +217,10 @@ def user_ready(table_id, user):
 def user_unready(table_id, user):
     if table_id in ready_users.keys():
         ready_users[table_id].remove(user)
-    # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
+
+    Server.table_chat[session['currentTable']].append("leave/" + user + " is not ready to play")
+    emit('updateChat', ('leave', user  + ' is not ready to play'), room=table_id)
+
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('cardPlayed')
