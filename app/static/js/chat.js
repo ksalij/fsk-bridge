@@ -61,21 +61,26 @@ $(document).ready(function(){
       newText.id = "currentUserChat";
     } else if (user == "server") {
       newText.id = "serverChat";
-    } else if (user == "none") {
-      newText.id = "none";
+    } else if (user == "enter") {
+      newText.id = "enter";
       newText.innerHTML = response;
+      newText.style.color = "green";
+    } else if (user =="leave") {
+      newText.id = "leave"
+      newText.innerHTML = response;
+      newText.style.color = "red";
     } else {
       newText.id = "userChat";
     }
 
     // color the usernames
-    if (user === "none") {
+    if (user === "enter" || user === "leave") {
         newText.innerHTML = response;
     } else {
         newText.innerHTML = user + ": " + response;
     }
     
-    if (user !== 'server') {
+    if (user !== 'server' && user !== 'enter' && user !== 'leave') {
         var chatColor = colorTag(user).hex();
         console.log(chatColor);
         newText.style.color = '#' + chatColor;

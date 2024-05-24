@@ -257,9 +257,9 @@ def populate_chat():
 @socketio.on('userJoined')
 def user_joined(user, game_room):
     join_room(game_room)
-    Server.table_chat[session['currentTable']].append("server/" + user + " has joined the room")
+    Server.table_chat[session['currentTable']].append("enter/" + "→ " + user + " has joined the room")
     #emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
-    emit('updateChat', ('none', "➝ " + user  + ' has joined the room'), room=game_room)
+    emit('updateChat', ('enter', "→ " + user  + ' has joined the room'), room=game_room)
 
 # Update the whole game state
 # This should be called from the client table whenever a change is made to the table
@@ -303,6 +303,8 @@ def disconnect():
             session['connected'] == False
     table_id = session["currentTable"]
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+    Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
+    emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), room=table_id)
 
 @socketio.on('switchSeat')
 def switch_seat(direction, user):
