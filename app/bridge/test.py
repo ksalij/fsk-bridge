@@ -87,7 +87,7 @@ def auction_then_play():
         for j in range(len(table.current_game.current_bridgehand.hands[table.current_game.current_player].cards)):
             if table.current_game.play_card(table.current_game.current_player, table.current_game.current_bridgehand.hands[table.current_game.current_player][j]):
                 break
-
+    print(table.AI_select_card())
     # print(table.current_game.get_json("user1"))
 
 def play_2_boards_lin():

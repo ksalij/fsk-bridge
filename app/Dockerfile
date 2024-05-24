@@ -1,17 +1,21 @@
 # Alpine is a very small/lightweight Linux distribution
 # We are starting from an alpine image with Python 3 installed
-FROM python:3.10-alpine
+FROM tensorflow/tensorflow:2.14.0
 
 # The WORKDIR command both creates a directory in the container 
 # and sets that directory to be the current directory for all further commands
 WORKDIR /app
 
 # We install Flask and requests in the container using Pip
-RUN \
- apk add --no-cache postgresql-libs && \
- apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
- python3 -m pip install flask flask-socketio requests eventlet psycopg2 --no-cache-dir && \
- apk --purge del .build-deps
+#RUN \
+ #apk add --no-cache postgresql-libs && \
+ #apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
+ RUN apt-get update
+ RUN apt-get -y install libpq-dev 
+ RUN python3 -m pip install --ignore-installed flask flask-socketio requests eventlet --no-cache-dir
+ RUN python3 -m pip install psycopg2 --no-cache-dir
+ RUN python3 -m pip install pandas --no-cache-dir
+ #apk --purge del .build-deps
 
 # We want port 5000 (the default Flask port) to be used outside the container
 EXPOSE 5000

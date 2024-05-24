@@ -221,10 +221,13 @@ def user_unready(table_id, user):
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('cardPlayed')
+# user is a username
 def handle_message(user, card):
     played_card = bridge.linparse.convert_card(card[1] + card[0])
     table_id = Server.client_list[user]
     user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
+    emit('user: ' + user, (False, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
+    print('user: ' + user)
     if not Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
         emit('isCardGood', (False, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
         print('bad card')
@@ -233,6 +236,16 @@ def handle_message(user, card):
         print('good card')
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
         emit('requestGameState', to=table_id)
+    AI_play(table_id)
+
+def AI_play(table_id):
+    Table = Server.active_tables[table_id]
+    # 
+    if Table.current_game.current_bridgehand.players[Table.current_game.current_player] == "Robot":
+        card = Table.AI_select_card()
+        emit('Robot', (True, Server.active_tables[table_id].current_game.get_json("Robot")), to=request.sid)
+        print('Robot card')
+        handle_message("Robot", [card.rankname, card.suitname])
 
 # The server then responds to each player asking with the json
 @socketio.on('updateGameState')
