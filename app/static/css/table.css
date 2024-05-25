@@ -4,13 +4,6 @@ body {
     padding: 0;
 }
 
-.ready-button {
-    position: relative;
-    margin: 15px auto;
-    display: block;
-}
-
-
 img {
     width: 100%;
     /* border: 1px solid black; */
@@ -31,6 +24,7 @@ img {
     flex: 30%;
     float: left;
     margin-right: 20%;
+    min-width: 280px;
 }
 
 #username {
@@ -39,6 +33,21 @@ img {
 
 #serverChat {
     color: blue;
+}
+
+#chatContainer {
+    padding-bottom: 3px;
+}
+
+#tableid {
+    cursor: pointer;
+}
+
+.roboto-regular {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
 }
 
 #chat {
@@ -56,14 +65,32 @@ img {
 
 #textbox {
     margin: auto;
+    width: 290px;
+    border-style: solid;
+    border-width: 2px;
+    border-top: none;
+    display: inline-flex;
 }
 
-#textinput {
-    min-width: 80%;
+#textInput {
+    width: 80%;
+    border-radius: 0px;
+    border: none;
+    height: 22px;
+}
+
+*:focus {
+    outline: none;
 }
 
 #send {
     min-width: 10%;
+    border-radius: 0px;
+    background-color: #3e4684;
+    border: none;
+    color: white;
+    width: 20%;
+    float: right;
 }
 
 #game {
@@ -86,13 +113,60 @@ img {
     font-size: 18px;
 }
 
-#ready-button {
-    top: 50%;
-    transform: translateY(calc(-50% - 15px));
+.direction {
+    position: absolute;
+    width: 5%;
+    height: 5%;
+    background-color: inherit;
+    border: inherit;
+    z-index: 5;
+    display: flex;
+}
+
+.direction p {
+    margin: auto;
+}
+
+#left-dir {
+    top: 47.5%;
+    left: calc(-5% - 1px); /* -2px for the 1px border on both sides */
+    border-right-style: none;
+}
+
+#right-dir {
+    top: 47.5%;
+    right: calc(-5% - 1px);
+    border-left-style: none;
+}
+
+#top-dir {
+    left: 47.5%;
+    top: calc(-5% - 1px);
+    border-bottom-style: none;
+}
+
+#bottom-dir {
+    left: 47.5%;
+    bottom: calc(-5% - 1px);
+    border-top-style: none;
+}
+
+.switch-seat-div {
+    text-align: center;
+    margin: 4%;
+}
+
+.opp-team .switch-seat-div {
+    writing-mode: vertical-rl;
+}
+
+.switch-seat-div p {
+    margin: 5px;
+    text-wrap: nowrap;
 }
 
 #ready-info,
-#play-area {
+#trick-area {
     margin: -50% auto 0;
     transform: translateY(-50%);
 }
@@ -101,7 +175,12 @@ img {
     width: 300px;
 }
 
-#play-area {
+#ready-button {
+    margin: auto;
+    display: block;
+}
+
+#trick-area {
     width: 250px;
     height: 250px;
 }
