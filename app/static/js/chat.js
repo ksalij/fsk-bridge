@@ -6,7 +6,7 @@ makeIdCopy = function() {
   span = document.getElementById('tableid');
   span.onclick = function() {
     document.execCommand("copy");
-    sendLocalMessage("table id has been copied to clipboard")
+    sendLocalMessage("Room ID has been copied to clipboard!")
   }
 
   span.addEventListener("copy", function(event){
@@ -63,7 +63,7 @@ $(document).ready(function(){
 
     // If messages are being sent too fast
     if (avgTime <= 1000) {
-	socket.emit("sendMessage", 'server', user + ', you are typing too quickly! You have been muted for 10 seconds.', window.location.pathname.split("/")[2]);
+	socket.emit("sendMessage", 'server', user.charAt(0).toUpperCase() + user.slice(1) + ', you are typing too quickly! You have been muted for 10 seconds.', window.location.pathname.split("/")[2]);
 	timeLimit = 10000;
 	muteTime = new Date().getTime();
 	return;
@@ -94,7 +94,7 @@ $(document).ready(function(){
       newText.id = "serverChat";
       user = "server";
       isId = true;
-      response = "room created with id <span id='tableid'>" + response + "</span>";
+      response = "Room created with id <span id='tableid'>" + response + "</span>";
     } else {
       newText.id = "userChat";
     }
