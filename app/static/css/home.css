@@ -1,0 +1,18 @@
+@import "login.css";
+
+.screen-1 .join {
+    background: white;
+    box-shadow: 0 0 2em #e6e9f9;
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    border-radius: 20px;
+    color: #4d4d4d;
+    margin-top: -3em;
+}
+.screen-1 .join input {
+    width: 100%;
+    outline: none;
+    border: none;
+}
