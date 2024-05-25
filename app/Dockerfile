@@ -1,5 +1,4 @@
-# Alpine is a very small/lightweight Linux distribution
-# We are starting from an alpine image with Python 3 installed
+# Ubuntu distribution with tensorflow installed
 FROM tensorflow/tensorflow:2.14.0
 
 # The WORKDIR command both creates a directory in the container 
