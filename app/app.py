@@ -82,8 +82,9 @@ def index():
         return redirect('/home')
     return redirect('/login')
 
+@app.route('/home/<error>')
 @app.route('/home')
-def home():
+def home(error=None):
     table_id = session.get('currentTable')
     socketio.emit('testoutput', f"table_id is {table_id}")
     try:
@@ -260,7 +261,7 @@ def user_ready(table_id, user):
 
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
-    if len(ready_users[table_id]) >= 4:
+    if len(ready_users[table_id]) == 4:
         emit('usersReady', to=table_id)
         emit('buildAuction', to=table_id)
         emit('requestGameState', to=table_id)
@@ -366,6 +367,10 @@ def disconnect():
         table = Server.active_tables[table_id]
         table.connected_players.remove(session['username'])
         socketio.emit('testoutput', f'current game is {table.current_game}')
+
+        socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+        Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
+        emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), room=table_id)
         
         if table.current_game == None:
             if len(Server.active_tables[table_id].connected_players) == 0:
@@ -378,10 +383,6 @@ def disconnect():
             session['userPosition'] = None
             user_unready(table_id, session['username'])
             leave_room(table_id)
-
-        socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
-        Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
-        emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), room=table_id)
 
         # checks if the room is empty, if so we close the table
         if len(Server.active_tables[table_id].connected_players) == 0:

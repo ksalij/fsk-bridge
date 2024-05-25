@@ -886,6 +886,7 @@ socket.on('readyInfo', (data) => {
 
 socket.on('buildAuction', (response) => {
     removeSwitchSeatButtons();
+    buildHands();
     buildAuctionStructure();
 });
   
