@@ -784,22 +784,24 @@ socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
     socket.emit('joinRoom', window.location.pathname.substring(7));
-    console.log("ahhhhh")
     socket.emit('hasGameStarted', window.location.pathname.substring(7));
 });
 
-socket.on('buildGame', (jsonData) => {
-    //buildHands();
-    document.getElementById('ready-info').remove();
-    console.log("buildGame")
-    if (jsonData.game_phase == "AUCTION") {
-        console.log('AUCTION SHOULD BE BUILT')
-        buildAuctionStructure();
-    } else if (jsonData.game_phase == "PLAY") {
-        console.log("TRICK AREA SHOULD BE BUILT")
-        buildTrickArea();
+socket.on('buildGame', (jsonInput, username) => {
+    if (username == user){
+        buildHands();
+        jsonData = JSON.parse(jsonInput);
+        document.getElementById('ready-info').remove();
+        console.log("buildGame")
+        if (jsonData.game_phase == "AUCTION") {
+            console.log('AUCTION SHOULD BE BUILT')
+            buildAuctionStructure();
+        } else if (jsonData.game_phase == "PLAY") {
+            console.log("TRICK AREA SHOULD BE BUILT")
+            buildTrickArea();
+        }
+        renderUpdate(jsonData);
     }
-    renderUpdate(jsonData);
 });
 
 socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
@@ -914,8 +916,15 @@ socket.on('usersReady', (response) => {
     document.getElementById('ready-info').remove();
 });
 
-socket.on('closeTable', (response) => {
-    socket.emit('tableClosed');
+socket.on('closeTable', (tableID) => {
+    socket.emit('testoutput', 'close table!!')
+    socket.emit('tableClosed', tableID);
+    window.location.href = '/home';
+});
+
+socket.on('killTable', (tableID) => {
+    socket.emit('testoutput', 'kill table!!')
+    window.location.href = '/killTable/' + tableID;
 });
 
 

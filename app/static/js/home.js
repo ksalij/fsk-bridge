@@ -7,6 +7,11 @@ $(document).ready(function() {
 
 });
 
-socket.on('closeTable', (response) => {
-  socket.emit('tableClosed');
+socket.on('closeTable', (tableID) => {
+  socket.emit('tableClosed', tableID);
+  window.location.href = '/home';
+});
+
+socket.on('killTable', (tableID) => {
+  window.location.href = '/killTable/' + tableID;
 });

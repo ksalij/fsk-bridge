@@ -188,19 +188,20 @@ def joinTable(table_id):
         error = 'There is no table with that ID.'
         #return render_template('home.html', app_data=app_data, error='There is no table with that ID.')
         return redirect('/home/' + error)
-
-    # add functionality to make it such that you can't be in two tables at once
     
-    session['currentTable'] = table_id
-    Server.client_list[session['username']] = table_id
+    if not has_game_started(table_id):    
+        # add functionality to make it such that you can't be in two tables at once
+        
+        session['currentTable'] = table_id
+        Server.client_list[session['username']] = table_id
 
-    for direction, player in Server.active_tables[table_id].players.items():
-        if player == session['username']:
-            break
-        elif player == None:
-            Server.active_tables[table_id].join_table(session['username'], direction)
-            session['userPosition'] = direction
-            break
+        for direction, player in Server.active_tables[table_id].players.items():
+            if player == session['username']:
+                break
+            elif player == None:
+                Server.active_tables[table_id].join_table(session['username'], direction)
+                session['userPosition'] = direction
+                break
     return render_template("table.html", app_data=app_data, table=Server.active_tables[table_id], session_table=session['currentTable'], current_user=session['username'])
 
 @app.route('/leaveTable')
@@ -348,6 +349,8 @@ def send_bid(user, bid):
 @socketio.on('connect')
 def connect():
     Server.client_count += 1
+    if session['currentTable']:
+        join_room(session['currentTable'])
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     #for key, value in Server.message_history.items():
     #    if key != session['username']:
@@ -373,34 +376,33 @@ def disconnect():
         if table.current_game == None:
             if len(Server.active_tables[table_id].connected_players) == 0:
                 table.leave_table(session['userPosition'])
-                return redirect('/killTable/' + str(table_id))
+                emit('/killTable/', str(table_id), to=table_id)
             socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
             socketio.emit('testoutput', 'before ' + str(Server.active_tables[table_id].players))
             table.leave_table(session['userPosition'])
             socketio.emit('testoutput', 'after ' + str(Server.active_tables[table_id].players))
+            user_unready(table_id, session['username'])
             session['currentTable'] = None
             session['userPosition'] = None
-            user_unready(table_id, session['username'])
-            leave_room(table_id)
 
         # checks if the room is empty, if so we close the table
         if len(Server.active_tables[table_id].connected_players) == 0:
-            return redirect('/killTable/' + str(table_id))
+            socketio.emit('/killTable/', str(table_id), to=table_id)
+        leave_room(table_id)
 
 
 @socketio.on('tableClosed')
-def table_closed():
+def table_closed(closed_table_id):
     '''
     sent to all users at a table when the table is closed, sets the session variables
     and removes the user from the table
     '''
     table_id = session['currentTable']
-    
-    Server.active_tables[table_id].leave_table(session['userPosition'])
-    session['currentTable'] = None
-    session['userPosition'] = None
-    leave_room(table_id)
-    return redirect('/home')
+    if (table_id == closed_table_id):
+        Server.active_tables[table_id].leave_table(session['userPosition'])
+        session['currentTable'] = None
+        session['userPosition'] = None
+        leave_room(table_id)
 
 @socketio.on('switchSeat')
 def switch_seat(direction, user):
@@ -439,15 +441,15 @@ def has_game_started(table_id):
     socketio.emit('testoutput', "hasgamestarted called")
     if table_id not in Server.active_tables:
         socketio.emit('testoutput', "no table")
-        return
+        return False
     elif Server.active_tables[table_id].current_game == None:
         socketio.emit('testoutput', "current_game is none")
-        return
+        return False
     else:
         json = Server.active_tables[table_id].current_game.get_json(session['username'])
-        socketio.emit('testoutput', "json" + json.game_phase)
-        socketio.emit('testoutput', 'hasGameStarted currentGame not none')
-        socketio.emit('buildGame', json)
+        socketio.emit('testoutput', 'hasGameStarted currentGame not none', to=table_id)
+        socketio.emit('buildGame', (json, session['username']), to=table_id)
+        return True
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)
