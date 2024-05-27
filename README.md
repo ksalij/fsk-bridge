@@ -55,7 +55,7 @@ fsk-bridge/
 │   │   │   ├── color.js
 │   │   │   │   - selects colors for individual users in the chat
 │   │   │   ├── home.js
-│   │   │   │   - ???
+│   │   │   │   - redirects the user to the entered table id
 │   │   │   ├── index.js
 │   │   │   │   - connects the client to the socket
 │   │   │   │   - used by layout.html

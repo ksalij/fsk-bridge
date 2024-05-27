@@ -15,6 +15,7 @@ img {
     height: 75vh;
     align-items: center;
     justify-content: space-between;
+    margin-top: 75px;
 }
 
 #chatbox {
@@ -43,11 +44,19 @@ img {
 }
 
 #chatContainer {
-    padding-bottom: 3px;
+    padding-top: 3px;
 }
 
 #tableid {
     cursor: pointer;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 5px;
+    padding-left: 2px;
+    padding-right: 4px;
+    color: black;
+    border-color: black;
+    margin-left: 3px;
 }
 
 .roboto-regular {
@@ -192,7 +201,7 @@ img {
 }
 
 #ready-info {
-    width: 300px;
+    width: fit-content;
 }
 
 #ready-info p {
@@ -297,6 +306,7 @@ input.glow {
     width: 100%; /* Full width */
     color: white;
     font-size: 16px;
+    z-index: 99;
 }
 
 
@@ -317,7 +327,7 @@ input.glow {
     float: left;
     text-align: center;
     padding: 14px 16px;
-    font-size: 13px;
+    font-size: 16px;
     color: #f2f2f3;
 }
 
