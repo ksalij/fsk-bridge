@@ -15,7 +15,7 @@ body {
     -moz-user-select: none;
         -ms-user-select: none;
             user-select: none;
-    overflow-y: hidden;
+    /* overflow-y: hidden; */
     background: #dde5f4;
     margin: auto;
     /* display: flex;
@@ -25,10 +25,10 @@ body {
 }
 
 .screen-1 {
-    width: 200px;
+    width: 300px;
     position: absolute;
-    top: 25%;
-    left: calc(50% - 100px);
+    top: max(52px, calc(50% - 223.594px));
+    left: calc(50% - 150px);
     background: #f1f7fe;
     padding: 2em;
     display: flex;
