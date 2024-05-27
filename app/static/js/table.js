@@ -686,10 +686,13 @@ function displayEndGame(jsonData) {
     socket.emit('unready', tableID, user);
 
     // call database function to store the finished game
-    socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin)
+    socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin);
 
     // display button for new game (same as readyup just instead says start new game)
-    document.getElementById("game").innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
+    const ready = document.createElement("div");
+    ready.setAttribute("id", "ready-info");
+    ready.innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
+    document.getElementById("game").appendChild(ready);
 }
 
 // Function to preload images, called by fetchImages below
@@ -781,6 +784,22 @@ socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
     socket.emit('joinRoom', window.location.pathname.substring(7));
+    console.log("ahhhhh")
+    socket.emit('hasGameStarted', window.location.pathname.substring(7));
+});
+
+socket.on('buildGame', (jsonData) => {
+    //buildHands();
+    document.getElementById('ready-info').remove();
+    console.log("buildGame")
+    if (jsonData.game_phase == "AUCTION") {
+        console.log('AUCTION SHOULD BE BUILT')
+        buildAuctionStructure();
+    } else if (jsonData.game_phase == "PLAY") {
+        console.log("TRICK AREA SHOULD BE BUILT")
+        buildTrickArea();
+    }
+    renderUpdate(jsonData);
 });
 
 socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
@@ -892,6 +911,7 @@ socket.on('buildAuction', (response) => {
   
 socket.on('usersReady', (response) => {
     document.getElementById("waiting").remove();
+    document.getElementById('ready-info').remove();
 });
 
 socket.on('closeTable', (response) => {

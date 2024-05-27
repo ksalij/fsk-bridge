@@ -95,9 +95,10 @@ def home(error=None):
         table_id = None
     if table_id != None:
         socketio.emit('testoutput', f'current game is {Server.active_tables[table_id].current_game}')
+    
     # check whether the player is at a table, then check whether that table has started a game
     in_game = (table_id != None) and (Server.active_tables[table_id].current_game != None)
-    return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=in_game)
+    return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=in_game, error=error)
 
 @app.route('/rejoinTable')
 def rejoin_table():
@@ -106,7 +107,7 @@ def rejoin_table():
         Server.active_tables[table_id]
     except:
         error = "whoopsie doopsie the table's gone TODO"
-        return redirect('/home') # not sure we should call kill table here, maybe redirect to home?
+        return redirect('/home/' + error) # not sure we should call kill table here, maybe redirect to home?
     return redirect('/table/' + table_id)
 
 @app.route('/chat')
@@ -184,7 +185,9 @@ def joinTable(table_id):
     try:
         Server.active_tables[table_id]
     except KeyError:
-        return render_template('home.html', app_data=app_data, error='There is no table with that ID.')
+        error = 'There is no table with that ID.'
+        #return render_template('home.html', app_data=app_data, error='There is no table with that ID.')
+        return redirect('/home/' + error)
 
     # add functionality to make it such that you can't be in two tables at once
     
@@ -192,7 +195,9 @@ def joinTable(table_id):
     Server.client_list[session['username']] = table_id
 
     for direction, player in Server.active_tables[table_id].players.items():
-        if player == None:
+        if player == session['username']:
+            break
+        elif player == None:
             Server.active_tables[table_id].join_table(session['username'], direction)
             session['userPosition'] = direction
             break
@@ -248,7 +253,8 @@ def put_user_in_room(table_id):
     if table_id not in ready_users:
         ready_users[table_id] = set()
     # Server.active_tables[table_id].players.values()[:-1]
-    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+    if Server.active_tables[table_id].current_game == None:
+        socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 
 ready_users = {}
@@ -292,13 +298,6 @@ def handle_message(user, card):
         print('good card')
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
         emit('requestGameState', to=table_id)
-
-# The server then responds to each player asking with the json
-@socketio.on('updateGameState')
-def broadcast_gamestate(user):
-    table_id = Server.client_list[user]
-    game_state = Server.active_tables[table_id].current_game.get_json(user)
-    emit('gameState', game_state, to=request.sid)
 
 @socketio.on('sendMessage')
 def send_message(user, message, game_room):
@@ -368,7 +367,6 @@ def disconnect():
         table.connected_players.remove(session['username'])
         socketio.emit('testoutput', f'current game is {table.current_game}')
 
-        socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
         Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
         emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), room=table_id)
         
@@ -376,6 +374,7 @@ def disconnect():
             if len(Server.active_tables[table_id].connected_players) == 0:
                 table.leave_table(session['userPosition'])
                 return redirect('/killTable/' + str(table_id))
+            socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
             socketio.emit('testoutput', 'before ' + str(Server.active_tables[table_id].players))
             table.leave_table(session['userPosition'])
             socketio.emit('testoutput', 'after ' + str(Server.active_tables[table_id].players))
@@ -434,6 +433,21 @@ def store_finished_game(table_id, lin_file):
         cur.execute("INSERT INTO games VALUES (%s, %s, %s);", (int(table_id), int(game_num), lin_file))
 
     conn.commit()
+
+@socketio.on('hasGameStarted')
+def has_game_started(table_id):
+    socketio.emit('testoutput', "hasgamestarted called")
+    if table_id not in Server.active_tables:
+        socketio.emit('testoutput', "no table")
+        return
+    elif Server.active_tables[table_id].current_game == None:
+        socketio.emit('testoutput', "current_game is none")
+        return
+    else:
+        json = Server.active_tables[table_id].current_game.get_json(session['username'])
+        socketio.emit('testoutput', "json" + json.game_phase)
+        socketio.emit('testoutput', 'hasGameStarted currentGame not none')
+        socketio.emit('buildGame', json)
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug = True)
