@@ -38,6 +38,6 @@
 
 {% block javascript %}
 
-<script src="/static/js/home.js"></script>
+<script src="{{ url_for('static', filename='js/home.js')}}"></script>
 
 {% endblock %}

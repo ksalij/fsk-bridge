@@ -16,14 +16,19 @@ body {
         -ms-user-select: none;
             user-select: none;
     overflow-y: hidden;
-    display: flex;
+    background: #dde5f4;
+    margin: auto;
+    /* display: flex;
     justify-content: center;
     align-items: center;
-    background: #dde5f4;
-    height: 100vh;
+    height: 100vh; */
 }
 
 .screen-1 {
+    width: 200px;
+    position: absolute;
+    top: 25%;
+    left: calc(50% - 100px);
     background: #f1f7fe;
     padding: 2em;
     display: flex;
