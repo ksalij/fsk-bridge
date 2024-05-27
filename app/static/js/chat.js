@@ -102,8 +102,10 @@ $(document).ready(function(){
     // color the usernames
     if (user === "enter" || user === "leave") {
         newText.innerHTML = response;
+    } else if (user === "server") {
+	newText.innerHTML = "<b>" + user + ": " + "</b>" + response;
     } else {
-        newText.innerHTML = "<b>" + user + ": " + "</b>" + response;
+        newText.innerHTML = "<b>" + user + ": " + "</b>" + response.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
     
     if (user !== 'server' && user !== 'enter' && user !== 'leave') {
