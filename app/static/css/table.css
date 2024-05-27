@@ -283,6 +283,7 @@ input.glow {
     width: 100%; /* Full width */
     color: white;
     font-size: 16px;
+    z-index: 99;
 }
 
 
