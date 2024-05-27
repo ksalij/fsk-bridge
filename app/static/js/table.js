@@ -215,10 +215,7 @@ function buildHands() {
     Remove the hand for each seat.
 */
 function removeHands() {
-    const handDivs = document.getElementsByClassName("hand");
-    for (hand in handDivs) {
-        hand.remove();
-    }
+    document.querySelectorAll(".hand").forEach(e => e.remove());
 }
 
 /*
@@ -498,6 +495,13 @@ function buildTrickArea() {
 }
 
 /*
+    Removes the trick-area div from the page.
+*/
+function removeTrickArea() {
+    document.getElementById("trick-area").remove();
+}
+
+/*
     Display the cards thus far played in the current trick.
 
     Parameters:
@@ -565,9 +569,12 @@ function renderUpdate(jsonData) {
             removeAuction();
             buildTrickArea();
             duringAuction = Boolean(false);
+            document.getElementById("contract-value").innerHTML = jsonData.contract;
         }
         displayHands(jsonData);
     } else if (jsonData.game_phase == "END") {
+        removeHands();
+        removeTrickArea();
         displayEndGame(jsonData);
     }
 }
@@ -608,8 +615,8 @@ function displayHands(jsonData) {
 
 function displayEndGame(jsonData) {
     // display scores
-    console.log(jsonData.NS_score);
-    console.log(jsonData.EW_score);
+    document.getElementById("NS-score").innerHTML = jsonData.NS_score;
+    document.getElementById("EW-score").innerHTML = jsonData.EW_score;
     
     // should clear the ready_users set
     socket.emit('unready', tableID, user);
@@ -618,7 +625,10 @@ function displayEndGame(jsonData) {
     socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin)
 
     // display button for new game (same as readyup just instead says start new game)
-    document.getElementById("game").innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
+    const ready = document.createElement("div");
+    ready.setAttribute("id", "ready-info");
+    ready.innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
+    document.getElementById("game").appendChild(ready);
 }
 
 // Function to preload images, called by fetchImages below
@@ -714,11 +724,12 @@ socket.on('readyInfo', (data) => {
 
 socket.on('buildAuction', (response) => {
     removeSwitchSeatButtons();
+    buildHands();
     buildAuctionStructure();
 });
   
 socket.on('usersReady', (response) => {
-    document.getElementById("unready-button").remove();
+    document.getElementById("ready-info").remove();
     document.getElementById("waiting").remove();
 });
 

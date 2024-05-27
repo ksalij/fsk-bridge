@@ -22,7 +22,7 @@ img {
     width: 20vw;
     min-width: 100px;
     border: 2px solid black;
-    /* margin-right: 3.2px; */
+    margin-right: 10px;
 }
 
 #chat {
@@ -85,7 +85,32 @@ img {
 }
 
 #table-info {
-    width: 20%;
+    min-width: 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-evenly;
+}
+
+#table-info p {
+    display: inline;
+    margin: auto;
+    font-size: 18px;
+}
+
+.score,
+#contract {
+    width: 85%;
+    margin: 5px 10px;
+    padding: 10px;
+    border: 2px solid black;
+    border-radius: 10px;
+    background-color: darkgrey;
+}
+
+.score-value,
+#contract-value {
+    float: right;
 }
 
 #game {
@@ -93,7 +118,8 @@ img {
     background-color: #57965b;
     position: relative;
     width: 75vh;
-    height: 100%;
+    min-width: 75vh;
+    height: 75vh;
     display: inline-block;
 }
 
@@ -283,11 +309,8 @@ input.glow {
 }
 
 .topnav-padding {
-    overflow: hidden;
-    top: 0; /* Position the navbar at the top of the page */
     width: 100%; /* Full width */
     height: 64px; /* Full height */
-    position: absolute; /* Make sure it's on top */
 }
 
 .logo {

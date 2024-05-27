@@ -21,7 +21,21 @@
 <div class="centered">Current Players: {{session_table}}</div>
 
 <div id="play-container">
-    <div id="table-info"></div>
+    <div id="table-info">
+        <div class="score">
+            <p>NS Score:</p>
+            <p id="NS-score" class="score-value">0</p>
+        </div>
+        <div class="score">
+            <p>EW Score:</p>
+            <p id="EW-score" class="score-value">0</p>
+        </div>
+        <div id="contract">
+            <p>Contract:</p>
+            <p id="contract-value">--</p>
+        </div>
+        <div id="last-trick">Last Trick:</div>
+    </div>
     <div id="game">
         <div id="bottom-dir" class="direction">
             <p></p>
