@@ -8,7 +8,8 @@
     <meta name="description" content="{{ app_data['description'] }}">
     <!-- <meta name="keywords" content="{{ app_data['keywords'] }}"> -->
     <meta name="author" content="{{ app_data['author'] }}">
-    <link href="/static/css/table.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/navbar.css')}}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/layout.css')}}" rel="stylesheet">
     <!-- <link rel="icon" href="../../../../favicon.ico"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,11 +26,9 @@
     <div class="topnav source-code-pro">
       <a href="/logout" class="" id="logout">logout</a>
       <a href="" class="">{{session['username']}}</a>
-      <div href="" class="logo">fsk-bridge</div>
+      <div href="/home" class="logo">fsk-bridge</div>
       <p id="clients">Clients: 0</p>
-
     </div>
-    <div style="height:52px"></div>
 
     <div class="topnav-padding"></div>
 
@@ -40,7 +39,7 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
-  <script src="/static/js/index.js"></script>
+  <script src="{{ url_for('static', filename='js/index.js')}}"></script>
   {% block javascript %}
   {% endblock %}
 </html>

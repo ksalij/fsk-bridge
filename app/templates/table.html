@@ -9,42 +9,53 @@
 
 {% block javascript %}
 <script type="text/javascript">
-  var username = "{{session['username']}}"
+  var username = "{{ session['username'] }}"
 </script>
 <script src="{{ url_for('static', filename='js/table.js') }}"></script>
-<script src="/static/js/color.js"></script>
-<script src="/static/js/chat.js"></script>
+<script src="{{ url_for('static', filename='js/color.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 {% endblock %}
 
 {% block body %}
-<div id="logPrinting"> </div>
-
 <div id="play-container">
-    <div id="game-container">
-        <div id="game">
-            <div id="bottom-dir" class="direction">
-                <p></p>
-            </div>
-            <div id="left-dir" class="direction">
-                <p></p>
-            </div>
-            <div id="top-dir" class="direction">
-                <p></p>
-            </div>
-            <div id="right-dir" class="direction">
-                <p></p>
-            </div>
-            <div id="client-team-hands" class="client-team"></div>
-            <div id="opp-team-hands" class="opp-team"></div>
-            <div id="ready-info">
-                <button id="ready-button" class="ready-button" onclick="readyUp()">Ready Up!</button>
-            </div>
+    <div id="table-info">
+        <div class="score">
+            <p>NS Score:</p>
+            <p id="NS-score" class="score-value">0</p>
+        </div>
+        <div class="score">
+            <p>EW Score:</p>
+            <p id="EW-score" class="score-value">0</p>
+        </div>
+        <div id="contract">
+            <p>Contract:</p>
+            <p id="contract-value">--</p>
+        </div>
+        <div id="last-trick">Last Trick:</div>
+    </div>
+    <div id="game">
+        <div id="bottom-dir" class="direction">
+            <p></p>
+        </div>
+        <div id="left-dir" class="direction">
+            <p></p>
+        </div>
+        <div id="top-dir" class="direction">
+            <p></p>
+        </div>
+        <div id="right-dir" class="direction">
+            <p></p>
+        </div>
+        <div id="client-team-hands" class="client-team"></div>
+        <div id="opp-team-hands" class="opp-team"></div>
+        <div id="ready-info">
+            <button id="ready-button" class="ready-button" onclick="readyUp()">Ready Up!</button>
         </div>
     </div>
     <div id="chatbox" class="roboto-regular">
         <div id="chat">
         </div>
-	<div id="textbox">
+        <div id="textbox">
             <input type="text" id="textInput" name="textInput">
             <button type="button" id="send">Send</button>
         </div>
