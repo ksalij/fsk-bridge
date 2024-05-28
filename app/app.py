@@ -196,6 +196,7 @@ def joinTable(table_id):
     if not has_game_started(table_id):    
         # add functionality to make it such that you can't be in two tables at once
         
+        socketio.emit('testoutput', "joinTable "+ str(table_id), to=table_id)
         session['currentTable'] = table_id
         Server.client_list[session['username']] = table_id
 
@@ -368,20 +369,21 @@ def disconnect():
     '''
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    socketio.emit('testoutput', 'disconnect called')
-    if session.get('currentTable') is not None:
-        socketio.emit('testoutput')
+    socketio.emit('testoutput', 'disconnect called ' + str(session['username']))
+    if session.get('currentTable'):
         table_id = session["currentTable"]
+        socketio.emit('testoutput', 'hello ' + str(session['username']), to=table_id)
         table = Server.active_tables[table_id]
         table.connected_players.remove(session['username'])
         socketio.emit('testoutput', f'current game is {table.current_game}')
 
         Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
-        socketio.emit('testoutput', f'wawaweewa')
-        emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), to=table_id)
+        socketio.emit('testoutput', f'wawaweewa', to=table_id)
+        socketio.emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), to=table_id)
         
         socketio.emit('testoutput', 'connected_players ' + str(Server.active_tables[table_id].connected_players))
         socketio.emit('testoutput', 'table game ' + str(table.current_game))
+        
         if not table.current_game:
             socketio.emit('testoutput', 'before ' + str(Server.active_tables[table_id].players))
             table.leave_table(session['userPosition'])
