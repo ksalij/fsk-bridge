@@ -147,7 +147,7 @@ def openTable():
     # TODO replace clients list with database?
 
     Server.table_chat[str(new_table.table_id)] = []
-    Server.table_chat[str(new_table.table_id)].append("server/room created with id " + str(new_table.table_id))
+    Server.table_chat[str(new_table.table_id)].append("id/" + str(new_table.table_id))
 
     return redirect('/table/' + str(new_table.table_id))
 
@@ -188,7 +188,7 @@ def give_favicon():
 
 @socketio.on('joinRoom')
 def put_user_in_room(table_id):
-    socketio.emit("yourLocalInfo", (session['username'], table_id), to=request.sid)
+    socketio.emit("yourLocalInfo", (session['username'], table_id, session['userPosition']), to=request.sid)
     join_room(table_id)
     if table_id not in ready_users:
         ready_users[table_id] = set()
@@ -201,8 +201,8 @@ ready_users = {}
 def user_ready(table_id, user):
     ready_users[table_id].add(user)
    
-    Server.table_chat[session['currentTable']].append("server/" + user + " is ready to play")
-    emit('updateChat', ('server', user  + ' is ready to play'), room=table_id)
+    Server.table_chat[session['currentTable']].append("enter/" + user + " is ready to play!")
+    emit('updateChat', ('enter', user  + ' is ready to play!'), room=table_id)
 
     # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
     print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
@@ -218,7 +218,10 @@ def user_ready(table_id, user):
 def user_unready(table_id, user):
     if table_id in ready_users.keys():
         ready_users[table_id].remove(user)
-    # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
+
+    Server.table_chat[session['currentTable']].append("leave/" + user + " is not ready to play")
+    emit('updateChat', ('leave', user  + ' is not ready to play'), room=table_id)
+
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('cardPlayed')
@@ -279,9 +282,9 @@ def populate_chat():
 @socketio.on('userJoined')
 def user_joined(user, game_room):
     join_room(game_room)
-    Server.table_chat[session['currentTable']].append("server/" + user + " has joined the room")
+    Server.table_chat[session['currentTable']].append("enter/" + "→ " + user + " has joined the room")
     #emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
-    emit('updateChat', ('none', "➝ " + user  + ' has joined the room'), room=game_room)
+    emit('updateChat', ('enter', "→ " + user  + ' has joined the room'), room=game_room)
 
 # Update the whole game state
 # This should be called from the client table whenever a change is made to the table
@@ -325,6 +328,8 @@ def disconnect():
             session['connected'] == False
     table_id = session["currentTable"]
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+    Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
+    emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), room=table_id)
 
 @socketio.on('switchSeat')
 def switch_seat(direction, user):

@@ -1,6 +1,7 @@
 // Some global variables to keep track of the client relative to the rest of the table
 let user = "";
 let tableID = 0;
+let clientDirection = "";
 let duringAuction = Boolean(true);
 // Directions are strings, seats are numbers
 const SEATMAP = {
@@ -9,6 +10,94 @@ const SEATMAP = {
     "W" : 2,
     "N" : 3
 };
+
+/*
+    Switch a user with a seat, occupied or unoccupied.
+
+    Parameters:
+    - direction, the seat which the user wants to switch to
+
+    Functionality:
+      - set the display style of each cardImage element to be "inline" (from "none")
+      - change the display button to a hide button
+*/
+function switchSeat(direction) {
+    console.log("direction");
+    socket.emit('switchSeat', direction, user);
+    clientDirection = direction;
+}
+
+function addSwitchSeatButtons(players, readyUsers) {
+    console.log("clientDir: " + clientDirection);
+    const clientTeam = document.getElementById("client-team-hands");
+    const oppTeam = document.getElementById("opp-team-hands");
+
+    let directions = {};
+    if (clientDirection == "E" || clientDirection == "W") {
+        directions = {"E": clientTeam, "S": oppTeam, "W": clientTeam, "N": oppTeam};
+    } else {
+        directions = {"E": oppTeam, "S": clientTeam, "W": oppTeam, "N": clientTeam};
+    }
+
+    directionOrder = ["E", "S", "W", "N"];
+
+    for (let i = 0; i < 4; i++) {
+        let dir = directionOrder[(i + SEATMAP[clientDirection]) % 4];
+        const resident = players[dir];
+
+        const seatDiv = document.createElement("div");
+        seatDiv.setAttribute("class", "switch-seat-div");
+
+        const seatInfo = document.createElement("p");
+        if (!resident) {
+            seatInfo.innerHTML = "Empty seat.";
+        } else if (resident == user) {
+            seatInfo.innerHTML = "Your seat.";
+        } else if (readyUsers.includes(resident)) {
+            seatInfo.innerHTML = resident + " is ready to go.";
+        } else if (readyUsers.includes(user)) {
+            seatInfo.innerHTML = resident + " is not ready to go.";
+        } else {
+            seatInfo.innerHTML = resident + "'s seat.";
+        }
+        seatDiv.appendChild(seatInfo);
+
+        if (resident != user && !readyUsers.includes(user) && !readyUsers.includes(resident)) {
+            const switchButton = document.createElement("button");
+            // button.setAttribute("class", "switch-seat-button");
+            switchButton.setAttribute("onclick", `switchSeat("${dir}")`);
+            if (!resident) {
+                switchButton.innerHTML = "Take " + dir + " seat";
+            } else {
+                switchButton.innerHTML = "Switch with " + resident;
+            }
+            seatDiv.appendChild(switchButton);
+        }
+
+        directions[dir].appendChild(seatDiv);
+    }
+
+    // const directionDivs = [
+    //     document.getElementById("bottom-dir"),
+    //     document.getElementById("left-dir"),
+    //     document.getElementById("top-dir"),
+    //     document.getElementById("right-dir")
+    // ];
+
+    const directionDivs = document.querySelectorAll(".direction");
+
+    for (let i = 0; i < 4; i++) {
+        directionDivs[i].innerHTML = "<p>" + directionOrder[(i + SEATMAP[clientDirection]) % 4] + "</p>";
+    }
+}
+
+/*
+    Remove all seat switching related items from the page.
+    Syntax sourced from this stackoverflow answer: https://stackoverflow.com/a/57547187
+*/
+function removeSwitchSeatButtons() {
+    document.querySelectorAll(".switch-seat-div").forEach(e => e.remove());
+}
 
 /*
     Build a card object.
@@ -22,28 +111,10 @@ function buildCard(cardString) {
 }
 
 /*
-    Construct a default hand of X card backs.
-
-    Parameters:
-      - handDiv, the hand div to fill with card backs
-      - handSize, the number of cards to place in the hand
-
-    Functionality:
-      - For each card, create a button object with the following properties
-          - its class is "card"
-          - its content is the card back image
+    Informs the server that the user wants to play a specific card.
 */
-function buildEmptyHand(handDiv, handSize, isPlaying) {
-    for (let i = 0; i < handSize; i++) {
-        const card = buildCard("back");
-        if (isPlaying == 0) {
-            card.style.boxShadow = "0px 0px 22px #8fd7d2";
-        }
-        else {
-            card.style.boxShadow = "";
-        }
-        handDiv.appendChild(card);
-    }
+function cardPlayed(user, value) {
+    socket.emit("cardPlayed", user, value);
 }
 
 /*
@@ -88,21 +159,8 @@ function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, 
             }
         }
 
-        // link.addEventListener('mouseover', function() {
-        //     card.style.border = '2px solid blue'; // Add border on mouseover
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
-        // link.addEventListener('mouseout', function() {
-        //     card.style.border = '2px transparent'; // Remove border on mouseout
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
         handDiv.appendChild(card);
     }
-}
-
-function cardPlayed(user, value) {
-    socket.emit("cardPlayed", user, value);
 }
 
 /*
@@ -124,6 +182,7 @@ function buildHandStructure(handID) {
 }
 
 /*
+    Create empty hands for each seat.
     Create the structure for the area where the trick-in-progress isCardGood displayed.
 
     Parameters:
@@ -200,24 +259,17 @@ function fillPlayArea(clientSeat, cardsPlayed) {
 
     Parameters: none
 
-    Functionality: Builds the div structure for the game table, outlined as follows:
+    Functionality: Builds the hands for each seat at the table, outlined as follows:
       - a "card" is a link element with an image as its content
       - cards are organized in "hand" divs
       - hands are organized into the structuring div for the appropriate team (ie. "client-team-hands" or "opp-team-hands")
       - client-team-hands and opp-team-hands are contained in the "game" div
       - the game div defines the geometry of the table and contains all of the divs relevant to the play of game
 */
-function buildTableStructure() {
-    // Get the game div from the page
-    const gameDiv = document.getElementById("game");
-
-    // Create the client-team-hands and opp-team-hands divs
-    const clientTeam = document.createElement("div"); // the client-team-hands div contains elements for the user and their partner
-    clientTeam.setAttribute("id", "client-team-hands");
-    clientTeam.setAttribute("class", "client-team");
-    const oppTeam = document.createElement("div"); // the opp-team-hands div contains elements for the user's two opponents
-    oppTeam.setAttribute("id", "opp-team-hands");
-    oppTeam.setAttribute("class", "opp-team");
+function buildHands() {
+    // Grab the client-team-hands and opp-team-hands divs from the page
+    const clientTeam = document.getElementById("client-team-hands");
+    const oppTeam = document.getElementById("opp-team-hands");
     
     // Create an empty hand for each player
     const clientHand = buildHandStructure("client_hand");
@@ -230,10 +282,13 @@ function buildTableStructure() {
     clientTeam.appendChild(partnerHand);
     oppTeam.appendChild(oppLHand);
     oppTeam.appendChild(oppRHand);
+}
 
-    // Add the new structures back into the document
-    gameDiv.appendChild(clientTeam);
-    gameDiv.appendChild(oppTeam);
+/*
+    Remove the hand for each seat.
+*/
+function removeHands() {
+    document.querySelectorAll(".hand").forEach(e => e.remove());
 }
 
 /*
@@ -249,35 +304,20 @@ function buildTableStructure() {
       - inform the user that the table is waiting for other players
 */
 function readyUp() {
-    // Remove the ready button
-    document.getElementById("ready-button").remove();
-
     // Notify the server that the user is ready
     socket.emit('ready', tableID, user);
     console.log(`emitted to socket: ready, ${tableID}, ${user}`);
 
-    // Create the div structuring
-    buildTableStructure();
-
-    // Create ready message structuring
-    const readyInfo = document.createElement("div");
-    readyInfo.setAttribute("id", "ready-info");
+    // Change the ready button
+    const readyButton = document.getElementById("ready-button");
+    readyButton.setAttribute("onclick", "readyDown()");
+    readyButton.innerHTML = "Unready";
 
     // Inform the user that the table is waiting for other players
     const waitMessage = document.createElement("p");
     waitMessage.setAttribute("id", "waiting");
     waitMessage.innerHTML = "Waiting for other players to ready up...";
-    readyInfo.appendChild(waitMessage);
-
-    // Add the unready button
-    const unreadyButton = document.createElement("button");
-    unreadyButton.setAttribute("id", "unready-button");
-    unreadyButton.setAttribute("class", "ready-button")
-    unreadyButton.setAttribute("onclick", "readyDown()");
-    unreadyButton.innerHTML = "Unready";
-    readyInfo.appendChild(unreadyButton);
-
-    document.getElementById("game").appendChild(readyInfo);
+    document.getElementById("ready-info").insertBefore(waitMessage, readyButton);
 }
 
 /*
@@ -290,7 +330,13 @@ function readyUp() {
       - notify the server that the user is no longer ready to start the game
 */
 function readyDown() {
-    document.getElementById("game").innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Ready Up!</button>`;
+    // Change the ready button
+    const readyButton = document.getElementById("ready-button");
+    readyButton.setAttribute("onclick", "readyUp()");
+    readyButton.innerHTML = "Ready Up!";
+
+    // Remove the waiting message
+    document.getElementById("waiting").remove();
 
     // Notify the server that the user is ready
     socket.emit('unready', tableID, user);
@@ -330,7 +376,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
     const suitSymbolMap = {'C': '\u2663', 'D': '\u2666', 'H': '\u2665', 'S': '\u2660', 'N': 'NT'};
     const header = document.createElement("tr");
 
-    directions = ['N', "E", 'S', 'W'];
+    const directions = ['N', "E", 'S', 'W'];
     for (let i = 0; i < 4; i++){
         const playerHeader = document.createElement('th');
         playerHeader.innerText = directions[(i + SEATMAP[direction] + 2) % 4];
@@ -347,7 +393,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
     }
     auction.appendChild(header);
     
-    auctionList = [...Array((SEATMAP[dealer] - (SEATMAP[direction] + 1) + 4) % 4)].fill('none').concat(bids);
+    let auctionList = [...Array((SEATMAP[dealer] - (SEATMAP[direction] + 1) + 4) % 4)].fill('none').concat(bids);
     if (auctionList.length < 16){
         auctionList = auctionList.concat([...Array(16 - auctionList.length)].fill('none'));
     }
@@ -356,7 +402,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
         const row = document.createElement("tr");
         for (let j = 0; j < 4; j++){
             if ((4*i + j) < auctionList.length){
-                const rowEntry =  document.createElement('td');
+                const rowEntry = document.createElement('td');
                 rowEntry.setAttribute('class', 'auctionBid');
                 if (auctionList[4*i + j] == 'none'){
                 } else if (auctionList[4*i + j] == 'p'){
@@ -425,15 +471,15 @@ function displayBids(validBids){
         suits = ['\u2663', '\u2666', '\u2665', '\u2660', 'NT'];
         for (let j = 0; j < 5; j++){
             if (validBids.includes(i + suitName[j])){
-                suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
+                suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "bid\"> " + i + suits[j] + " </button>";
             }
         }
-        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = \"p\"> PASS </button>";
+        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = \"pbid\"> PASS </button>";
         if (validBids.includes('d')){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = \"d\"> X </button>";
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = \"dbid\"> X </button>";
         }
         if (validBids.includes('r')){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = \"r\"> XX </button>";
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = \"rbid\"> XX </button>";
         }
         suitButtons = suitButtons + "</div>";
         tabcontent.innerHTML = (suitButtons);
@@ -472,6 +518,96 @@ function makeBid(bid){
 }
 
 /*
+    Create the structure for the area where the trick-in-progress is displayed.
+
+    Parameters:
+      - cardsPlayed, a list of the cards played so far in the current trick (as strings)
+
+    Functionality:
+      - reset the trick-area container
+      - for each card in cardsPlayed, create an HTML element for the card and add the element to the trick-area
+*/
+function buildTrickArea() {
+    // Create an area for cards played during a trick
+    const trickArea = document.createElement("div");
+    trickArea.setAttribute("id", "trick-area");
+
+    const clientTeam = document.createElement("div");
+    clientTeam.setAttribute("class", "client-team");
+    // clientTeam.setAttribute("id", "client-team-cards");
+    const oppTeam = document.createElement("div");
+    oppTeam.setAttribute("class", "opp-team");
+    // oppTeam.setAttribute("id", "opp-team-cards");
+
+    // create divs to organize the individual cards
+    const clientCard = document.createElement("div");
+    clientCard.setAttribute("id", "client-trick-card");
+    clientCard.setAttribute("class", "in-trick");
+    const partnerCard = document.createElement("div");
+    partnerCard.setAttribute("id", "partner-trick-card");
+    partnerCard.setAttribute("class", "in-trick");
+    const oppLCard = document.createElement("div");
+    oppLCard.setAttribute("id", "oppL-trick-card");
+    oppLCard.setAttribute("class", "in-trick");
+    const oppRCard = document.createElement("div");
+    oppRCard.setAttribute("id", "oppR-trick-card");
+    oppRCard.setAttribute("class", "in-trick");
+
+    // Add each card to the correct container
+    clientTeam.appendChild(clientCard);
+    clientTeam.appendChild(partnerCard);
+    oppTeam.appendChild(oppLCard);
+    oppTeam.appendChild(oppRCard);
+
+    // Add the new structures into the play area div
+    trickArea.appendChild(clientTeam);
+    trickArea.appendChild(oppTeam);
+
+    // Add the play area into the game div
+    document.getElementById("game").appendChild(trickArea);
+}
+
+/*
+    Removes the trick-area div from the page.
+*/
+function removeTrickArea() {
+    document.getElementById("trick-area").remove();
+}
+
+/*
+    Display the cards thus far played in the current trick.
+
+    Parameters:
+      - clientSeat, the seat number of the client
+      - cardsPlayed, a list of the cards played during the current trick
+
+    Functionality:
+      - clear all of the cards from the trick-area
+      - for each card played this trick, display that card in trick-area in front of the player who played the card
+*/
+function fillTrickArea(clientSeat, cardsPlayed) {
+    const trickArea = document.getElementById("trick-area");
+    const seats = [null, null, null, null];
+    seats[clientSeat] = document.getElementById("client-trick-card");
+    seats[(clientSeat + 2) % 4] = document.getElementById("partner-trick-card");
+    seats[(clientSeat + 1) % 4] = document.getElementById("oppL-trick-card");
+    seats[(clientSeat + 3) % 4] = document.getElementById("oppR-trick-card");
+    for (let i = 0; i < 4; i++) {
+        if (seats[i].firstChild) {
+            seats[i].removeChild(seats[i].firstChild);
+        }
+    }
+
+    if (cardsPlayed) {
+        for (let i = 0; i < 4; i++) {
+            if (cardsPlayed[i]) {
+                seats[i].appendChild(buildCard(cardsPlayed[i]));
+            }
+        }
+    }
+}
+
+/*
     Update the hands for each player.
 
     Parameters:
@@ -504,11 +640,14 @@ function renderUpdate(jsonData) {
             clearBids();
             clearAuction();
             removeAuction();
-            buildPlayArea();
+            buildTrickArea();
             duringAuction = Boolean(false);
+            document.getElementById("contract-value").innerHTML = jsonData.contract;
         }
         displayHands(jsonData);
     } else if (jsonData.game_phase == "END") {
+        removeHands();
+        removeTrickArea();
         displayEndGame(jsonData);
     }
 }
@@ -543,14 +682,14 @@ function displayHands(jsonData) {
         for (direction in jsonData.current_trick) {
             currentTrick[SEATMAP[direction]] = jsonData.current_trick[direction];
         }
-        fillPlayArea(SEATMAP[jsonData.your_direction], currentTrick);
+        fillTrickArea(SEATMAP[jsonData.your_direction], currentTrick);
     }
 }
 
 function displayEndGame(jsonData) {
     // display scores
-    console.log(jsonData.NS_score);
-    console.log(jsonData.EW_score);
+    document.getElementById("NS-score").innerHTML = jsonData.NS_score;
+    document.getElementById("EW-score").innerHTML = jsonData.EW_score;
     
     // should clear the ready_users set
     socket.emit('unready', tableID, user);
@@ -559,7 +698,10 @@ function displayEndGame(jsonData) {
     socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin)
 
     // display button for new game (same as readyup just instead says start new game)
-    document.getElementById("game").innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
+    const ready = document.createElement("div");
+    ready.setAttribute("id", "ready-info");
+    ready.innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
+    document.getElementById("game").appendChild(ready);
 }
 
 // Function to preload images, called by fetchImages below
@@ -609,41 +751,6 @@ function fetchImages(){
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
-/*
-    Display each card svg below the game board.
-
-    Parameters: none
-
-    Functionality:
-      - set the display style of each cardImage element to be "inline" (from "none")
-      - change the display button to a hide button
-*/
-function showAllCards() {
-    const allCards = document.getElementsByClassName("cardImage");
-    for (let i = 0; i < allCards.length; i++) {
-        allCards[i].style.display = 'inline';
-    }
-
-    const button = document.getElementById("show-cards-button");
-    button.id = "hide-cards-button";
-    button.setAttribute("onclick", "hideAllCards()");
-    button.innerHTML = ("Click me to hide cards!");
-}
-
-/*
-    Hide each card svg below the game board.
-
-    Parameters: none
-
-    Functionality:
-      - set the display style of each cardImage element to be "none" (from "inline")
-      - change the hide button to a display button
-*/
-
-
-// Call the fetchImages function when the page loads
-window.addEventListener("load", (event) => { fetchImages(); });
-
 // Populate the chat when the page loads
 socket.emit('populateChat');
 socket.emit('userJoined', username, window.location.pathname.split("/")[2])
@@ -654,96 +761,22 @@ socket.on('connect', (arg, callback) => {
     socket.emit('joinRoom', window.location.pathname.substring(7));
 });
 
-socket.on('yourLocalInfo', (your_user, your_table_id) => {
+socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
     user = your_user;
     tableID = your_table_id;
+    clientDirection = your_direction;
     console.log("my local info");
 });
 
-function hideSwitchButtons(){
-    players = document.getElementById("users");
-    for (let i = 0; i < 4; i++) {
-        directionDiv = players.firstChild;
-        if(directionDiv) {
-            directionDiv.removeChild(directionDiv.firstChild);
-            directionDiv.removeChild(directionDiv.firstChild);
-            players.removeChild(directionDiv);
-        }
-    }
-}
-
-socket.on('updateUsers', (response, ready_users) => {
-    players = document.getElementById("users");
-    hideSwitchButtons();
-    const directions = ["N", "E", "S", "W"]
-    const directionsJson = JSON.parse(response);
-    for (let i = 0; i < 4; i++) {
-        const direction = directions[i];
-        const directionDiv = document.createElement("div");
-        directionDiv.setAttribute("class", "direction-div");
-        const directionText = document.createElement("p");
-        directionText.innerHTML = direction;
-        directionDiv.appendChild(directionText);
-        directionUser = directionsJson[direction];
-        // console.log(direction);
-        // console.log(directionsJson[direction]);
-        console.log(directionUser);
-        if (directionUser) {
-            if (directionUser != user) {
-                if (ready_users.includes(directionUser)) {
-                    const readyText = document.createElement("p");
-                    readyText.innerHTML = directionUser + " is ready to go.";
-                    directionDiv.appendChild(readyText);
-                } else if (ready_users.includes(user)) {
-                    const readyText = document.createElement("p");
-                    readyText.innerHTML = directionUser + " is not ready to go.";
-                    directionDiv.appendChild(readyText);
-                } else {
-                    const switchButton = document.createElement("button");
-                    switchButton.setAttribute("id", "switch-button");
-                    switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
-                    switchButton.innerHTML = "Switch with " + directionsJson[direction];
-                    directionDiv.appendChild(switchButton);
-                }
-            } else {
-                const readyText = document.createElement("p");
-                readyText.innerHTML = "Your seat, " + user;
-                directionDiv.appendChild(readyText);
-            }
-        }
-        else if (ready_users.includes(user)) {
-            const readyText = document.createElement("p");
-            readyText.innerHTML = "Empty seat";
-            directionDiv.appendChild(readyText);
-        } else {
-            const switchButton = document.createElement("button");
-            switchButton.setAttribute("id", "switch-button");
-            switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
-            switchButton.innerHTML = "Take " + direction + " seat";
-            directionDiv.appendChild(switchButton);
-        }
-        players.appendChild(directionDiv);
-    }
-    console.log(response);
+socket.on('updateUsers', (response, readyUsers) => {
+    let players = JSON.parse(response);
+    removeSwitchSeatButtons();
+    addSwitchSeatButtons(players, readyUsers);
 });
-
-/*
-    Switch a user with a seat, occupied or unoccupied.
-
-    Parameters:
-    - direction, the seat which the user wants to switch to
-
-    Functionality:
-      - set the display style of each cardImage element to be "inline" (from "none")
-      - change the display button to a hide button
-*/
-function switchSeat(direction) {
-    console.log("direction");
-    socket.emit('switchSeat', direction, user);
-}
 
 socket.on('seatSwitched', (player, new_direction) => {
     if(player == user) {
+        clientDirection = new_direction;
         socket.emit('updateSeatSession', player, new_direction);
     }
 });
@@ -763,11 +796,13 @@ socket.on('readyInfo', (data) => {
 });
 
 socket.on('buildAuction', (response) => {
+    removeSwitchSeatButtons();
+    buildHands();
     buildAuctionStructure();
 });
   
 socket.on('usersReady', (response) => {
-    document.getElementById("unready-button").remove();
+    document.getElementById("ready-info").remove();
     document.getElementById("waiting").remove();
 });
 
