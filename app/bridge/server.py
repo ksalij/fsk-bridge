@@ -3,6 +3,9 @@ import random, math
 from datetime import datetime
 from bridge.score import calculate_score
 import json
+from bridge.AI_player import *
+from tensorflow import keras
+
 
 DEALER_MAP = {'S':1, 'W':2, 'N':3, 'E':4}
 SUITS = {0:'C', 1:'D', 2:'H', 3:'S'}
@@ -562,6 +565,24 @@ class Table:
 
         return output
     
+    def AI_select_card(self):
+        bridge_hand = self.current_game.current_bridgehand
+        AI_player = self.current_game.current_player
+        playable_cards = self.current_game.get_playable_cards()
+        df = pd.DataFrame({'X': ["".join(vectorize(bridge_hand, AI_player))]})
+        split_df = df['X'].str.split('')
+        np_arr = np.array(split_df.values.tolist())
+        np_arr = np_arr[:,1:-1]
+        X = np.split(np_arr.astype(int), [4, 8, 60, 95, 130, 165, 200, 204, 256], axis = 1)
+        input = list(map(tf.convert_to_tensor, X))
+        model = keras.models.load_model('bridge/arbitrary_card.keras')
+        results = (model.predict(input))
+        pred_cards = np.argsort(results, axis = 1)[0][::-1]
+        for candiadate in pred_cards:
+            card = convert_card([SUITS[candiadate // 13], REV_CARDMAP[candiadate % 13 + 2]])
+            if card in playable_cards: 
+                return card
+
 
 if __name__=="__main__": 
     pass

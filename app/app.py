@@ -15,6 +15,7 @@ import os
 import hashlib
 import binascii
 import bridge.linparse
+import time
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = b'159151191247130924858171211'
@@ -224,9 +225,21 @@ def user_unready(table_id, user):
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('cardPlayed')
+# user is a username
 def handle_message(user, card):
-    played_card = bridge.linparse.convert_card(card[1] + card[0])
     table_id = Server.client_list[user]
+    played_card = None
+
+    table = Server.active_tables[table_id]
+    if 'Robot' in table.current_game.current_bridgehand.players[table.current_game.current_player]:
+        print("Robot Turn", file=sys.stderr)
+        played_card = table.AI_select_card()
+    elif not card is None:
+        played_card = bridge.linparse.convert_card(card[1] + card[0])
+    else:
+        print("Card is None", file=sys.stderr)
+        return
+    
     user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
     if not Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
         emit('isCardGood', (False, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
@@ -236,6 +249,15 @@ def handle_message(user, card):
         print('good card')
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
         emit('requestGameState', to=table_id)
+    # thread = threading.Thread(target = AI_play, args = [table_id])
+    # thread.start()
+    # AI_play(table_id)
+
+def AI_play(table_id):
+    Table = Server.active_tables[table_id]
+    if 'Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_player]:
+        card = Table.AI_select_card()
+        handle_message(Table.current_game.current_bridgehand.players[Table.current_game.current_player], [card.rankname, card.suitname])
 
 # The server then responds to each player asking with the json
 @socketio.on('updateGameState')
