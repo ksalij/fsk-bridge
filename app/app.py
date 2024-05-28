@@ -333,10 +333,6 @@ def update_game_state(user):
     json = game.get_json(user)
     emit('gameState', json, to=request.sid)
 
-@socketio.on('startAuction')
-def start_auction(table_id):
-    pass
-
 @socketio.on('sendBid')
 def send_bid(user, bid):
     table_id = Server.client_list[user]
