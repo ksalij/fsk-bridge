@@ -247,6 +247,73 @@ input.glow {
     background-color: #3e4b8c; /* Blue */
     color: #ffffff;
 }
+
+#Cbid {
+    background-color: #d9ffe9; /* Green */
+    color: #235939;
+}
+
+#Cbid:hover {
+    background-color: #beebd1;
+}
+
+#Dbid {
+    background-color: #f5dfba; /* Orange */
+    color: #8a5803;
+}
+
+#Dbid:hover {
+    background-color: #e0c79d;
+}
+
+#Hbid {
+    background-color: #e3c2c1; /* Red */
+    color: #8a0803;
+}
+
+#Hbid:hover {
+    background-color: #d4adab;
+}
+
+#Sbid {
+    background-color: #cfcfcf; /* Black */
+    color: #0a0a0a;
+}
+
+#Sbid:hover {
+    background-color: #b0b0b0;
+}
+
+#pbid {
+    background-color: #34784f; /* Green */
+    color: #ffffff;
+}
+
+#pbid:hover {
+    background-color: #295e3e;
+}
+
+#dbid {
+    background-color: #bd4a4a; /* Red */
+    color: #ffffff;
+}
+
+#fbid:hover {
+    background-color: #a34040;
+}
+
+#rbid {
+    background-color: #3e4b8c; /* Blue */
+    color: #ffffff;
+}
+
+#rbid:hover {
+    background-color: #354078;
+}
+
+#Nbid:hover {
+    background-color: #c7c7c7;
+}
   
 /* Style the tab content */
 .tabcontent {
