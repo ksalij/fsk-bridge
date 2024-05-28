@@ -784,7 +784,7 @@ socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
     socket.emit('joinRoom', window.location.pathname.substring(7));
-    socket.emit('hasGameStarted', window.location.pathname.substring(7));
+    // socket.emit('hasGameStarted', window.location.pathname.substring(7));
 });
 
 socket.on('buildGame', (jsonInput, username) => {
@@ -917,13 +917,13 @@ socket.on('usersReady', (response) => {
 });
 
 socket.on('closeTable', (tableID) => {
-    socket.emit('testoutput', 'close table!!')
+    console.log('close table!!');
     socket.emit('tableClosed', tableID);
     window.location.href = '/home';
 });
 
 socket.on('killTable', (tableID) => {
-    socket.emit('testoutput', 'kill table!!')
+    console.log('kill table!!');
     window.location.href = '/killTable/' + tableID;
 });
 
