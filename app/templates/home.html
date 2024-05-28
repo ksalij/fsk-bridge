@@ -1,41 +1,43 @@
 {% extends 'layout.html' %}
 
+{% block css %}
+<link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet" />
+{% endblock %}
+
+
+
 {% block body %}
 
-<!--
-<button id="gameState">Get Game State</button>
-<p id="gameInfo"></p
--->
+<div class="screen-1">
 
-<p>User: {{current_user}}</p>
-<form action="/openTable">
-  <input type="submit" id="newtable" value="New Table"/>
-</form>
+	<img src="{{ url_for('static', filename='otherimages/bridge-icon.svg') }}" alt="Bridge Icon" class="iconp-04r5">
 
-</hr>
+  <form action="" name='join' id='join'>
+    <div class="join">
+        <input type='text' name='id' placeholder="Room ID" id='id'>
+        <input type="submit" class="submit-button" name="join" value="Join Room" id="join-button">
+    </div>
+  </form>
 
-<form action="" name='join' id='join'>
-  <input type='text' name='id' id='id'>
-  <button action="submit">Join Room</button>
-</form>
+  <form action="/openTable" class="newtable">
+    <input type="submit" class="submit-button" id="newtable" value="New Table"/>
+  </form>
 
-</hr>
+  <form action="/chat">
+    <input type="submit" value="Chat" class="submit-button" id="chat-button">
+  </form>
 
-<form action="/chat">
-  <input type="submit" value="Chat"/>
-</form>
+  User: {{session['username']}}
 
-{% if rejoin == True %}
-<div>You were disconnected!</div>
-<form action="" name='rejoin' id='rejoin'>
-  <button action="submit">Rejoin Room</button>
-</form>
-{% endif %}
+  {{message}}
+
+
+</div>
 
 {% endblock %}
 
 {% block javascript %}
 
-<script src="/static/js/home.js"></script>
+<script src="{{ url_for('static', filename='js/home.js')}}"></script>
 
 {% endblock %}

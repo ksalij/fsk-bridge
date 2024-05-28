@@ -5,9 +5,4 @@ $(document).ready(function() {
     $(this).attr('action', "/table/" + id);
   }); 
 
-
-  $('#rejoin').submit(function(){
-    $(this).attr('action', "/rejoin")
-  })
-
 });
