@@ -193,7 +193,7 @@ def joinTable(table_id):
         session['currentTable'] = None
         return redirect('/home/' + error)
     
-    if not has_game_started(table_id):    
+    if (table_id != None) and (Server.active_tables[table_id].current_game == None):    
         # add functionality to make it such that you can't be in two tables at once
         
         socketio.emit('testoutput', "joinTable "+ str(table_id), to=table_id)
