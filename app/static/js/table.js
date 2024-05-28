@@ -124,7 +124,7 @@ function buildHandStructure(handID) {
 }
 
 /*
-    Create the structure for the area where the trick-in-progress is displayed.
+    Create the structure for the area where the trick-in-progress isCardGood displayed.
 
     Parameters:
       - cardsPlayed, a list of the cards played so far in the current trick (as strings)
@@ -779,6 +779,7 @@ socket.on('isCardGood', (bool, json) => {
         console.log("bad card");
     }
     console.log(json);
+    socket.emit("cardPlayed", user, Null);
 });
 
 socket.on('testoutput', (response) => {
