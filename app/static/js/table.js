@@ -784,7 +784,7 @@ socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
     socket.emit('joinRoom', window.location.pathname.substring(7));
-    // socket.emit('hasGameStarted', window.location.pathname.substring(7));
+    socket.emit('hasGameStarted', window.location.pathname.substring(7));
 });
 
 socket.on('buildGame', (jsonInput, username) => {
