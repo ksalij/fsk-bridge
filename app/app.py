@@ -222,8 +222,7 @@ def kill_table(table_id):
     called when the kill table button is pressed. Only can happen after the game has begun
     '''
     socketio.emit('testoutput', 'kill_table')
-    # socketio.emit('closeTable', table_id, to=table_id)
-    socketio.emit('closeTable', table_id)
+    socketio.emit('closeTable', table_id, to=table_id)
 
     try:
         Server.active_tables[table_id] # if there isn't a table actively running, return
@@ -401,6 +400,8 @@ def disconnect():
             del ready_users[table_id]
         # checks if the room is empty, if so we close the table
         elif len(Server.active_tables[table_id].connected_players) == 0:
+            del Server.active_tables[table_id]
+            del ready_users[table_id]
             socketio.emit('testoutput', 'table empty')
             socketio.emit('testoutput', table_id)
             socketio.emit('killTable', str(table_id), to=table_id)
