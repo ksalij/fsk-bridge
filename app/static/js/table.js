@@ -2,7 +2,6 @@
 let user = "";
 let tableID = 0;
 let clientDirection = "";
-let duringAuction = Boolean(true);
 // Directions are strings, seats are numbers
 const SEATMAP = {
     "E" : 0,
@@ -613,7 +612,6 @@ function fillTrickArea(clientSeat, cardsPlayed) {
 */
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION") {
-        duringAuction = Boolean(true);
         displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
@@ -630,12 +628,11 @@ function renderUpdate(jsonData) {
         }
     }
     else if (jsonData.game_phase == "PLAY") {
-        if (duringAuction) {
+        if (document.getElementById("auction")){
             clearBids();
             clearAuction();
             removeAuction();
             buildTrickArea();
-            duringAuction = Boolean(false);
         }
         displayHands(jsonData);
     } else if (jsonData.game_phase == "END") {
@@ -916,11 +913,11 @@ socket.on('usersReady', (response) => {
     document.getElementById('ready-info').remove();
 });
 
-socket.on('closeTable', (tableID) => {
-    console.log('close table!!');
-    socket.emit('tableClosed', tableID);
-    window.location.href = '/home';
-});
+// socket.on('closeTable', (tableID) => {
+//     console.log('close table!!');
+//     socket.emit('tableClosed', tableID);
+//     window.location.href = '/home';
+// });
 
 socket.on('killTable', (tableID) => {
     console.log('kill table!!');

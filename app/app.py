@@ -92,6 +92,7 @@ def home(error=None):
     except:
         socketio.emit('testoutput', "exception, no active table at table_id")
         session['currentTable'] = None
+        session['userPosition'] = None
         table_id = None
     if table_id != None:
         socketio.emit('testoutput', f'current game is {Server.active_tables[table_id].current_game}')
@@ -213,27 +214,29 @@ def joinTable(table_id):
 def leave_table():
     table_id = session.get('currentTable')
     if table_id:
-        return redirect('/killTable/' + table_id)
+        # Server.active_tables[table_id].leave_table(session['userPosition'])
+        # session['currentTable'] = None
+        # session['userPosition'] = None
+        socketio.emit('killTable', str(table_id), to=table_id)
+        Server.active_tables[table_id].connected_players = []
+        Server.active_tables[table_id].players = {'N': None, 'S': None, 'E': None, 'W': None}
+        del Server.active_tables[table_id]
+        del ready_users[table_id]
+        return redirect('/home/')
     else:
-        return redirect('/home')
+        return redirect('/home/Table Closed')
 
 @app.route('/killTable/<table_id>')
 def kill_table(table_id):
     '''
     called when the kill table button is pressed. Only can happen after the game has begun
     '''
-    socketio.emit('testoutput', 'kill_table')
-    socketio.emit('closeTable', table_id, to=table_id)
-
-    try:
-        Server.active_tables[table_id] # if there isn't a table actively running, return
-    except:
-        error = "You can't kill the table with that ID because it is not actively running."
-        return redirect('/home/' + error)
-    
-    del Server.active_tables[table_id]
-    del ready_users[table_id]
-    return redirect('/home')
+    if session.get('currentTable'):
+        socketio.emit('testoutput', 'kill_table')
+        # socketio.emit('closeTable', table_id, to=table_id)
+        session['currentTable'] = None
+        session['userPosition'] = None
+    return redirect('/home/Table Closed')
 
 @app.route('/getimages')
 def get_image_urls():
@@ -392,33 +395,33 @@ def disconnect():
             session['userPosition'] = None
 
         # If every player leaves before the game starts, there won't be anyone in the room to 'hear' killTable over the socket. Here we manually close the table instead.
-        if  not any(Server.active_tables[table_id].players.values()):
+        if not any(Server.active_tables[table_id].players.values()):
             socketio.emit('there are no players', table_id)
             del Server.active_tables[table_id]
             del ready_users[table_id]
         # checks if the room is empty, if so we close the table
         elif len(Server.active_tables[table_id].connected_players) == 0:
-            del Server.active_tables[table_id]
-            del ready_users[table_id]
             socketio.emit('testoutput', 'table empty')
             socketio.emit('testoutput', table_id)
             socketio.emit('killTable', str(table_id), to=table_id)
-        leave_room(table_id)
+            Server.active_tables[table_id].players = {'N': None, 'S': None, 'E': None, 'W': None}
+            del Server.active_tables[table_id]
+            del ready_users[table_id]
 
 
-@socketio.on('tableClosed')
-def table_closed(closed_table_id):
-    '''
-    sent to all users at a table when the table is closed, sets the session variables
-    and removes the user from the table
-    '''
-    table_id = session['currentTable']
-    socketio.emit('testoutput', 'table closed is ' + str(closed_table_id))
-    if (table_id == closed_table_id):
-        Server.active_tables[table_id].leave_table(session['userPosition'])
-        session['currentTable'] = None
-        session['userPosition'] = None
-        leave_room(table_id)
+# @socketio.on('tableClosed')
+# def table_closed(closed_table_id):
+#     '''
+#     sent to all users at a table when the table is closed, sets the session variables
+#     and removes the user from the table
+#     '''
+#     table_id = session['currentTable']
+#     socketio.emit('testoutput', 'table closed is ' + str(closed_table_id))
+#     if (table_id == closed_table_id):
+#         Server.active_tables[table_id].leave_table(session['userPosition'])
+#         session['currentTable'] = None
+#         session['userPosition'] = None
+#         leave_room(table_id)
 
 @socketio.on('switchSeat')
 def switch_seat(direction, user):
