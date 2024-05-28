@@ -214,15 +214,14 @@ def joinTable(table_id):
 def leave_table():
     table_id = session.get('currentTable')
     if table_id:
-        # Server.active_tables[table_id].leave_table(session['userPosition'])
-        # session['currentTable'] = None
-        # session['userPosition'] = None
+        Server.active_tables[table_id].leave_table(session['userPosition'])
+        session['currentTable'] = None
+        session['userPosition'] = None
         socketio.emit('killTable', str(table_id), to=table_id)
         Server.active_tables[table_id].connected_players = []
         Server.active_tables[table_id].players = {'N': None, 'S': None, 'E': None, 'W': None}
         del Server.active_tables[table_id]
         del ready_users[table_id]
-        return redirect('/home/')
     else:
         return redirect('/home/Table Closed')
 
