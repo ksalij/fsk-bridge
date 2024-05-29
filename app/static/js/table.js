@@ -71,6 +71,13 @@ function addSwitchSeatButtons(players, readyUsers) {
                 switchButton.innerHTML = "Switch with " + resident;
             }
             seatDiv.appendChild(switchButton);
+
+            // Robot button
+            const robotButton = document.createElement("button");
+            robotButton.setAttribute("onclick", `seatRobot("${dir}")`);
+            robotButton.innerHTML = "Seat Robot";
+            seatDiv.appendChild(robotButton);
+            // End Robot button
         }
 
         directions[dir].appendChild(seatDiv);
@@ -88,6 +95,11 @@ function addSwitchSeatButtons(players, readyUsers) {
     for (let i = 0; i < 4; i++) {
         directionDivs[i].innerHTML = "<p>" + directionOrder[(i + SEATMAP[clientDirection]) % 4] + "</p>";
     }
+}
+
+function seatRobot(dir){
+    console.log("seat robot");
+    socket.emit("addRobot", tableID, dir);
 }
 
 /*
@@ -182,6 +194,79 @@ function buildHandStructure(handID) {
 
 /*
     Create empty hands for each seat.
+    Create the structure for the area where the trick-in-progress isCardGood displayed.
+
+    Parameters:
+      - cardsPlayed, a list of the cards played so far in the current trick (as strings)
+
+    Functionality:
+      - reset the play-area container
+      - for each card in cardsPlayed, create an HTML element for the card and add the element to the play-area
+*/
+function buildPlayArea() {
+    // Create an area for cards played during a trick
+    const playArea = document.createElement("div");
+    playArea.setAttribute("id", "play-area");
+
+    const clientTeam = document.createElement("div");
+    clientTeam.setAttribute("class", "client-team");
+    // clientTeam.setAttribute("id", "client-team-cards");
+    const oppTeam = document.createElement("div");
+    oppTeam.setAttribute("class", "opp-team");
+    // oppTeam.setAttribute("id", "opp-team-cards");
+
+    // create divs to organize the individual cards
+    const clientCard = document.createElement("div");
+    clientCard.setAttribute("id", "client-trick-card");
+    clientCard.setAttribute("class", "in-trick");
+    const partnerCard = document.createElement("div");
+    partnerCard.setAttribute("id", "partner-trick-card");
+    partnerCard.setAttribute("class", "in-trick");
+    const oppLCard = document.createElement("div");
+    oppLCard.setAttribute("id", "oppL-trick-card");
+    oppLCard.setAttribute("class", "in-trick");
+    const oppRCard = document.createElement("div");
+    oppRCard.setAttribute("id", "oppR-trick-card");
+    oppRCard.setAttribute("class", "in-trick");
+
+    // Add each card to the correct container
+    clientTeam.appendChild(clientCard);
+    clientTeam.appendChild(partnerCard);
+    oppTeam.appendChild(oppLCard);
+    oppTeam.appendChild(oppRCard);
+
+    // Add the new structures into the play area div
+    playArea.appendChild(clientTeam);
+    playArea.appendChild(oppTeam);
+
+    // Add the play area into the game div
+    document.getElementById("game").appendChild(playArea);
+}
+
+function fillPlayArea(clientSeat, cardsPlayed) {
+    const playArea = document.getElementById("play-area");
+    const seats = [null, null, null, null];
+    seats[clientSeat] = document.getElementById("client-trick-card");
+    seats[(clientSeat + 2) % 4] = document.getElementById("partner-trick-card");
+    seats[(clientSeat + 1) % 4] = document.getElementById("oppL-trick-card");
+    seats[(clientSeat + 3) % 4] = document.getElementById("oppR-trick-card");
+    for (let i = 0; i < 4; i++) {
+        if (seats[i].firstChild) {
+            seats[i].removeChild(seats[i].firstChild);
+        }
+    }
+
+    if (cardsPlayed) {
+        for (let i = 0; i < 4; i++) {
+            if (cardsPlayed[i]) {
+                seats[i].appendChild(buildCard(cardsPlayed[i]));
+            }
+        }
+    }
+}
+
+/*
+    Create the structure for the game table.
 
     Parameters: none
 
@@ -519,8 +604,10 @@ function fillTrickArea(clientSeat, cardsPlayed) {
     seats[(clientSeat + 1) % 4] = document.getElementById("oppL-trick-card");
     seats[(clientSeat + 3) % 4] = document.getElementById("oppR-trick-card");
     for (let i = 0; i < 4; i++) {
-        if (seats[i].firstChild) {
-            seats[i].removeChild(seats[i].firstChild);
+        if(seats[i]){
+            if (seats[i].firstChild) {
+                seats[i].removeChild(seats[i].firstChild);
+            }
         }
     }
 
@@ -549,7 +636,9 @@ function updateTricksTaken(nsScore, ewScore) {
       - rebuild the div showcasing the current trick
 */
 function renderUpdate(jsonData) {
-    if (jsonData.game_phase == "AUCTION") {
+    if (jsonData.game_phase == "AUCTION" || (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false)) {
+        duringAuction = Boolean(true);
+
         displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
@@ -559,14 +648,19 @@ function renderUpdate(jsonData) {
             displayBids(jsonData.valid_bids);
         }
         else {
+            socket.emit('aiBid', user);
             console.log(jsonData.current_player);
             console.log(jsonData.your_direction);
             console.log("clear");
             clearBids();
         }
+        if (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false){
+            socket.emit('aiPlay', tableID);
+        }
     }
     else if (jsonData.game_phase == "PLAY") {
         if (document.getElementById("auction")){
+
             clearBids();
             clearAuction();
             removeAuction();
@@ -575,6 +669,7 @@ function renderUpdate(jsonData) {
         }
         updateTricksTaken(jsonData.NS_tricks, jsonData.EW_tricks);
         displayHands(jsonData);
+        socket.emit('aiPlay', tableID);
     } else if (jsonData.game_phase == "END") {
         removeHands();
         removeTrickArea();
@@ -784,9 +879,11 @@ socket.on('buildAuction', (response) => {
 });
   
 socket.on('usersReady', (response) => {
+    document.getElementById("ready-info").remove();
+    if (document.getElementById("waiting")){
+        document.getElementById("waiting").remove();
+    }
 
-    document.getElementById("waiting").remove();
-    document.getElementById('ready-info').remove();
 });
 
 // socket.on('closeTable', (tableID) => {
