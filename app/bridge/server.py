@@ -463,6 +463,8 @@ class Table:
         self.current_game = None
         self.table_id = math.trunc(int(datetime.now().timestamp()))
 
+        self.connected_players = [player for player in self.players.values() if player != None]
+
         global running_tables
         running_tables[self.table_id] = self
 
@@ -521,8 +523,21 @@ class Table:
         "asks" to join the table if there is space at that direction
         returns false if no space at table
         '''
-        if not direction in self.players:
+        if (not direction in self.players) or (self.players[direction] == None):
             self.players[direction] = playername
+            self.connected_players.append(playername)
+            return True
+        return False
+
+    def leave_table(self, direction: str):
+        '''
+        removes the player at the specified direction from the player dict and connected_players list
+        returns False if player at direction already was None
+        '''
+        if (direction in self.players) and (self.players[direction] != None):
+            if self.players[direction] in self.connected_players:
+                self.connected_players.remove(self.players[direction])
+            self.players[direction] = None
             return True
         return False
     

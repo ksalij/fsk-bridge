@@ -18,7 +18,7 @@
 
 {% block javascript %}
 
-<script src="/static/js/color.js"></script>
-<script src="/static/js/chat.js"></script>
+<script src="{{ url_for('static', filename='js/color.js')}}"></script>
+<script src="{{ url_for('static', filename='js/chat.js')}}"></script>
 
 {% endblock %}

@@ -12,24 +12,41 @@
 
 	<img src="{{ url_for('static', filename='otherimages/bridge-icon.svg') }}" alt="Bridge Icon" class="iconp-04r5">
 
-  <form action="" name='join' id='join'>
-    <div class="join">
-        <input type='text' name='id' placeholder="Room ID" id='id'>
-        <input type="submit" class="submit-button" name="join" value="Join Room" id="join-button">
-    </div>
+<p>User: {{session['username']}}</p>
+
+{% if in_game %}
+    
+  <form action="/rejoinTable">
+    <input type="submit" id="rejointable" value="Rejoin Table"/>
   </form>
-
-  <form action="/openTable" class="newtable">
-    <input type="submit" class="submit-button" id="newtable" value="New Table"/>
+  <form action="/leaveTable">
+    <input type="submit" id="leavetable" value="Leave Table"/>
   </form>
+{% else %}
+    
+<form action="" name='join' id='join'>
+  <div class="join">
+      <input type='text' name='id' placeholder="Room ID" id='id'>
+      <input type="submit" class="submit-button" name="join" value="Join Room" id="join-button">
+  </div>
+</form>
 
-  <form action="/chat">
-    <input type="submit" value="Chat" class="submit-button" id="chat-button">
-  </form>
+<form action="/openTable" class="newtable">
+  <input type="submit" class="submit-button" id="newtable" value="New Table"/>
+</form>
 
-  User: {{session['username']}}
+  </hr>
 
-  {{message}}
+  {{error}}
+
+{% endif %}
+
+<form action="/chat">
+  <input type="submit" value="Chat" class="submit-button" id="chat-button">
+</form>
+
+{{message}}
+
 
 
 </div>
@@ -38,6 +55,6 @@
 
 {% block javascript %}
 
-<script src="/static/js/home.js"></script>
+<script src="{{ url_for('static', filename='js/home.js')}}"></script>
 
 {% endblock %}

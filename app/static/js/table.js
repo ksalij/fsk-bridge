@@ -2,7 +2,6 @@
 let user = "";
 let tableID = 0;
 let clientDirection = "";
-let duringAuction = Boolean(true);
 // Directions are strings, seats are numbers
 const SEATMAP = {
     "E" : 0,
@@ -10,10 +9,6 @@ const SEATMAP = {
     "W" : 2,
     "N" : 3
 };
-
-function printHello() {
-    console.log("hello");
-}
 
 /*
     Switch a user with a seat, occupied or unoccupied.
@@ -30,52 +25,6 @@ function switchSeat(direction) {
     socket.emit('switchSeat', direction, user);
     clientDirection = direction;
 }
-
-// function fillSwitchSeatInfo(seatDiv, direction, resident) {
-//     const seatInfo = document.createElement("p");
-//     if (!resident) {
-//         seatInfo.innerHTML = "Empty seat.";
-//     } else if (readyUsers.includes(resident)) {
-//         seatInfo.innerHTML = resident + " is ready to go.";
-//     } else if (readyUsers.includes(user)) {
-//         seatInfo.innerHTML = resident + " is not ready to go.";
-//     }
-//     seatDiv.appendChild(seatInfo);
-
-//     if (!readyUsers.includes(user)) {
-//         const switchButton = document.createElement("button");
-//         // button.setAttribute("class", "switch-seat-button");
-//         button.setAttribute("onclick", `switchSeat("${direction}")`);
-//         if (!resident) {
-//             switchButton.innerHTML = "Take " + direction + " seat";
-//         } else if (!readyUsers.includes(resident)) {
-//             switchButton.innerHTML = "Switch with " + direction;
-//         }
-//         seatDiv.appendChild(switchButton);
-//     }
-// }
-
-// function addSwitchSeatButtons() {
-//     const clientTeam = document.getElementById("client-team-hands");
-//     const oppTeam = document.getElementById("opp-team-hands");
-
-//     const buttonA = document.createElement("button");
-//     buttonA.setAttribute("onclick", "printHello()");
-//     buttonA.appendChild(document.createTextNode("E"));
-//     clientTeam.appendChild(buttonA);
-//     const buttonB = document.createElement("button");
-//     buttonB.setAttribute("onclick", "printHello()");
-//     buttonB.appendChild(document.createTextNode("W"));
-//     clientTeam.appendChild(buttonB);
-//     const buttonC = document.createElement("button");
-//     buttonC.setAttribute("onclick", "printHello()");
-//     buttonC.appendChild(document.createTextNode("S"));
-//     oppTeam.appendChild(buttonC);
-//     const buttonD = document.createElement("button");
-//     buttonD.setAttribute("onclick", "printHello()");
-//     buttonD.appendChild(document.createTextNode("N"));
-//     oppTeam.appendChild(buttonD);
-// }
 
 function addSwitchSeatButtons(players, readyUsers) {
     console.log("clientDir: " + clientDirection);
@@ -149,8 +98,6 @@ function removeSwitchSeatButtons() {
     document.querySelectorAll(".switch-seat-div").forEach(e => e.remove());
 }
 
-// window.addEventListener("load", (event) => { addSwitchSeatButtons(); });
-
 /*
     Build a card object.
 */
@@ -211,15 +158,6 @@ function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, 
             }
         }
 
-        // link.addEventListener('mouseover', function() {
-        //     card.style.border = '2px solid blue'; // Add border on mouseover
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
-
-        // link.addEventListener('mouseout', function() {
-        //     card.style.border = '2px transparent'; // Remove border on mouseout
-        //     card.style.transition = 'border-color 0.5s ease';
-        //     });
         handDiv.appendChild(card);
     }
 }
@@ -276,10 +214,7 @@ function buildHands() {
     Remove the hand for each seat.
 */
 function removeHands() {
-    const handDivs = document.getElementsByClassName("hand");
-    for (hand in handDivs) {
-        hand.remove();
-    }
+    document.querySelectorAll(".hand").forEach(e => e.remove());
 }
 
 /*
@@ -309,16 +244,6 @@ function readyUp() {
     waitMessage.setAttribute("id", "waiting");
     waitMessage.innerHTML = "Waiting for other players to ready up...";
     document.getElementById("ready-info").insertBefore(waitMessage, readyButton);
-
-    // // Add the unready button
-    // const unreadyButton = document.createElement("button");
-    // unreadyButton.setAttribute("id", "unready-button");
-    // unreadyButton.setAttribute("class", "ready-button")
-    // unreadyButton.setAttribute("onclick", "readyDown()");
-    // unreadyButton.innerHTML = "Unready";
-    // readyInfo.appendChild(unreadyButton);
-
-    // document.getElementById("game").appendChild(readyInfo);
 }
 
 /*
@@ -377,7 +302,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
     const suitSymbolMap = {'C': '\u2663', 'D': '\u2666', 'H': '\u2665', 'S': '\u2660', 'N': 'NT'};
     const header = document.createElement("tr");
 
-    directions = ['N', "E", 'S', 'W'];
+    const directions = ['N', "E", 'S', 'W'];
     for (let i = 0; i < 4; i++){
         const playerHeader = document.createElement('th');
         playerHeader.innerText = directions[(i + SEATMAP[direction] + 2) % 4];
@@ -394,7 +319,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
     }
     auction.appendChild(header);
     
-    auctionList = [...Array((SEATMAP[dealer] - (SEATMAP[direction] + 1) + 4) % 4)].fill('none').concat(bids);
+    let auctionList = [...Array((SEATMAP[dealer] - (SEATMAP[direction] + 1) + 4) % 4)].fill('none').concat(bids);
     if (auctionList.length < 16){
         auctionList = auctionList.concat([...Array(16 - auctionList.length)].fill('none'));
     }
@@ -403,7 +328,7 @@ function displayAuction(bids, dealer, direction, vulnerability){
         const row = document.createElement("tr");
         for (let j = 0; j < 4; j++){
             if ((4*i + j) < auctionList.length){
-                const rowEntry =  document.createElement('td');
+                const rowEntry = document.createElement('td');
                 rowEntry.setAttribute('class', 'auctionBid');
                 if (auctionList[4*i + j] == 'none'){
                 } else if (auctionList[4*i + j] == 'p'){
@@ -472,15 +397,15 @@ function displayBids(validBids){
         suits = ['\u2663', '\u2666', '\u2665', '\u2660', 'NT'];
         for (let j = 0; j < 5; j++){
             if (validBids.includes(i + suitName[j])){
-                suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "\"> " + i + suits[j] + " </button>";
+                suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'" + i + suitName[j] + "\')\" id = \"" + suitName[j] + "bid\"> " + i + suits[j] + " </button>";
             }
         }
-        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = \"p\"> PASS </button>";
+        suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'p\')\" id = \"pbid\"> PASS </button>";
         if (validBids.includes('d')){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = \"d\"> X </button>";
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'d\')\" id = \"dbid\"> X </button>";
         }
         if (validBids.includes('r')){
-            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = \"r\"> XX </button>";
+            suitButtons = suitButtons +  "<button class = \"suit\" onclick = \"makeBid(\'r\')\" id = \"rbid\"> XX </button>";
         }
         suitButtons = suitButtons + "</div>";
         tabcontent.innerHTML = (suitButtons);
@@ -569,6 +494,13 @@ function buildTrickArea() {
 }
 
 /*
+    Removes the trick-area div from the page.
+*/
+function removeTrickArea() {
+    document.getElementById("trick-area").remove();
+}
+
+/*
     Display the cards thus far played in the current trick.
 
     Parameters:
@@ -613,7 +545,6 @@ function fillTrickArea(clientSeat, cardsPlayed) {
 */
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION") {
-        duringAuction = Boolean(true);
         displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
@@ -630,15 +561,17 @@ function renderUpdate(jsonData) {
         }
     }
     else if (jsonData.game_phase == "PLAY") {
-        if (duringAuction) {
+        if (document.getElementById("auction")){
             clearBids();
             clearAuction();
             removeAuction();
             buildTrickArea();
-            duringAuction = Boolean(false);
+            document.getElementById("contract-value").innerHTML = jsonData.contract;
         }
         displayHands(jsonData);
     } else if (jsonData.game_phase == "END") {
+        removeHands();
+        removeTrickArea();
         displayEndGame(jsonData);
     }
 }
@@ -679,17 +612,20 @@ function displayHands(jsonData) {
 
 function displayEndGame(jsonData) {
     // display scores
-    console.log(jsonData.NS_score);
-    console.log(jsonData.EW_score);
+    document.getElementById("NS-score").innerHTML = jsonData.NS_score;
+    document.getElementById("EW-score").innerHTML = jsonData.EW_score;
     
     // should clear the ready_users set
     socket.emit('unready', tableID, user);
 
     // call database function to store the finished game
-    socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin)
+    socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin);
 
     // display button for new game (same as readyup just instead says start new game)
-    document.getElementById("game").innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
+    const ready = document.createElement("div");
+    ready.setAttribute("id", "ready-info");
+    ready.innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
+    document.getElementById("game").appendChild(ready);
 }
 
 // Function to preload images, called by fetchImages below
@@ -770,7 +706,6 @@ function showAllCards() {
       - change the hide button to a display button
 */
 
-
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
@@ -782,6 +717,24 @@ socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
     socket.emit('joinRoom', window.location.pathname.substring(7));
+    socket.emit('hasGameStarted', window.location.pathname.substring(7));
+});
+
+socket.on('buildGame', (jsonInput, username) => {
+    if (username == user){
+        buildHands();
+        jsonData = JSON.parse(jsonInput);
+        document.getElementById('ready-info').remove();
+        console.log("buildGame")
+        if (jsonData.game_phase == "AUCTION") {
+            console.log('AUCTION SHOULD BE BUILT')
+            buildAuctionStructure();
+        } else if (jsonData.game_phase == "PLAY") {
+            console.log("TRICK AREA SHOULD BE BUILT")
+            buildTrickArea();
+        }
+        renderUpdate(jsonData);
+    }
 });
 
 socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
@@ -790,73 +743,6 @@ socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
     clientDirection = your_direction;
     console.log("my local info");
 });
-
-// function hideSwitchButtons(){
-//     players = document.getElementById("users");
-//     for (let i = 0; i < 4; i++) {
-//         directionDiv = players.firstChild;
-//         if(directionDiv) {
-//             directionDiv.removeChild(directionDiv.firstChild);
-//             directionDiv.removeChild(directionDiv.firstChild);
-//             players.removeChild(directionDiv);
-//         }
-//     }
-// }
-
-// socket.on('updateUsers', (response, ready_users) => {
-//     players = document.getElementById("users");
-//     hideSwitchButtons();
-//     const directions = ["N", "E", "S", "W"]
-//     const directionsJson = JSON.parse(response);
-//     for (let i = 0; i < 4; i++) {
-//         const direction = directions[i];
-//         const directionDiv = document.createElement("div");
-//         directionDiv.setAttribute("class", "direction-div");
-//         const directionText = document.createElement("p");
-//         directionText.innerHTML = direction;
-//         directionDiv.appendChild(directionText);
-//         directionUser = directionsJson[direction];
-//         // console.log(direction);
-//         // console.log(directionsJson[direction]);
-//         console.log(directionUser);
-//         if (directionUser) {
-//             if (directionUser != user) {
-//                 if (ready_users.includes(directionUser)) {
-//                     const readyText = document.createElement("p");
-//                     readyText.innerHTML = directionUser + " is ready to go.";
-//                     directionDiv.appendChild(readyText);
-//                 } else if (ready_users.includes(user)) {
-//                     const readyText = document.createElement("p");
-//                     readyText.innerHTML = directionUser + " is not ready to go.";
-//                     directionDiv.appendChild(readyText);
-//                 } else {
-//                     const switchButton = document.createElement("button");
-//                     switchButton.setAttribute("id", "switch-button");
-//                     switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
-//                     switchButton.innerHTML = "Switch with " + directionsJson[direction];
-//                     directionDiv.appendChild(switchButton);
-//                 }
-//             } else {
-//                 const readyText = document.createElement("p");
-//                 readyText.innerHTML = "Your seat, " + user;
-//                 directionDiv.appendChild(readyText);
-//             }
-//         }
-//         else if (ready_users.includes(user)) {
-//             const readyText = document.createElement("p");
-//             readyText.innerHTML = "Empty seat";
-//             directionDiv.appendChild(readyText);
-//         } else {
-//             const switchButton = document.createElement("button");
-//             switchButton.setAttribute("id", "switch-button");
-//             switchButton.setAttribute("onclick", "switchSeat(\"" + direction + "\")");
-//             switchButton.innerHTML = "Take " + direction + " seat";
-//             directionDiv.appendChild(switchButton);
-//         }
-//         players.appendChild(directionDiv);
-//     }
-//     console.log(response);
-// });
 
 socket.on('updateUsers', (response, readyUsers) => {
     let players = JSON.parse(response);
@@ -887,23 +773,28 @@ socket.on('readyInfo', (data) => {
 
 socket.on('buildAuction', (response) => {
     removeSwitchSeatButtons();
+    buildHands();
     buildAuctionStructure();
 });
   
 socket.on('usersReady', (response) => {
     document.getElementById("unready-button").remove();
+
     document.getElementById("waiting").remove();
+    document.getElementById('ready-info').remove();
 });
 
-socket.on('isCardGood', (bool, json) => {
-    if(bool) {
-        console.log("good card");
-    }
-    else {
-        console.log("bad card");
-    }
-    console.log(json);
+// socket.on('closeTable', (tableID) => {
+//     console.log('close table!!');
+//     socket.emit('tableClosed', tableID);
+//     window.location.href = '/home';
+// });
+
+socket.on('killTable', (tableID) => {
+    console.log('kill table!!');
+    window.location.href = '/killTable/' + tableID;
 });
+
 
 socket.on('testoutput', (response) => {
     console.log("test: " + response);
