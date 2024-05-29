@@ -350,12 +350,12 @@ class Game:
             hand_sizes: dict (keys: direction ints, values: numCards (int))
             vulnerability: str
             display_dummy: bool
+            bids: list of strings
+            dealer_direction: str
         "END"
             bridgehand_lin: str
         "AUCTION"
             valid_bids: list of strings
-            dealer_direction: str
-            bids: list of strings
         "PLAY"
             current_trick: dict (keys: directions, values: cards (int, int))
             leader: str
@@ -363,6 +363,7 @@ class Game:
             dummy_hand: list of strings "suitrank"
             contract: string
             playable_cards: list of strings or null
+            display_dummy: boolean
         '''
         # info required regardless of game state
         your_direction = None
@@ -395,12 +396,10 @@ class Game:
             phase_data = {'bridgehand_lin': running_tables[self.table_id].linwrite()}
 
         elif self.game_phase == 'AUCTION':
-            phase_data = {'valid_bids': self.valid_bids,
-                          'dealer': self.current_bridgehand.dealer,
-                          'bids': self.current_bridgehand.bids}
+            phase_data = {'valid_bids': self.valid_bids}
 
         else:
-            dummy = get_partner(self.current_bridgehand.declarer)
+            dummy = self.get_partner(self.current_bridgehand.declarer)
             dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
            
             # first trick hasn't been played
@@ -435,20 +434,22 @@ class Game:
                     "your_hand": your_hand,
                     "hand_sizes": hand_sizes,
                     "vulnerability": vulnerability,
-                    "display_dummy": display_dummy}
+                    "display_dummy": display_dummy,
+                    'bids': self.current_bridgehand.bids,
+                    'dealer': self.current_bridgehand.dealer}
         
         return_dict.update(phase_data)
         return json.dumps(return_dict)
 
-def get_partner(position: str):
-    if position == 'N':
-        return 'S'
-    elif position == 'S':
-        return 'N'
-    elif position == 'E':
-        return 'W'
-    else:
-        return 'E'
+    def get_partner(self, position: str):
+        if position == 'N':
+            return 'S'
+        elif position == 'S':
+            return 'N'
+        elif position == 'E':
+            return 'W'
+        else:
+            return 'E'
 
 class Table:
     '''
@@ -582,6 +583,12 @@ class Table:
             card = convert_card([SUITS[candiadate // 13], REV_CARDMAP[candiadate % 13 + 2]])
             if card in playable_cards: 
                 return card
+            
+    def AI_opening_lead(self):
+        return self.current_game.current_bridgehand.hands[self.current_game.current_player][0]
+    
+    def AI_bid(self, ):
+        return 'p'
 
 
 if __name__=="__main__": 

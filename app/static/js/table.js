@@ -72,6 +72,13 @@ function addSwitchSeatButtons(players, readyUsers) {
                 switchButton.innerHTML = "Switch with " + resident;
             }
             seatDiv.appendChild(switchButton);
+
+            // Robot button
+            const robotButton = document.createElement("button");
+            robotButton.setAttribute("onclick", `seatRobot("${dir}")`);
+            robotButton.innerHTML = "Seat Robot";
+            seatDiv.appendChild(robotButton);
+            // End Robot button
         }
 
         directions[dir].appendChild(seatDiv);
@@ -89,6 +96,11 @@ function addSwitchSeatButtons(players, readyUsers) {
     for (let i = 0; i < 4; i++) {
         directionDivs[i].innerHTML = "<p>" + directionOrder[(i + SEATMAP[clientDirection]) % 4] + "</p>";
     }
+}
+
+function seatRobot(dir){
+    console.log("seat robot");
+    socket.emit("addRobot", tableID, dir);
 }
 
 /*
@@ -593,8 +605,10 @@ function fillTrickArea(clientSeat, cardsPlayed) {
     seats[(clientSeat + 1) % 4] = document.getElementById("oppL-trick-card");
     seats[(clientSeat + 3) % 4] = document.getElementById("oppR-trick-card");
     for (let i = 0; i < 4; i++) {
-        if (seats[i].firstChild) {
-            seats[i].removeChild(seats[i].firstChild);
+        if(seats[i]){
+            if (seats[i].firstChild) {
+                seats[i].removeChild(seats[i].firstChild);
+            }
         }
     }
 
@@ -618,7 +632,7 @@ function fillTrickArea(clientSeat, cardsPlayed) {
       - rebuild the div showcasing the current trick
 */
 function renderUpdate(jsonData) {
-    if (jsonData.game_phase == "AUCTION") {
+    if (jsonData.game_phase == "AUCTION" || (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false)) {
         duringAuction = Boolean(true);
         displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
@@ -629,13 +643,18 @@ function renderUpdate(jsonData) {
             displayBids(jsonData.valid_bids);
         }
         else {
+            socket.emit('aiBid', user);
             console.log(jsonData.current_player);
             console.log(jsonData.your_direction);
             console.log("clear");
             clearBids();
         }
+        if (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false){
+            socket.emit('aiPlay', tableID);
+        }
     }
     else if (jsonData.game_phase == "PLAY") {
+        console.log("we are here"); 
         if (duringAuction) {
             clearBids();
             clearAuction();
@@ -645,6 +664,7 @@ function renderUpdate(jsonData) {
             document.getElementById("contract-value").innerHTML = jsonData.contract;
         }
         displayHands(jsonData);
+        socket.emit('aiPlay', tableID);
     } else if (jsonData.game_phase == "END") {
         removeHands();
         removeTrickArea();
@@ -803,7 +823,9 @@ socket.on('buildAuction', (response) => {
   
 socket.on('usersReady', (response) => {
     document.getElementById("ready-info").remove();
-    document.getElementById("waiting").remove();
+    if (document.getElementById("waiting")){
+        document.getElementById("waiting").remove();
+    }
 });
 
 socket.on('isCardGood', (bool, json) => {
@@ -814,7 +836,6 @@ socket.on('isCardGood', (bool, json) => {
         console.log("bad card");
     }
     console.log(json);
-    socket.emit("cardPlayed", user, Null);
 });
 
 socket.on('testoutput', (response) => {
