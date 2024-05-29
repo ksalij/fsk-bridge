@@ -1,4 +1,4 @@
-<img src="cargo-ship.png" alt="drawing" width="200"/>
+<img src="cargo-ship.png" alt="drawing" width="150"/>
 
 # fsk-bridge
 
