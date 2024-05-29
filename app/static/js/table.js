@@ -778,7 +778,6 @@ socket.on('buildAuction', (response) => {
 });
   
 socket.on('usersReady', (response) => {
-    document.getElementById("ready-button").remove();
 
     document.getElementById("waiting").remove();
     document.getElementById('ready-info').remove();
