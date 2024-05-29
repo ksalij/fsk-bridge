@@ -508,3 +508,19 @@ input.glow {
 	flex-direction: row; 
 	flex-wrap: wrap; 
 }  */
+
+.switch-seat-div button {
+    background-color: inherit;
+    border: 2px solid white;
+    color:white;
+    cursor: pointer;
+    padding: 1vh 1vh;
+    font-size: 2vh;
+    margin: 10px;
+    display: block;
+}
+
+.switch-seat-div button:hover{
+    background-color:white;
+    color: #57965b;
+}
