@@ -2,7 +2,6 @@
 let user = "";
 let tableID = 0;
 let clientDirection = "";
-let duringAuction = Boolean(true);
 // Directions are strings, seats are numbers
 const SEATMAP = {
     "E" : 0,
@@ -546,7 +545,6 @@ function fillTrickArea(clientSeat, cardsPlayed) {
 */
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION") {
-        duringAuction = Boolean(true);
         displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
@@ -563,12 +561,11 @@ function renderUpdate(jsonData) {
         }
     }
     else if (jsonData.game_phase == "PLAY") {
-        if (duringAuction) {
+        if (document.getElementById("auction")){
             clearBids();
             clearAuction();
             removeAuction();
             buildTrickArea();
-            duringAuction = Boolean(false);
             document.getElementById("contract-value").innerHTML = jsonData.contract;
         }
         displayHands(jsonData);
@@ -622,7 +619,7 @@ function displayEndGame(jsonData) {
     socket.emit('unready', tableID, user);
 
     // call database function to store the finished game
-    socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin)
+    socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin);
 
     // display button for new game (same as readyup just instead says start new game)
     const ready = document.createElement("div");
@@ -678,6 +675,40 @@ function fetchImages(){
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
+/*
+    Display each card svg below the game board.
+
+    Parameters: none
+
+    Functionality:
+      - set the display style of each cardImage element to be "inline" (from "none")
+      - change the display button to a hide button
+*/
+function showAllCards() {
+    const allCards = document.getElementsByClassName("cardImage");
+    for (let i = 0; i < allCards.length; i++) {
+        allCards[i].style.display = 'inline';
+    }
+
+    const button = document.getElementById("show-cards-button");
+    button.id = "hide-cards-button";
+    button.setAttribute("onclick", "hideAllCards()");
+    button.innerHTML = ("Click me to hide cards!");
+}
+
+/*
+    Hide each card svg below the game board.
+
+    Parameters: none
+
+    Functionality:
+      - set the display style of each cardImage element to be "none" (from "inline")
+      - change the hide button to a display button
+*/
+
+// Call the fetchImages function when the page loads
+window.addEventListener("load", (event) => { fetchImages(); });
+
 // Populate the chat when the page loads
 socket.emit('populateChat');
 socket.emit('userJoined', username, window.location.pathname.split("/")[2])
@@ -686,6 +717,24 @@ socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
     socket.emit('joinRoom', window.location.pathname.substring(7));
+    socket.emit('hasGameStarted', window.location.pathname.substring(7));
+});
+
+socket.on('buildGame', (jsonInput, username) => {
+    if (username == user){
+        buildHands();
+        jsonData = JSON.parse(jsonInput);
+        document.getElementById('ready-info').remove();
+        console.log("buildGame")
+        if (jsonData.game_phase == "AUCTION") {
+            console.log('AUCTION SHOULD BE BUILT')
+            buildAuctionStructure();
+        } else if (jsonData.game_phase == "PLAY") {
+            console.log("TRICK AREA SHOULD BE BUILT")
+            buildTrickArea();
+        }
+        renderUpdate(jsonData);
+    }
 });
 
 socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
@@ -729,19 +778,23 @@ socket.on('buildAuction', (response) => {
 });
   
 socket.on('usersReady', (response) => {
-    document.getElementById("ready-info").remove();
+    document.getElementById("unready-button").remove();
+
     document.getElementById("waiting").remove();
+    document.getElementById('ready-info').remove();
 });
 
-socket.on('isCardGood', (bool, json) => {
-    if(bool) {
-        console.log("good card");
-    }
-    else {
-        console.log("bad card");
-    }
-    console.log(json);
+// socket.on('closeTable', (tableID) => {
+//     console.log('close table!!');
+//     socket.emit('tableClosed', tableID);
+//     window.location.href = '/home';
+// });
+
+socket.on('killTable', (tableID) => {
+    console.log('kill table!!');
+    window.location.href = '/killTable/' + tableID;
 });
+
 
 socket.on('testoutput', (response) => {
     console.log("test: " + response);
