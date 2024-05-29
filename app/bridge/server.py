@@ -40,8 +40,8 @@ class Game:
         self.current_player = self.current_bridgehand.dealer
         self.valid_bids = [str(num) + suit for num in range(1, 8) for suit in ['C', 'D', 'H', 'S', 'N']]
 
-        NS_tricks = 0
-        EW_tricks = 0
+        self.NS_tricks = 0
+        self.EW_tricks = 0
 
     def deal(self):
         '''

@@ -534,6 +534,11 @@ function fillTrickArea(clientSeat, cardsPlayed) {
     }
 }
 
+function updateTricksTaken(nsScore, ewScore) {
+    document.getElementById("NS-tricks").innerHTML = nsScore;
+    document.getElementById("EW-tricks").innerHTML = ewScore;
+}
+
 /*
     Update the hands for each player.
 
@@ -571,6 +576,7 @@ function renderUpdate(jsonData) {
             duringAuction = Boolean(false);
             document.getElementById("contract-value").innerHTML = jsonData.contract;
         }
+        updateTricksTaken(jsonData.NS_tricks, jsonData.EW_tricks);
         displayHands(jsonData);
     } else if (jsonData.game_phase == "END") {
         removeHands();
