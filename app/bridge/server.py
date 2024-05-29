@@ -44,6 +44,9 @@ class Game:
         self.current_player = self.current_bridgehand.dealer
         self.valid_bids = [str(num) + suit for num in range(1, 8) for suit in ['C', 'D', 'H', 'S', 'N']]
 
+        self.NS_tricks = 0
+        self.EW_tricks = 0
+
     def deal(self):
         '''
         creates Hand objects for each player and adds them to self.current_bridgehand
@@ -175,11 +178,16 @@ class Game:
             trick['W'] = last_trick['W']
             
             last_winner = get_trick_winner(trick, last_trick['lead'], trump=self.current_bridgehand.contract[1])[0]
+            
+            if (last_winner == 'N' or last_winner == 'S'):
+                self.NS_tricks += 1
+                if (self.current_bridgehand.declarer == 'N' or self.current_bridgehand.declarer == 'S'):
+                    self.current_bridgehand.made += 1
 
-            if (self.current_bridgehand.declarer == 'N' or self.current_bridgehand.declarer == 'S') and (last_winner == 'N' or last_winner == 'S'):
-                self.current_bridgehand.made += 1
-            if (self.current_bridgehand.declarer == 'E' or self.current_bridgehand.declarer == 'W') and (last_winner == 'E' or last_winner == 'W'):
-                self.current_bridgehand.made += 1
+            elif (last_winner == 'E' or last_winner == 'W'):
+                self.EW_tricks += 1
+                if (self.current_bridgehand.declarer == 'E' or self.current_bridgehand.declarer == 'W'):
+                    self.current_bridgehand.made += 1
         
             # if 13 tricks have been played end the game
             if len(self.current_bridgehand.play) == 13:
@@ -364,7 +372,10 @@ class Game:
             dummy_hand: list of strings "suitrank"
             contract: string
             playable_cards: list of strings or null
+            NS_tricks: int
+            EW_trick: int
             display_dummy: boolean
+
         '''
         # info required regardless of game state
         your_direction = None
@@ -424,7 +435,9 @@ class Game:
                         "dummy_direction": dummy,
                         "dummy_hand": dummy_hand,
                         "contract": self.current_bridgehand.contract,
-                        "playable_cards": playable_cards}
+                        "playable_cards": playable_cards,
+                        "NS_tricks": self.NS_tricks,
+                        "EW_tricks": self.EW_tricks}
 
         return_dict = {"game_phase": self.game_phase,
                     "NS_score": NS_score,
@@ -467,6 +480,8 @@ class Table:
         self.game_count = 0
         self.current_game = None
         self.table_id = math.trunc(int(datetime.now().timestamp()))
+
+        self.connected_players = [player for player in self.players.values() if player != None]
 
         global running_tables
         running_tables[self.table_id] = self
@@ -526,8 +541,21 @@ class Table:
         "asks" to join the table if there is space at that direction
         returns false if no space at table
         '''
-        if not direction in self.players:
+        if (not direction in self.players) or (self.players[direction] == None):
             self.players[direction] = playername
+            self.connected_players.append(playername)
+            return True
+        return False
+
+    def leave_table(self, direction: str):
+        '''
+        removes the player at the specified direction from the player dict and connected_players list
+        returns False if player at direction already was None
+        '''
+        if (direction in self.players) and (self.players[direction] != None):
+            if self.players[direction] in self.connected_players:
+                self.connected_players.remove(self.players[direction])
+            self.players[direction] = None
             return True
         return False
     

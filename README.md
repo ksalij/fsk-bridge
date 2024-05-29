@@ -1,3 +1,5 @@
+<img src="cargo-ship.png" alt="drawing" width="150"/>
+
 # fsk-bridge
 
 [Team agreement](https://docs.google.com/document/d/1p7zBJ_SLwscSLrcoHE5ijd5qBRRkLlsX1Z_twxIO7Ag/edit?usp=sharing) 
@@ -38,10 +40,14 @@ fsk-bridge/
 │   │   │   - card faces named as [value][suit] (value: 2-9 for numerals, T for 10, J for jack, Q for queen, K for king, A for ace)
 │   │   ├── css/
 │   │   │   - the css files for the website
+│   │   │   ├── home.css
+│   │   │   │   - styles home.html
 │   │   │   ├── layout.css
 │   │   │   │   - styles layout.html
 │   │   │   ├── login.css
 │   │   │   │   - styles login.html and register.html
+│   │   │   ├── navbar.css
+│   │   │   │   - styles the navbar (located in layout.html, present across pages)
 │   │   │   └── table.css
 │   │   │       - styles table.html (big file)
 │   │   ├── favicon/
