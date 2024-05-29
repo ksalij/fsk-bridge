@@ -1,4 +1,4 @@
-# fsk-bridge <img src="cargo-ship.png" alt="drawing" width="200"/>
+# fsk-bridge <img src="cargo-ship.png" alt="drawing" width="100"/>
 
 [Team agreement](https://docs.google.com/document/d/1p7zBJ_SLwscSLrcoHE5ijd5qBRRkLlsX1Z_twxIO7Ag/edit?usp=sharing) 
 
