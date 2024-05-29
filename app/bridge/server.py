@@ -5,6 +5,7 @@ from bridge.score import calculate_score
 import json
 from bridge.AI_player import *
 from tensorflow import keras
+from bridge.AI_bidder import *
 
 
 DEALER_MAP = {'S':1, 'W':2, 'N':3, 'E':4}
@@ -576,7 +577,7 @@ class Table:
         np_arr = np_arr[:,1:-1]
         X = np.split(np_arr.astype(int), [4, 8, 60, 95, 130, 165, 200, 204, 256], axis = 1)
         input = list(map(tf.convert_to_tensor, X))
-        model = keras.models.load_model('bridge/arbitrary_card.keras')
+        model = keras.models.load_model('bridge/arbitrary_card.keras', compile=False)
         results = (model.predict(input))
         pred_cards = np.argsort(results, axis = 1)[0][::-1]
         for candiadate in pred_cards:
@@ -585,7 +586,22 @@ class Table:
                 return card
             
     def AI_opening_lead(self):
-        return self.current_game.current_bridgehand.hands[self.current_game.current_player][0]
+        AI_player = self.current_game.current_player
+        bridge_hand = self.current_game.current_bridgehand
+        playable_cards = self.current_game.get_playable_cards()
+        df = pd.DataFrame({'X': ["".join(vectorize_for_lead(bridge_hand, AI_player))]})
+        split_df = df['X'].str.split('')
+        np_arr = np.array(split_df.values.tolist())
+        np_arr = np_arr[:,1:-1]
+        X = np.split(np_arr.astype(int), [35, 70, 105, 140], axis = 1)
+        input = list(map(tf.convert_to_tensor, X))
+        model = keras.models.load_model('bridge/opening_lead.keras', compile=False)
+        results = (model.predict(input))
+        pred_cards = np.argsort(results, axis = 1)[0][::-1]
+        for candiadate in pred_cards:
+            card = convert_card([SUITS[candiadate // 13], REV_CARDMAP[candiadate % 13 + 2]])
+            if card in playable_cards: 
+                return card
     
     def AI_bid(self, ):
         return 'p'
