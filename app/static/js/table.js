@@ -709,9 +709,10 @@ function showAllCards() {
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
+// joins the user to the table and room
+socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 // Populate the chat when the page loads
 socket.emit('populateChat');
-socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
@@ -745,7 +746,7 @@ socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
 });
 
 socket.on('updateUsers', (response, readyUsers) => {
-    let players = JSON.parse(response);
+    let players = JSON.parse(response); // list of players
     removeSwitchSeatButtons();
     addSwitchSeatButtons(players, readyUsers);
 });
@@ -778,8 +779,6 @@ socket.on('buildAuction', (response) => {
 });
   
 socket.on('usersReady', (response) => {
-    document.getElementById("unready-button").remove();
-
     document.getElementById("waiting").remove();
     document.getElementById('ready-info').remove();
 });
