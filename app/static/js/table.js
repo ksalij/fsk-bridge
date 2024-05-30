@@ -74,6 +74,7 @@ function addSwitchSeatButtons(players, readyUsers) {
 
             // Robot button
             const robotButton = document.createElement("button");
+            robotButton.setAttribute("class", "robotButton");
             robotButton.setAttribute("onclick", `seatRobot("${dir}")`);
             robotButton.innerHTML = "Seat Robot";
             seatDiv.appendChild(robotButton);
@@ -461,6 +462,9 @@ function clearBids() {
 }
 
 function displayBids(validBids){
+    if (!validBids){
+        return;
+    }
     console.log('Displaying Bids');
     const gameDiv = document.getElementById("game");
     const bidding = document.createElement("div");
@@ -660,7 +664,6 @@ function renderUpdate(jsonData) {
     }
     else if (jsonData.game_phase == "PLAY") {
         if (document.getElementById("auction")){
-
             clearBids();
             clearAuction();
             removeAuction();
