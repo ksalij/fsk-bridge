@@ -119,6 +119,10 @@ def rejoin_table():
 def chat():
     return render_template("chat.html", app_data=app_data, current_user=session['username'])
 
+@app.route('/learn')
+def learn():
+    return render_template("learn.html", app_data=app_data, current_user=session['username'])
+
 @app.route('/logout')
 def logout():
    session.clear()
