@@ -5,14 +5,11 @@
 {% endblock %}
 
 
-
 {% block body %}
 
 <div class="screen-1">
 
 	<img src="{{ url_for('static', filename='otherimages/bridge-icon.svg') }}" alt="Bridge Icon" class="iconp-04r5">
-
-<p>User: {{session['username']}}</p>
 
 {% if in_game %}
     
@@ -39,11 +36,13 @@
 
   {{error}}
 
+
+<form action="/learn">
+  <input type="submit" value="Learn to Play" class="submit-button" id="learn-button">
+</form>
+
 {% endif %}
 
-<form action="/chat">
-  <input type="submit" value="Chat" class="submit-button" id="chat-button">
-</form>
 
 {{message}}
 
