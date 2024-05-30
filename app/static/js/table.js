@@ -714,11 +714,12 @@ socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 // Populate the chat when the page loads
 socket.emit('populateChat');
 
+socket.emit('joinRoom', window.location.pathname.substring(7));
+socket.emit('hasGameStarted', window.location.pathname.substring(7));
+
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
-    socket.emit('joinRoom', window.location.pathname.substring(7));
-    socket.emit('hasGameStarted', window.location.pathname.substring(7));
 });
 
 socket.on('buildGame', (jsonInput, username) => {

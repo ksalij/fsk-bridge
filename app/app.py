@@ -264,6 +264,7 @@ def give_favicon():
 def put_user_in_room(table_id):
     if table_id not in Server.active_tables:
         return redirect('/')
+    socketio.emit('testoutput', f"user {session['username']}, table_id {table_id}, position: {session['userPosition']}")
     socketio.emit("yourLocalInfo", (session['username'], table_id, session['userPosition']), to=request.sid)
     join_room(table_id)
     socketio.emit('testoutput', 'joined room 1')
@@ -368,7 +369,7 @@ def connect():
     #     socketio.emit('testoutput', 'joined room here 2')
     #     # table = Server.active_tables[session['currentTable']]
     #     # table.connected_players.append(session['username'])
-    #     join_room(session['currentTable'])
+    join_room(session['currentTable'])
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     #for key, value in Server.message_history.items():
     #    if key != session['username']:
