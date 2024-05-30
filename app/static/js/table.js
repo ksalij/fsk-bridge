@@ -880,10 +880,6 @@ socket.on('buildAuction', (response) => {
   
 socket.on('usersReady', (response) => {
     document.getElementById("ready-info").remove();
-    if (document.getElementById("waiting")){
-        document.getElementById("waiting").remove();
-    }
-
 });
 
 // socket.on('closeTable', (tableID) => {
