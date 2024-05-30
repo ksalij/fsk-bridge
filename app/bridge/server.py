@@ -463,7 +463,7 @@ class Table:
         self.current_game = None
         self.table_id = math.trunc(int(datetime.now().timestamp()))
 
-        self.connected_players = [player for player in self.players.values() if player != None]
+        # self.connected_players = [player for player in self.players.values() if player != None]
 
         global running_tables
         running_tables[self.table_id] = self
@@ -525,7 +525,7 @@ class Table:
         '''
         if (not direction in self.players) or (self.players[direction] == None):
             self.players[direction] = playername
-            self.connected_players.append(playername)
+            # self.connected_players.append(playername)
             return True
         return False
 
@@ -535,8 +535,8 @@ class Table:
         returns False if player at direction already was None
         '''
         if (direction in self.players) and (self.players[direction] != None):
-            if self.players[direction] in self.connected_players:
-                self.connected_players.remove(self.players[direction])
+            # if self.players[direction] in self.connected_players:
+            #     self.connected_players.remove(self.players[direction])
             self.players[direction] = None
             return True
         return False

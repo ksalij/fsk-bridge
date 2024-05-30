@@ -86,16 +86,18 @@ def index():
 @app.route('/home')
 def home(error=None):
     table_id = session.get('currentTable')
+    if table_id:
+        return redirect('/table')
     socketio.emit('testoutput', f"table_id is {table_id}")
-    try:
-        Server.active_tables[table_id]
-    except:
-        socketio.emit('testoutput', "exception, no active table at table_id")
-        session['currentTable'] = None
-        session['userPosition'] = None
-        table_id = None
-    if table_id != None:
-        socketio.emit('testoutput', f'home current game is {Server.active_tables[table_id].current_game}')
+    # try:
+    #     Server.active_tables[table_id]
+    # except:
+    #     socketio.emit('testoutput', "exception, no active table at table_id")
+    #     session['currentTable'] = None
+    #     session['userPosition'] = None
+    #     table_id = None
+    # if table_id != None:
+    #     socketio.emit('testoutput', f'home current game is {Server.active_tables[table_id].current_game}')
     
     # check whether the player is at a table, then check whether that table has started a game
     in_game = (table_id != None) and (Server.active_tables[table_id].current_game != None)
@@ -104,15 +106,15 @@ def home(error=None):
     else:
         return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=in_game, error=error)
 
-@app.route('/rejoinTable')
-def rejoin_table():
-    table_id = session['currentTable']
-    try:
-        Server.active_tables[table_id]
-    except:
-        error = "whoopsie doopsie the table's gone TODO"
-        return redirect('/home/' + error) # not sure we should call kill table here, maybe redirect to home?
-    return redirect('/table/' + table_id)
+# @app.route('/rejoinTable')
+# def rejoin_table():
+#     table_id = session['currentTable']
+#     try:
+#         Server.active_tables[table_id]
+#     except:
+#         error = "whoopsie doopsie the table's gone TODO"
+#         return redirect('/home/' + error) # not sure we should call kill table here, maybe redirect to home?
+#     return redirect('/table/' + table_id)
 
 @app.route('/chat')
 def chat():
@@ -182,10 +184,16 @@ def openTable():
     Server.table_chat[str(new_table.table_id)] = []
     Server.table_chat[str(new_table.table_id)].append("id/" + str(new_table.table_id))
 
-    return redirect('/table/' + str(new_table.table_id))
+    return redirect('/joinTable/' + str(new_table.table_id))
 
-@app.route('/table/<table_id>')
+@app.route('/joinTable/<table_id>')
 def joinTable(table_id):
+    session['currentTable'] = table_id
+    return redirect('/table')
+
+@app.route('/table')
+def table():
+    table_id = session['currentTable']
     try:
         Server.active_tables[table_id]
     except KeyError:
@@ -220,15 +228,28 @@ def joinTable(table_id):
 def leave_table():
     table_id = session.get('currentTable')
     if table_id:
-        Server.active_tables[table_id].leave_table(session['userPosition'])
+        try:
+            table = Server.active_tables[table_id]
+        except:
+            error = 'Table does not exist.'
+            return redirect('/home/' + error)
+        # table.connected_players.remove(session['username'])
+        socketio.emit('testoutput', f'current game is {table.current_game}')
+        Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
+        socketio.emit('testoutput', f'wawaweewa', to=table_id)
+        socketio.emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), to=table_id)   
+        table.leave_table(session['userPosition'])
+        socketio.emit('testoutput', 'after ' + str(Server.active_tables[table_id].players))
+        user_unready(table_id, session['username'])
         session['currentTable'] = None
         session['userPosition'] = None
-        socketio.emit('killTable', str(table_id), to=table_id)
-        Server.active_tables[table_id].connected_players = []
-        Server.active_tables[table_id].players = {'N': None, 'S': None, 'E': None, 'W': None}
-        del Server.active_tables[table_id]
-        del ready_users[table_id]
-    else:
+        if table.current_game == None:
+            socketio.emit('testoutput', 'the players left are ' + str(Server.active_tables[table_id].players))
+        else:
+            Server.active_tables[table_id].players = {'N': None, 'S': None, 'E': None, 'W': None}
+            socketio.emit('killTable', str(table_id), to=table_id)
+            del Server.active_tables[table_id]
+            del ready_users[table_id]
         return redirect('/home/Table Closed')
 
 @app.route('/killTable/<table_id>')
@@ -299,7 +320,7 @@ def user_unready(table_id, user):
         ready_users[table_id].remove(user)
 
     Server.table_chat[session['currentTable']].append("leave/" + user + " is not ready to play")
-    emit('updateChat', ('leave', user  + ' is not ready to play'), to=table_id)
+    socketio.emit('updateChat', ('leave', user  + ' is not ready to play'), to=table_id)
 
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
@@ -333,7 +354,6 @@ def populate_chat():
 @socketio.on('userJoined')
 def user_joined(user, table_id):
     socketio.emit('testoutput', 'userJoined')
-    session['currentTable'] = table_id
     join_room(table_id)
     Server.table_chat[session['currentTable']].append("enter/" + "→ " + user + " has joined the room")
     #emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
@@ -400,9 +420,9 @@ def disconnect():
         
     if table.current_game == None:
     #         socketio.emit('testoutput', 'before ' + str(Server.active_tables[table_id].players))
-    #         table.leave_table(session['userPosition'])
+        table.leave_table(session['userPosition'])
     #         socketio.emit('testoutput', 'after ' + str(Server.active_tables[table_id].players))
-    #         user_unready(table_id, session['username'])
+        user_unready(table_id, session['username'])
         session['currentTable'] = None
     #         session['userPosition'] = None
 
