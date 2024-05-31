@@ -107,7 +107,8 @@ $(document).ready(function(){
     } else {
         newText.innerHTML = "<b>" + user + ": " + "</b>" + response.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
-    
+   
+    // Assign a deterministically generated color to each user's chats
     if (user !== 'server' && user !== 'enter' && user !== 'leave') {
         var chatColor = colorTag(user).hex();
         console.log(chatColor);

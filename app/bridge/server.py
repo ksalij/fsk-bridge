@@ -3,6 +3,10 @@ import random, math
 from datetime import datetime
 from bridge.score import calculate_score
 import json
+from bridge.AI_player import *
+from tensorflow import keras
+from bridge.AI_bidder import *
+
 
 DEALER_MAP = {'S':1, 'W':2, 'N':3, 'E':4}
 SUITS = {0:'C', 1:'D', 2:'H', 3:'S'}
@@ -39,6 +43,9 @@ class Game:
         self.set_vulnerability()
         self.current_player = self.current_bridgehand.dealer
         self.valid_bids = [str(num) + suit for num in range(1, 8) for suit in ['C', 'D', 'H', 'S', 'N']]
+
+        self.NS_tricks = 0
+        self.EW_tricks = 0
 
     def deal(self):
         '''
@@ -171,11 +178,16 @@ class Game:
             trick['W'] = last_trick['W']
             
             last_winner = get_trick_winner(trick, last_trick['lead'], trump=self.current_bridgehand.contract[1])[0]
+            
+            if (last_winner == 'N' or last_winner == 'S'):
+                self.NS_tricks += 1
+                if (self.current_bridgehand.declarer == 'N' or self.current_bridgehand.declarer == 'S'):
+                    self.current_bridgehand.made += 1
 
-            if (self.current_bridgehand.declarer == 'N' or self.current_bridgehand.declarer == 'S') and (last_winner == 'N' or last_winner == 'S'):
-                self.current_bridgehand.made += 1
-            if (self.current_bridgehand.declarer == 'E' or self.current_bridgehand.declarer == 'W') and (last_winner == 'E' or last_winner == 'W'):
-                self.current_bridgehand.made += 1
+            elif (last_winner == 'E' or last_winner == 'W'):
+                self.EW_tricks += 1
+                if (self.current_bridgehand.declarer == 'E' or self.current_bridgehand.declarer == 'W'):
+                    self.current_bridgehand.made += 1
         
             # if 13 tricks have been played end the game
             if len(self.current_bridgehand.play) == 13:
@@ -347,12 +359,12 @@ class Game:
             hand_sizes: dict (keys: direction ints, values: numCards (int))
             vulnerability: str
             display_dummy: bool
+            bids: list of strings
+            dealer_direction: str
         "END"
             bridgehand_lin: str
         "AUCTION"
             valid_bids: list of strings
-            dealer_direction: str
-            bids: list of strings
         "PLAY"
             current_trick: dict (keys: directions, values: cards (int, int))
             leader: str
@@ -360,6 +372,10 @@ class Game:
             dummy_hand: list of strings "suitrank"
             contract: string
             playable_cards: list of strings or null
+            NS_tricks: int
+            EW_trick: int
+            display_dummy: boolean
+
         '''
         # info required regardless of game state
         your_direction = None
@@ -392,12 +408,10 @@ class Game:
             phase_data = {'bridgehand_lin': running_tables[self.table_id].linwrite()}
 
         elif self.game_phase == 'AUCTION':
-            phase_data = {'valid_bids': self.valid_bids,
-                          'dealer': self.current_bridgehand.dealer,
-                          'bids': self.current_bridgehand.bids}
+            phase_data = {'valid_bids': self.valid_bids}
 
         else:
-            dummy = get_partner(self.current_bridgehand.declarer)
+            dummy = self.get_partner(self.current_bridgehand.declarer)
             dummy_hand = [str(card) for card in self.current_bridgehand.hands[dummy]]
            
             # first trick hasn't been played
@@ -421,7 +435,9 @@ class Game:
                         "dummy_direction": dummy,
                         "dummy_hand": dummy_hand,
                         "contract": self.current_bridgehand.contract,
-                        "playable_cards": playable_cards}
+                        "playable_cards": playable_cards,
+                        "NS_tricks": self.NS_tricks,
+                        "EW_tricks": self.EW_tricks}
 
         return_dict = {"game_phase": self.game_phase,
                     "NS_score": NS_score,
@@ -432,20 +448,22 @@ class Game:
                     "your_hand": your_hand,
                     "hand_sizes": hand_sizes,
                     "vulnerability": vulnerability,
-                    "display_dummy": display_dummy}
+                    "display_dummy": display_dummy,
+                    'bids': self.current_bridgehand.bids,
+                    'dealer': self.current_bridgehand.dealer}
         
         return_dict.update(phase_data)
         return json.dumps(return_dict)
 
-def get_partner(position: str):
-    if position == 'N':
-        return 'S'
-    elif position == 'S':
-        return 'N'
-    elif position == 'E':
-        return 'W'
-    else:
-        return 'E'
+    def get_partner(self, position: str):
+        if position == 'N':
+            return 'S'
+        elif position == 'S':
+            return 'N'
+        elif position == 'E':
+            return 'W'
+        else:
+            return 'E'
 
 class Table:
     '''
@@ -577,6 +595,45 @@ class Table:
 
         return output
     
+    def AI_select_card(self):
+        bridge_hand = self.current_game.current_bridgehand
+        AI_player = self.current_game.current_player
+        playable_cards = self.current_game.get_playable_cards()
+        df = pd.DataFrame({'X': ["".join(vectorize(bridge_hand, AI_player))]})
+        split_df = df['X'].str.split('')
+        np_arr = np.array(split_df.values.tolist())
+        np_arr = np_arr[:,1:-1]
+        X = np.split(np_arr.astype(int), [4, 8, 60, 95, 130, 165, 200, 204, 256], axis = 1)
+        input = list(map(tf.convert_to_tensor, X))
+        model = keras.models.load_model('bridge/arbitrary_card.keras', compile=False)
+        results = (model.predict(input))
+        pred_cards = np.argsort(results, axis = 1)[0][::-1]
+        for candiadate in pred_cards:
+            card = convert_card([SUITS[candiadate // 13], REV_CARDMAP[candiadate % 13 + 2]])
+            if card in playable_cards: 
+                return card
+            
+    def AI_opening_lead(self):
+        AI_player = self.current_game.current_player
+        bridge_hand = self.current_game.current_bridgehand
+        playable_cards = self.current_game.get_playable_cards()
+        df = pd.DataFrame({'X': ["".join(vectorize_for_lead(bridge_hand, AI_player))]})
+        split_df = df['X'].str.split('')
+        np_arr = np.array(split_df.values.tolist())
+        np_arr = np_arr[:,1:-1]
+        X = np.split(np_arr.astype(int), [35, 70, 105, 140], axis = 1)
+        input = list(map(tf.convert_to_tensor, X))
+        model = keras.models.load_model('bridge/opening_lead.keras', compile=False)
+        results = (model.predict(input))
+        pred_cards = np.argsort(results, axis = 1)[0][::-1]
+        for candiadate in pred_cards:
+            card = convert_card([SUITS[candiadate // 13], REV_CARDMAP[candiadate % 13 + 2]])
+            if card in playable_cards: 
+                return card
+    
+    def AI_bid(self, ):
+        return 'p'
+
 
 if __name__=="__main__": 
     pass

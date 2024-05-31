@@ -15,6 +15,7 @@ import os
 import hashlib
 import binascii
 import bridge.linparse
+import time
 
 '''
 session has several fields:
@@ -119,6 +120,10 @@ def home(error=None):
 @app.route('/chat')
 def chat():
     return render_template("chat.html", app_data=app_data, current_user=session['username'])
+
+@app.route('/learn')
+def learn():
+    return render_template("learn.html", app_data=app_data, current_user=session['username'])
 
 @app.route('/logout')
 def logout():
@@ -305,6 +310,14 @@ def put_user_in_room(table_id):
     if Server.active_tables[table_id].current_game == None:
         socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
+@socketio.on('addRobot')
+def put_robot_in_room(table_id, dir):
+    if table_id not in ready_users:
+        ready_users[table_id] = set()
+    Server.client_list["Robot" + dir] = table_id
+    Server.active_tables[table_id].players[dir] = "Robot" + dir
+    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+    user_ready(table_id, "Robot" + dir)
 
 ready_users = {}
 @socketio.on('ready')
@@ -321,6 +334,10 @@ def user_ready(table_id, user):
         emit('buildAuction', to=table_id)
         emit('requestGameState', to=table_id)
         Server.active_tables[table_id].new_game()
+        if "Robot" in Server.active_tables[table_id].current_game.current_player:
+            bid = Server.active_tables[table_id].AI_bid()
+            send_new_game(user, bid)
+
     else:
         socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
@@ -335,9 +352,11 @@ def user_unready(table_id, user):
     socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
 
 @socketio.on('cardPlayed')
+# user is a username
 def handle_message(user, card):
-    played_card = bridge.linparse.convert_card(card[1] + card[0])
     table_id = Server.client_list[user]
+    played_card = None
+    played_card = bridge.linparse.convert_card(card[1] + card[0])
     user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
     if not Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
         emit('isCardGood', (False, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
@@ -347,6 +366,25 @@ def handle_message(user, card):
         print('good card')
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
         emit('requestGameState', to=table_id)
+
+@socketio.on('aiPlay')
+def AI_play(table_id):
+    Table = Server.active_tables[table_id]
+    dummy = Table.current_game.get_partner(Table.current_game.current_bridgehand.declarer)
+    if 'Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_player] and not Table.current_game.current_player == dummy:
+        if len(Table.current_game.current_bridgehand.play) == 0:
+            card = Table.AI_opening_lead()
+        else:
+            card = Table.AI_select_card()
+        handle_message(Table.current_game.current_bridgehand.players[Table.current_game.current_player], [card.rankname, card.suitname])
+        time.sleep(.25)
+
+# The server then responds to each player asking with the json
+@socketio.on('updateGameState')
+def broadcast_gamestate(user):
+    table_id = Server.client_list[user]
+    game_state = Server.active_tables[table_id].current_game.get_json(user)
+    emit('gameState', game_state, to=request.sid)
 
 @socketio.on('sendMessage')
 def send_message(user, message, game_room):
@@ -383,12 +421,24 @@ def update_game_state(user):
     emit('gameState', json, to=request.sid)
 
 @socketio.on('sendBid')
-def send_bid(user, bid):
+def send_new_game(user, bid):
     table_id = Server.client_list[user]
     game = Server.active_tables[table_id].current_game
     user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
     game.make_bid(user_dir, bid)
     emit('requestGameState', to=table_id)
+
+
+@socketio.on('aiBid')
+def AI_bid(user):
+    table_id = Server.client_list[user]
+    current_player_name = Server.active_tables[table_id].current_game.current_bridgehand.players[Server.active_tables[table_id].current_game.current_player]
+    phase = Server.active_tables[table_id].current_game.game_phase
+    if "Robot" in current_player_name:
+        if phase == "AUCTION":
+            bid = Server.active_tables[table_id].AI_bid()
+            send_new_game(current_player_name, bid)
+            time.sleep(.75)
 
 # Count the number of connected clients
 @socketio.on('connect')

@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block css %}
+<link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block body %}
+
+<div class="screen-1" style="width: 500px">
+
+<img src="{{ url_for('static', filename='otherimages/bridge-icon.svg') }}" alt="Bridge Icon" class="iconp-04r5">
+
+<iframe width="100%" src="https://www.youtube.com/embed/2IomnCvxWzM?si=1XMlHH9JwO__TwWI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+{{error}}
+
+<form action="/home">
+  <input type="submit" value="Return to Home" class="submit-button" id="home-button">
+</form>
+
+{{message}}
+
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+
+<!-- Put JS here if needed -->
+
+{% endblock %}

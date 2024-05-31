@@ -110,6 +110,7 @@ img {
 }
 
 .score,
+.tricks,
 #contract {
     width: 85%;
     margin: 5px 10px;
@@ -120,6 +121,7 @@ img {
 }
 
 .score-value,
+.tricks-taken,
 #contract-value {
     float: right;
 }
@@ -160,7 +162,7 @@ img {
 
 #left-dir {
     top: 47.5%;
-    left: calc(-5% - 1px); /* -2px for the 1px border on both sides */
+    left: calc(-5% - 1px);
     border-right-style: none;
 }
 
@@ -216,8 +218,8 @@ img {
 }
 
 #trick-area {
-    width: 250px;
-    height: 250px;
+    width: 50%;
+    height: 50%;
 }
 
 .client-team {
@@ -260,11 +262,17 @@ img {
     width: 180%;
 }
 
-#partner_hand,
-#oppL_hand,
-#partner-trick-card,
-#oppL-trick-card {
+#oppR_hand {
     transform: rotate(180deg);
+}
+
+/* #trick-area .opp-team {
+    justify-content: space-evenly;
+} */
+
+#oppL-trick-card,
+#oppR-trick-card {
+    transform: rotate(90deg);
 }
 
 .card {

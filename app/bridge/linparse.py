@@ -203,11 +203,8 @@ def convert_card(lincard):
     '''
     Convert lin-style 2-char notation to Card()
     '''
-    
     linsuit = lincard[0]
     linval = lincard[1]
-    print(linsuit)
-    print(linval)
     return Card(SUITMAP[linsuit], CARDMAP[linval])
 
 def get_trick_winner(cards, leader, trump=None):
