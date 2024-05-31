@@ -644,7 +644,7 @@ function renderUpdate(jsonData) {
             displayBids(jsonData.valid_bids);
         }
         else {
-            socket.emit('aiBid', user);
+            socket.emit('aiBid', username);
             console.log(jsonData.current_player);
             console.log(jsonData.your_direction);
             console.log("clear");
