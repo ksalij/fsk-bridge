@@ -10,6 +10,8 @@
 {% block javascript %}
 <script type="text/javascript">
   var username = "{{ session['username'] }}"
+  var tableID = "{{table_id}}"
+  var clientDirection = "{{session['userPosition']}}"
 </script>
 <script src="{{ url_for('static', filename='js/table.js') }}"></script>
 <script src="{{ url_for('static', filename='js/color.js') }}"></script>
@@ -70,5 +72,19 @@
         </div>
     </div>
 </div>
+
+{% if in_game %}
+
+<form action="/leaveTable">
+    <input type="submit" id="leaveTable" value="Close Table"/>
+  </form>
+
+{% else %}
+
+<form action="/leaveTable">
+    <input type="submit" id="leaveTable" value="Leave Table"/>
+  </form>
+
+{% endif %}
 
 {% endblock %}

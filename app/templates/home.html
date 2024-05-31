@@ -11,15 +11,7 @@
 
 	<img src="{{ url_for('static', filename='otherimages/bridge-icon.svg') }}" alt="Bridge Icon" class="iconp-04r5">
 
-{% if in_game %}
-    
-  <form action="/rejoinTable">
-    <input type="submit" id="rejointable" value="Rejoin Table"/>
-  </form>
-  <form action="/leaveTable">
-    <input type="submit" id="leavetable" value="Leave Table"/>
-  </form>
-{% else %}
+<p>User: {{session['username']}}</p>
     
 <form action="" name='join' id='join'>
   <div class="join">
@@ -36,16 +28,9 @@
 
   {{error}}
 
-
 <form action="/learn">
   <input type="submit" value="Learn to Play" class="submit-button" id="learn-button">
 </form>
-
-{% endif %}
-
-
-{{message}}
-
 
 
 </div>
