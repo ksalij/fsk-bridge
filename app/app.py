@@ -335,7 +335,7 @@ def AI_play(table_id):
         else:
             card = Table.AI_select_card()
         handle_message(Table.current_game.current_bridgehand.players[Table.current_game.current_player], [card.rankname, card.suitname])
-        time.sleep(.25)
+        time.sleep(.75)
 
 # The server then responds to each player asking with the json
 @socketio.on('updateGameState')
