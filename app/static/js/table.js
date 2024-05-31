@@ -430,7 +430,6 @@ function displayAuction(bids, dealer, direction, vulnerability){
                     rowEntry.setAttribute("id", auctionList[4*i + j][1]);
                     rowEntry.innerText = auctionList[4*i + j][0] + suitSymbolMap[auctionList[4*i + j][1]];
                 }
-                // rowEntry.innerText = auctionList[4*i + j];
                 row.appendChild(rowEntry);
             } 
         }
@@ -659,6 +658,7 @@ function renderUpdate(jsonData) {
             clearBids();
         }
         if (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false){
+            clearBids();
             socket.emit('aiPlay', tableID);
         }
     }
