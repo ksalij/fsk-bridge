@@ -1,7 +1,3 @@
-// Some global variables to keep track of the client relative to the rest of the table
-let user = "";
-let tableID = 0;
-let clientDirection = "";
 // Directions are strings, seats are numbers
 const SEATMAP = {
     "E" : 0,
@@ -22,7 +18,7 @@ const SEATMAP = {
 */
 function switchSeat(direction) {
     console.log("direction");
-    socket.emit('switchSeat', direction, user);
+    socket.emit('switchSeat', direction, username);
     clientDirection = direction;
 }
 
@@ -50,18 +46,18 @@ function addSwitchSeatButtons(players, readyUsers) {
         const seatInfo = document.createElement("p");
         if (!resident) {
             seatInfo.innerHTML = "Empty seat.";
-        } else if (resident == user) {
+        } else if (resident == username) {
             seatInfo.innerHTML = "Your seat.";
         } else if (readyUsers.includes(resident)) {
             seatInfo.innerHTML = resident + " is ready to go.";
-        } else if (readyUsers.includes(user)) {
+        } else if (readyUsers.includes(username)) {
             seatInfo.innerHTML = resident + " is not ready to go.";
         } else {
             seatInfo.innerHTML = resident + "'s seat.";
         }
         seatDiv.appendChild(seatInfo);
 
-        if (resident != user && !readyUsers.includes(user) && !readyUsers.includes(resident)) {
+        if (resident != username && !readyUsers.includes(username) && !readyUsers.includes(resident)) {
             const switchButton = document.createElement("button");
             // button.setAttribute("class", "switch-seat-button");
             switchButton.setAttribute("onclick", `switchSeat("${dir}")`);
@@ -123,10 +119,10 @@ function buildCard(cardString) {
 }
 
 /*
-    Informs the server that the user wants to play a specific card.
+    Informs the server that the username wants to play a specific card.
 */
-function cardPlayed(user, value) {
-    socket.emit("cardPlayed", user, value);
+function cardPlayed(username, value) {
+    socket.emit("cardPlayed", username, value);
 }
 
 /*
@@ -135,16 +131,16 @@ function cardPlayed(user, value) {
     Parameters:
       - handDiv, the hand div to fill with cards
       - hand, the list of cards (as strings) to place in the hand
-      - playableCards, the list of cards currently playable by the user
+      - playableCards, the list of cards currently playable by the username
       - seat, the seat number corresponding to the hand being built
       - playingSeat, the seat number of the player whose turn it is
-      - clientSeat, the seat number of the user
+      - clientSeat, the seat number of the username
       - dummySeat, the seat number of the dummy
       - dummyUser, the username of the dummy player
 
     Functionality:
       - for each card in hand, build an HTML button for the card (via buildCard())
-          - if a card is playable by the user, give it the css class "playable"
+          - if a card is playable by the username, give it the css class "playable"
           - if a card is in the hand of the player whose turn it is, give it the css class "current-turn"
       - add each HTML card to handDiv
 */
@@ -164,7 +160,7 @@ function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, 
                 card.setAttribute("class", card.getAttribute("class") + " playable");
                 card.setAttribute("id", "playable_card")
                 if (clientSeat != dummySeat && seat == clientSeat) {
-                    card.setAttribute("onclick", `cardPlayed("${user}", "${hand[i]}")`);
+                    card.setAttribute("onclick", `cardPlayed("${username}", "${hand[i]}")`);
                 } else if (seat == dummySeat && dummySeat == ((clientSeat + 2) % 4)) {
                     card.setAttribute("onclick", `cardPlayed("${dummyUser}", "${hand[i]}")`);
                 }
@@ -305,27 +301,27 @@ function removeHands() {
 
 /*
     Indicate to the server that the client is ready to play.
-    Called when the user clicks on the "ready-button" button.
+    Called when the username clicks on the "ready-button" button.
 
     Parameters: none
 
     Functionality:
       - remove the readyUp button
-      - inform the server that the user is ready to start the game
+      - inform the server that the username is ready to start the game
       - create div structuring for hands, and fills each hand with 13 card backs
-      - inform the user that the table is waiting for other players
+      - inform the username that the table is waiting for other players
 */
 function readyUp() {
-    // Notify the server that the user is ready
-    socket.emit('ready', tableID, user);
-    console.log(`emitted to socket: ready, ${tableID}, ${user}`);
+    // Notify the server that the username is ready
+    socket.emit('ready', tableID, username);
+    console.log(`emitted to socket: ready, ${tableID}, ${username}`);
 
     // Change the ready button
     const readyButton = document.getElementById("ready-button");
     readyButton.setAttribute("onclick", "readyDown()");
     readyButton.innerHTML = "Unready";
 
-    // Inform the user that the table is waiting for other players
+    // Inform the username that the table is waiting for other players
     const waitMessage = document.createElement("p");
     waitMessage.setAttribute("id", "waiting");
     waitMessage.innerHTML = "Waiting for other players to ready up...";
@@ -333,13 +329,13 @@ function readyUp() {
 }
 
 /*
-    Unready the user from their table.
+    Unready the username from their table.
 
     Parameters: none
 
     Functionality:
       - reset the content of the "game" div to just the ready button
-      - notify the server that the user is no longer ready to start the game
+      - notify the server that the username is no longer ready to start the game
 */
 function readyDown() {
     // Change the ready button
@@ -350,8 +346,8 @@ function readyDown() {
     // Remove the waiting message
     document.getElementById("waiting").remove();
 
-    // Notify the server that the user is ready
-    socket.emit('unready', tableID, user);
+    // Notify the server that the username is ready
+    socket.emit('unready', tableID, username);
 }
 
 function buildAuctionStructure(){
@@ -528,7 +524,7 @@ function openBid(evt, level) {
   }
 
 function makeBid(bid){
-    socket.emit('sendBid', user, bid);
+    socket.emit('sendBid', username, bid);
 }
 
 /*
@@ -651,7 +647,7 @@ function renderUpdate(jsonData) {
             displayBids(jsonData.valid_bids);
         }
         else {
-            socket.emit('aiBid', user);
+            socket.emit('aiBid', username);
             console.log(jsonData.current_player);
             console.log(jsonData.your_direction);
             console.log("clear");
@@ -720,7 +716,7 @@ function displayEndGame(jsonData) {
     document.getElementById("EW-score").innerHTML = jsonData.EW_score;
     
     // should clear the ready_users set
-    socket.emit('unready', tableID, user);
+    socket.emit('unready', tableID, username);
 
     // call database function to store the finished game
     socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin);
@@ -813,19 +809,23 @@ function showAllCards() {
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
+// joins the username to the table and room
+socket.emit('userJoined', username, tableID); //window.location.pathname.split("/")[2])
 // Populate the chat when the page loads
 socket.emit('populateChat');
-socket.emit('userJoined', username, window.location.pathname.split("/")[2])
 
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
-    socket.emit('joinRoom', window.location.pathname.substring(7));
-    socket.emit('hasGameStarted', window.location.pathname.substring(7));
+    // socket.emit('joinRoom', window.location.pathname.substring(7));
+    // socket.emit('hasGameStarted', window.location.pathname.substring(7));
+    socket.emit('joinRoom', tableID);
+    socket.emit('hasGameStarted', tableID);
+
 });
 
-socket.on('buildGame', (jsonInput, username) => {
-    if (username == user){
+socket.on('buildGame', (jsonInput, player) => {
+    if (username == player){
         buildHands();
         jsonData = JSON.parse(jsonInput);
         document.getElementById('ready-info').remove();
@@ -841,28 +841,28 @@ socket.on('buildGame', (jsonInput, username) => {
     }
 });
 
-socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
-    user = your_user;
-    tableID = your_table_id;
-    clientDirection = your_direction;
-    console.log("my local info");
-});
+// socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
+//     username = your_user;
+//     tableID = your_table_id;
+//     clientDirection = your_direction;
+//     console.log("my local info");
+// });
 
 socket.on('updateUsers', (response, readyUsers) => {
-    let players = JSON.parse(response);
+    let players = JSON.parse(response); // list of players
     removeSwitchSeatButtons();
     addSwitchSeatButtons(players, readyUsers);
 });
 
 socket.on('seatSwitched', (player, new_direction) => {
-    if(player == user) {
+    if(player == username) {
         clientDirection = new_direction;
         socket.emit('updateSeatSession', player, new_direction);
     }
 });
 
 socket.on('requestGameState', (response) => {
-    socket.emit('updateGameState', user);
+    socket.emit('updateGameState', username);
 });
 
 socket.on('gameState', (jsonInput) => {
@@ -883,10 +883,6 @@ socket.on('buildAuction', (response) => {
   
 socket.on('usersReady', (response) => {
     document.getElementById("ready-info").remove();
-    if (document.getElementById("waiting")){
-        document.getElementById("waiting").remove();
-    }
-
 });
 
 // socket.on('closeTable', (tableID) => {
@@ -900,6 +896,9 @@ socket.on('killTable', (tableID) => {
     window.location.href = '/killTable/' + tableID;
 });
 
+socket.on('redirectHome', (error) => {
+    window.location.href = '/home/' + error;
+  });
 
 socket.on('testoutput', (response) => {
     console.log("test: " + response);
