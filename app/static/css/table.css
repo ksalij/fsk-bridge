@@ -514,3 +514,16 @@ input.glow {
 	flex-direction: row; 
 	flex-wrap: wrap; 
 }  */
+
+input#leaveTable {
+    margin: 1em;
+    padding: 1em;
+    background: #3e4684;
+    color: white;
+    border: none;
+    border-radius: 10px;
+}
+
+#last-trick {
+    margin: 1em;
+}
