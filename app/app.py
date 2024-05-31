@@ -463,7 +463,7 @@ def disconnect():
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
     socketio.emit('testoutput', 'disconnect called ' + str(session['username']))
     
-    if session.get('currentTable'):
+    if session.get('currentTable') in Server.active_tables:
         Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
         socketio.emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), to=session['currentTable'])
         
