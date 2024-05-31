@@ -194,7 +194,8 @@ def openTable():
 @app.route('/joinTable/<table_id>')
 def joinTable(table_id):
     socketio.emit('testoutput', f"JOIN TABLE {table_id}")
-    session['currentTable'] = table_id
+    if not session.get('currentTable'):
+        session['currentTable'] = table_id
     return redirect('/table')
 
 @app.route('/table')
@@ -209,8 +210,6 @@ def table():
         return redirect('/home/' + error)
     
     if (table_id != None) and (Server.active_tables[table_id].current_game == None):    
-        # add functionality to make it such that you can't be in two tables at once
-        
         socketio.emit('testoutput', "TABLE "+ str(table_id))
         # session['currentTable'] = table_id
         Server.client_list[session['username']] = table_id
