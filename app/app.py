@@ -204,7 +204,7 @@ def table():
     try:
         Server.active_tables[table_id]
     except KeyError:
-        error = 'There is no table with that ID.'
+        error = 'There is no table with that ID or your previous table has closed.'
         session['currentTable'] = None
         session['userPosition'] = None
         return redirect('/home/' + error)

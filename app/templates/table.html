@@ -43,24 +43,39 @@
             <p id="EW-tricks" class="tricks-taken">0</p>
         </div>
         <div id="last-trick">Last Trick:</div>
+        {% if in_game %}
+
+        <form action="/leaveTable">
+            <input type="submit" id="leaveTable" value="Close Table"/>
+        </form>
+
+        {% else %}
+
+        <form action="/leaveTable">
+            <input type="submit" id="leaveTable" value="Leave Table"/>
+        </form>
+
+        {% endif %}
     </div>
-    <div id="game">
-        <div id="bottom-dir" class="direction">
-            <p></p>
-        </div>
-        <div id="left-dir" class="direction">
-            <p></p>
-        </div>
-        <div id="top-dir" class="direction">
-            <p></p>
-        </div>
-        <div id="right-dir" class="direction">
-            <p></p>
-        </div>
-        <div id="client-team-hands" class="client-team"></div>
-        <div id="opp-team-hands" class="opp-team"></div>
-        <div id="ready-info">
-            <button id="ready-button" class="ready-button" onclick="readyUp()">Ready Up!</button>
+    <div id="game-border">
+        <div id="game">
+            <div id="bottom-dir" class="direction">
+                <p></p>
+            </div>
+            <div id="left-dir" class="direction">
+                <p></p>
+            </div>
+            <div id="top-dir" class="direction">
+                <p></p>
+            </div>
+            <div id="right-dir" class="direction">
+                <p></p>
+            </div>
+            <div id="client-team-hands" class="client-team"></div>
+            <div id="opp-team-hands" class="opp-team"></div>
+            <div id="ready-info">
+                <button id="ready-button" class="ready-button" onclick="readyUp()">Ready Up!</button>
+            </div>
         </div>
     </div>
     <div id="chatbox" class="roboto-regular">
@@ -72,19 +87,5 @@
         </div>
     </div>
 </div>
-
-{% if in_game %}
-
-<form action="/leaveTable">
-    <input type="submit" id="leaveTable" value="Close Table"/>
-</form>
-
-{% else %}
-
-<form action="/leaveTable">
-    <input type="submit" id="leaveTable" value="Leave Table"/>
-</form>
-
-{% endif %}
 
 {% endblock %}
