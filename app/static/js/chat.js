@@ -63,14 +63,14 @@ $(document).ready(function(){
 
     // If messages are being sent too fast
     if (avgTime <= 1000) {
-	socket.emit("sendMessage", 'server', user.charAt(0).toUpperCase() + user.slice(1) + ', you are typing too quickly! You have been muted for 10 seconds.', window.location.pathname.split("/")[2]);
+	socket.emit("sendMessage", 'server', user.charAt(0).toUpperCase() + user.slice(1) + ', you are typing too quickly! You have been muted for 10 seconds.', tableID);
 	timeLimit = 10000;
 	muteTime = new Date().getTime();
 	return;
     }
     
     // Emit the user's chat
-    socket.emit("sendMessage", user, message, window.location.pathname.split("/")[2]);
+    socket.emit("sendMessage", user, message, tableID);
   });
 
   socket.on('updateChat', (user, response) => {
