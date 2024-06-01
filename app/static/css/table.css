@@ -127,13 +127,15 @@ img {
 }
 
 #game {
-    border: 1px solid black;
+    border: 1px solid #57965b;
     background-color: #57965b;
     position: relative;
     width: 75vh;
     min-width: 75vh;
     height: 75vh;
     display: inline-block;
+    color: white;
+    font-family: "Roboto", sans-serif;
 }
 
 .centered {
@@ -210,11 +212,6 @@ img {
 
 #ready-info p {
     margin-bottom: 1em;
-}
-
-#ready-button {
-    margin: auto;
-    display: block;
 }
 
 #trick-area {
@@ -371,6 +368,11 @@ input.glow {
     color: #0a0a0a;
 }
 
+#N {
+    background-color: #e0e0e0; /* Gray */
+    color: black;
+}
+
 #p {
     background-color: #34784f; /* Green */
     color: #ffffff;
@@ -500,12 +502,14 @@ input.glow {
 .vul {
     background-color: #d9635f;
     position: sticky;
+    color: black;
     top: 0;
 }
 
 .nonvul {
     background-color: #cfcfcf;
     position: sticky;
+    color: black;
     top: 0;
 }
 
@@ -526,4 +530,45 @@ input#leaveTable {
 
 #last-trick {
     margin: 1em;
+}
+
+.switch-seat-div button {
+    background-color: inherit;
+    border: 2px solid white;
+    color:white;
+    cursor: pointer;
+    padding: 1vh 1vh;
+    font-size: 2vh;
+    display: block;
+}
+
+.opp-team .switch-seat-div button {
+    margin : auto;
+    margin-left: .6vh;
+}
+
+.client-team .switch-seat-div button {
+    margin : auto;
+    margin-top: .6vh;
+}
+
+.switch-seat-div button:hover{
+    background-color:white;
+    color: #57965b;
+}
+
+#ready-button {
+    background-color: inherit;
+    border: 2px solid white;
+    color:white;
+    cursor: pointer;
+    padding: 1vh 1vh;
+    font-size: 2vh;
+    margin: 10px;
+    display: block;
+}
+
+#ready-button:hover{
+    background-color:white;
+    color: #57965b;
 }

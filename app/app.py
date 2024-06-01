@@ -370,13 +370,13 @@ def handle_message(user, card):
 def AI_play(table_id):
     Table = Server.active_tables[table_id]
     dummy = Table.current_game.get_partner(Table.current_game.current_bridgehand.declarer)
-    if 'Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_player] and not Table.current_game.current_player == dummy:
+    if ('Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_player] and not Table.current_game.current_player == dummy ) or (Table.current_game.current_player == dummy and 'Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_bridgehand.declarer]):
         if len(Table.current_game.current_bridgehand.play) == 0:
             card = Table.AI_opening_lead()
         else:
             card = Table.AI_select_card()
         handle_message(Table.current_game.current_bridgehand.players[Table.current_game.current_player], [card.rankname, card.suitname])
-        time.sleep(.25)
+        time.sleep(.75)
 
 # The server then responds to each player asking with the json
 @socketio.on('updateGameState')
