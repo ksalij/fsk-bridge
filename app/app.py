@@ -400,10 +400,9 @@ def populate_chat():
 
 @socketio.on('userJoined')
 def user_joined(user, table_id):
-    socketio.emit('testoutput', 'userJoined')
+    #socketio.emit('testoutput', 'userJoined')
     join_room(table_id)
     Server.table_chat[session['currentTable']].append("enter/" + "→ " + user + " has joined the room")
-    #emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
     emit('updateChat', ('enter', "→ " + user  + ' has joined the room'), to=table_id)
 
 
