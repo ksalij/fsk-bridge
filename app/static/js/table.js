@@ -83,7 +83,7 @@ function addSwitchSeatButtons(players, readyUsers) {
 
             // Robot button
             const robotButton = document.createElement("button");
-            robotButton.setAttribute("class", "seat-buttons");
+            robotButton.setAttribute("class", "robotButton");
             robotButton.setAttribute("onclick", `seatRobot("${dir}")`);
             robotButton.innerHTML = "Seat Robot";
             seatDiv.appendChild(robotButton);
@@ -453,7 +453,6 @@ function displayAuction(bids, dealer, direction, vulnerability){
                     rowEntry.setAttribute("id", auctionList[4*i + j][1]);
                     rowEntry.innerText = auctionList[4*i + j][0] + suitSymbolMap[auctionList[4*i + j][1]];
                 }
-                // rowEntry.innerText = auctionList[4*i + j];
                 row.appendChild(rowEntry);
             } 
         }
@@ -485,6 +484,9 @@ function clearBids() {
 }
 
 function displayBids(validBids){
+    if (!validBids){
+        return;
+    }
     console.log('Displaying Bids');
     const gameDiv = document.getElementById("game");
     const bidding = document.createElement("div");
@@ -679,12 +681,12 @@ function renderUpdate(jsonData) {
             clearBids();
         }
         if (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false){
+            clearBids();
             socket.emit('aiPlay', tableID);
         }
     }
     else if (jsonData.game_phase == "PLAY") {
         if (document.getElementById("auction")){
-
             clearBids();
             clearAuction();
             removeAuction();
@@ -834,10 +836,9 @@ function showAllCards() {
 // Call the fetchImages function when the page loads
 window.addEventListener("load", (event) => { fetchImages(); });
 
+socket.emit('populateChat');
 // joins the username to the table and room
 socket.emit('userJoined', username, tableID); //window.location.pathname.split("/")[2])
-// Populate the chat when the page loads
-socket.emit('populateChat');
 
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {

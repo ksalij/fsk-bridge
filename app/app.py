@@ -370,13 +370,13 @@ def handle_message(user, card):
 def AI_play(table_id):
     Table = Server.active_tables[table_id]
     dummy = Table.current_game.get_partner(Table.current_game.current_bridgehand.declarer)
-    if 'Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_player] and not Table.current_game.current_player == dummy:
+    if ('Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_player] and not Table.current_game.current_player == dummy ) or (Table.current_game.current_player == dummy and 'Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_bridgehand.declarer]):
         if len(Table.current_game.current_bridgehand.play) == 0:
             card = Table.AI_opening_lead()
         else:
             card = Table.AI_select_card()
         handle_message(Table.current_game.current_bridgehand.players[Table.current_game.current_player], [card.rankname, card.suitname])
-        time.sleep(.25)
+        time.sleep(.75)
 
 # The server then responds to each player asking with the json
 @socketio.on('updateGameState')
@@ -400,10 +400,9 @@ def populate_chat():
 
 @socketio.on('userJoined')
 def user_joined(user, table_id):
-    socketio.emit('testoutput', 'userJoined')
+    #socketio.emit('testoutput', 'userJoined')
     join_room(table_id)
     Server.table_chat[session['currentTable']].append("enter/" + "→ " + user + " has joined the room")
-    #emit('updateChat', ('server', user  + ' has joined the room'), room=game_room)
     emit('updateChat', ('enter', "→ " + user  + ' has joined the room'), to=table_id)
 
 

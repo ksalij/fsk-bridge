@@ -137,7 +137,7 @@ img {
 }
 
 #game {
-    /* border: solid black; */
+    border: 1px solid #57965b;
     background-color: #57965b;
     position: relative;
     /* width: 50%; */
@@ -146,6 +146,8 @@ img {
     height: 100%;
     /* margin: 22px; */
     display: inline-block;
+    color: white;
+    font-family: "Roboto", sans-serif;
     aspect-ratio: 1/1;
 }
 
@@ -229,11 +231,6 @@ img {
 
 #ready-info p {
     margin-bottom: 1em;
-}
-
-#ready-button {
-    margin: auto;
-    display: block;
 }
 
 #trick-area {
@@ -390,6 +387,11 @@ input.glow {
     color: #0a0a0a;
 }
 
+#N {
+    background-color: #e0e0e0; /* Gray */
+    color: black;
+}
+
 #p {
     background-color: #34784f; /* Green */
     color: #ffffff;
@@ -519,12 +521,14 @@ input.glow {
 .vul {
     background-color: #d9635f;
     position: sticky;
+    color: black;
     top: 0;
 }
 
 .nonvul {
     background-color: #cfcfcf;
     position: sticky;
+    color: black;
     top: 0;
 }
 
@@ -547,6 +551,48 @@ input#leaveTable {
     margin: 1em;
 }
 
+.switch-seat-div button {
+    background-color: inherit;
+    border: 2px solid white;
+    color:white;
+    cursor: pointer;
+    padding: 1vh 1vh;
+    font-size: 2vh;
+    display: block;
+}
+
+.opp-team .switch-seat-div button {
+    margin : auto;
+    margin-left: .6vh;
+}
+
+.client-team .switch-seat-div button {
+    margin : auto;
+    margin-top: .6vh;
+}
+
+.switch-seat-div button:hover{
+    background-color:white;
+    color: #57965b;
+}
+
+#ready-button {
+    background-color: inherit;
+    border: 2px solid white;
+    color:white;
+    cursor: pointer;
+    padding: 1vh 1vh;
+    font-size: 2vh;
+    margin: 10px auto;
+    display: block;
+}
+
+#ready-button:hover{
+    background-color:white;
+    color: #57965b;
+}
+
+
 #switch-seat-padding {
     aspect-ratio: 1 / 1;
     width: 25%;
@@ -565,23 +611,4 @@ input#leaveTable {
     height: 80vh;
 }
 
-.seat-buttons {
-    border: none;
-    background-color: #d9ffe9;
-    padding: 8px;
-    font-size: small;
-}
 
-.seat-buttons:hover  {
-    background-color: #beebd1;
-}
-
-.ready-button {
-    border: none;
-    background-color: #d28f8f;
-    padding: 10px;
-}
-
-.ready-button:hover{
-    background-color: #b97d7d;
-}
