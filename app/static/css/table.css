@@ -544,6 +544,11 @@ input#leaveTable {
     color: white;
     border: none;
     border-radius: 10px;
+    transition-duration: 0.5s;
+}
+
+input#leaveTable:hover {
+    opacity: 80%;
 }
 
 #last-trick {

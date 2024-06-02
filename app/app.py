@@ -121,6 +121,9 @@ def logout():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = ''
+    if session.get('username') is not None:
+        return redirect('/home')
+
     if request.method == 'POST':
         user_username = request.form['username']
         user_password = request.form['password']
@@ -147,6 +150,9 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if session.get('username') is not None:
+        return redirect('/home')
+
     if request.method == 'POST':
         user_username = request.form['username']
         user_password = request.form['password']

@@ -13,7 +13,7 @@
     
 <form action="" name='join' id='join'>
   <div class="join">
-      <input type='text' name='id' placeholder="Room ID" id='id'>
+      <input type='text' name='id' placeholder="Room ID" id='id' minlength="10" pattern="[0-9]{10}" title="Invalid Room Code" required>
       <input type="submit" class="submit-button" name="join" value="Join Room" id="join-button">
   </div>
 </form>
