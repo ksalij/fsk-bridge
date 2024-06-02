@@ -10,7 +10,7 @@ const SEATMAP = {
     Switch a user with a seat, occupied or unoccupied.
 
     Parameters:
-    - direction, the seat which the user wants to switch to
+      - direction, the seat which the user wants to switch to
 
     Functionality:
       - set the display style of each cardImage element to be "inline" (from "none")
@@ -22,11 +22,27 @@ function switchSeat(direction) {
     clientDirection = direction;
 }
 
+/*
+    Adds buttons to the game board allowing the client to change their seat.
+
+    Parameters:
+      - players, a dictionary with each key being a table direction and having the value of the player at that seat
+      - readyUsers, a list of the users at the table who are ready to play
+
+    Functionality:
+      - for each seat: 
+          - create a <p> element listing who's in that seat (client, other user, or none) and, when applicable, their ready status
+          - if it has an unready user or no user, create a button that allows the client to take that seat
+          - add these items to a wrapper div
+          - add the wrapper div to the appropriate .hands div on the game board
+      - rewrite the seat direction labels on the table based on the client's direction
+*/
 function addSwitchSeatButtons(players, readyUsers) {
     console.log("clientDir: " + clientDirection);
     const clientTeam = document.getElementById("client-team-hands");
     const oppTeam = document.getElementById("opp-team-hands");
 
+    // make a dictionary with seat directions as keys and the div for placing the buttons for that seat as values
     let directions = {};
     if (clientDirection == "E" || clientDirection == "W") {
         directions = {"E": clientTeam, "S": oppTeam, "W": clientTeam, "N": oppTeam};
@@ -39,7 +55,6 @@ function addSwitchSeatButtons(players, readyUsers) {
     for (let i = 0; i < 4; i++) {
         let dir = directionOrder[(i + SEATMAP[clientDirection]) % 4];
         const resident = players[dir];
-
         const seatDiv = document.createElement("div");
         seatDiv.setAttribute("class", "switch-seat-div");
 
@@ -87,17 +102,21 @@ function addSwitchSeatButtons(players, readyUsers) {
     }
 }
 
-function seatRobot(dir){
-    console.log("seat robot");
-    socket.emit("addRobot", tableID, dir);
-}
-
 /*
     Remove all seat switching related items from the page.
     Syntax sourced from this stackoverflow answer: https://stackoverflow.com/a/57547187
 */
 function removeSwitchSeatButtons() {
     document.querySelectorAll(".switch-seat-div").forEach(e => e.remove());
+}
+
+
+/*
+    Seat a robot at the table.
+*/
+function seatRobot(dir){
+    console.log("seat robot");
+    socket.emit("addRobot", tableID, dir);
 }
 
 /*
