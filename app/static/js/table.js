@@ -671,7 +671,6 @@ function renderUpdate(jsonData) {
         socket.emit('aiPlay', tableID);
     } else if (jsonData.game_phase == "END") {
         updateTricksTaken(jsonData.NS_tricks, jsonData.EW_tricks);
-        removeHands();
         removeTrickArea();
         displayEndGame(jsonData);
     }
@@ -684,20 +683,29 @@ function displayHands(jsonData) {
     seats[(SEATMAP[jsonData.your_direction] + 1) % 4] = document.getElementById("oppL_hand");
     seats[(SEATMAP[jsonData.your_direction] + 3) % 4] = document.getElementById("oppR_hand");
     for (let i = 0; i < 4; i++) {
-        while (seats[i].firstChild) {
-            seats[i].removeChild(seats[i].firstChild);
+        if (seats[i]){
+            while (seats[i].firstChild) {
+                seats[i].removeChild(seats[i].firstChild);
+            }
         }
     }
     
     const hands = [];
-    for (direction in jsonData.hand_sizes) {
-        hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
+    if (jsonData.game_phase == "END"){
+        for (direction in jsonData.all_hands) {
+            hands[SEATMAP[direction]] = jsonData.all_hands[direction];
+        }
     }
-    hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
-    if (jsonData.display_dummy) {
-        hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
+    else{
+        for (direction in jsonData.hand_sizes) {
+            hands[SEATMAP[direction]] = Array(jsonData.hand_sizes[direction]).fill("back");
+        }
+        hands[SEATMAP[jsonData.your_direction]] = jsonData.your_hand;
+        if (jsonData.display_dummy) {
+            hands[SEATMAP[jsonData.dummy_direction]] = jsonData.dummy_hand;
+        }
     }
-
+    
     for (let i = 0; i < 4; i++) {
         buildHand(seats[i], hands[i], jsonData.playable_cards, i, SEATMAP[jsonData.current_player], SEATMAP[jsonData.your_direction], SEATMAP[jsonData.dummy_direction], jsonData.players[jsonData.dummy_direction]);
     }
@@ -717,7 +725,7 @@ function displayEndGame(jsonData) {
     document.getElementById("EW-score").innerHTML = jsonData.EW_score;
     
     // should clear the ready_users set
-    socket.emit('unready', tableID, username);
+    // socket.emit('unready', tableID, username);
 
     // call database function to store the finished game
     socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin);
@@ -727,6 +735,7 @@ function displayEndGame(jsonData) {
     ready.setAttribute("id", "ready-info");
     ready.innerHTML = `<button id="ready-button" class="ready-button" onclick="readyUp()">Start New Game</button>`;
     document.getElementById("game").appendChild(ready);
+    displayHands(jsonData);
 }
 
 // Function to preload images, called by fetchImages below
@@ -877,6 +886,7 @@ socket.on('readyInfo', (data) => {
 
 socket.on('buildAuction', (response) => {
     removeSwitchSeatButtons();
+    removeHands();
     buildHands();
     buildAuctionStructure();
 });
