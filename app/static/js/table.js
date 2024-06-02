@@ -387,6 +387,9 @@ function readyDown() {
     socket.emit('unready', tableID, username);
 }
 
+/*
+    Build a structure that will contain the auction.
+*/
 function buildAuctionStructure(){
     console.log("this is called");
     const gameDiv = document.getElementById("game");
@@ -399,6 +402,9 @@ function buildAuctionStructure(){
     auctionContainer.appendChild(auction);
 }
 
+/*
+    clear the bids from the auction/
+*/
 function clearAuction(){
     const auction = document.getElementById("auction");
     while (auction.firstChild){
@@ -409,12 +415,18 @@ function clearAuction(){
     }
 }
 
+/*
+    Remove the auction divs.
+*/
 function removeAuction(){
     const gameDiv = document.getElementById("game");
     const auctionContainer = document.getElementsByClassName("auctionContainer");
     gameDiv.removeChild(auctionContainer[0]);
 }
 
+/*
+    Display the past bids in the auction.
+*/
 function displayAuction(bids, dealer, direction, vulnerability){
     clearAuction();
     const auction = document.getElementById("auction");
@@ -471,6 +483,9 @@ function displayAuction(bids, dealer, direction, vulnerability){
 
 }
 
+/*
+    Remove the bidding area.
+*/
 function clearBids() {
     console.log('Clearing Bids');
     const bidding = document.getElementById("bidding");
@@ -492,6 +507,9 @@ function clearBids() {
     }
 }
 
+/*
+    Display the bids a player can make.
+*/
 function displayBids(validBids){
     if (!validBids){
         return;
@@ -538,6 +556,9 @@ function displayBids(validBids){
     document.getElementById(validBids[0][0]).className += " active";
 }
 
+/*
+    Show bids a player can make at a given level.
+*/
 function openBid(evt, level) {
     // Declare all variables
     var i, tabcontent, tablinks;
@@ -559,6 +580,9 @@ function openBid(evt, level) {
     evt.currentTarget.className += " active";
   }
 
+/*
+   Send a bid request.
+*/
 function makeBid(bid){
     socket.emit('sendBid', username, bid);
 }
@@ -757,9 +781,6 @@ function displayEndGame(jsonData) {
     // display scores
     document.getElementById("NS-score").innerHTML = jsonData.NS_score;
     document.getElementById("EW-score").innerHTML = jsonData.EW_score;
-    
-    // should clear the ready_users set
-    // socket.emit('unready', tableID, username);
 
     // call database function to store the finished game
     socket.emit('storeFinishedGame', tableID, jsonData.bridgehand_lin);
