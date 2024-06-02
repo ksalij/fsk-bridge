@@ -42,6 +42,18 @@ function addSwitchSeatButtons(players, readyUsers) {
     const clientTeam = document.getElementById("client-team-hands");
     const oppTeam = document.getElementById("opp-team-hands");
 
+    // padding divs for spacing between seat divs
+    const oppTeamPadding = document.createElement('div');
+    oppTeamPadding.setAttribute('class', 'switch-seat-div');
+    oppTeamPadding.setAttribute('id', 'switch-seat-padding');
+
+    const clientTeamPadding = document.createElement('div');
+    clientTeamPadding.setAttribute('class', 'switch-seat-div');
+    clientTeamPadding.setAttribute('id', 'switch-seat-padding');
+
+    let oppTeamCount = 0;
+    let clientTeamCount = 0;
+  
     // make a dictionary with seat directions as keys and the div for placing the buttons for that seat as values
     let directions = {};
     if (clientDirection == "E" || clientDirection == "W") {
@@ -75,6 +87,7 @@ function addSwitchSeatButtons(players, readyUsers) {
         if (resident != username && !readyUsers.includes(username) && !readyUsers.includes(resident)) {
             const switchButton = document.createElement("button");
             // button.setAttribute("class", "switch-seat-button");
+            switchButton.setAttribute("class", "seat-buttons");
             switchButton.setAttribute("onclick", `switchSeat("${dir}")`);
             if (!resident) {
                 switchButton.innerHTML = "Take " + dir + " seat";
@@ -93,6 +106,20 @@ function addSwitchSeatButtons(players, readyUsers) {
         }
 
         directions[dir].appendChild(seatDiv);
+
+        // puts a padding div in between the two seat divs
+        if (directions[dir] == oppTeam) {
+            oppTeamCount = oppTeamCount + 1;
+        }
+        if (directions[dir] == clientTeam) {
+            clientTeamCount = clientTeamCount + 1;
+        }
+        if (oppTeamCount == 1) {
+            oppTeam.appendChild(oppTeamPadding);
+        }
+        if (clientTeamCount == 1) {
+            clientTeam.appendChild(clientTeamPadding);
+        }
     }
 
     const directionDivs = document.querySelectorAll(".direction");
