@@ -363,8 +363,11 @@ class Game:
             display_dummy: bool
             bids: list of strings
             dealer_direction: str
+            NS_tricks: int
+            EW_trick: int
         "END"
-            bridgehand_lin: str
+            bridgehand_lin: str,
+            all_hands: dict
         "AUCTION"
             valid_bids: list of strings
         "PLAY"
@@ -374,8 +377,6 @@ class Game:
             dummy_hand: list of strings "suitrank"
             contract: string
             playable_cards: list of strings or null
-            NS_tricks: int
-            EW_trick: int
             display_dummy: boolean
 
         '''
@@ -437,9 +438,7 @@ class Game:
                         "dummy_direction": dummy,
                         "dummy_hand": dummy_hand,
                         "contract": self.current_bridgehand.contract,
-                        "playable_cards": playable_cards,
-                        "NS_tricks": self.NS_tricks,
-                        "EW_tricks": self.EW_tricks}
+                        "playable_cards": playable_cards}
 
         return_dict = {"game_phase": self.game_phase,
                     "NS_score": NS_score,
@@ -452,7 +451,9 @@ class Game:
                     "vulnerability": vulnerability,
                     "display_dummy": display_dummy,
                     'bids': self.current_bridgehand.bids,
-                    'dealer': self.current_bridgehand.dealer}
+                    'dealer': self.current_bridgehand.dealer,
+                    "NS_tricks": self.NS_tricks,
+                    "EW_tricks": self.EW_tricks}
         
         return_dict.update(phase_data)
         return json.dumps(return_dict)

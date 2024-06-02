@@ -670,6 +670,7 @@ function renderUpdate(jsonData) {
         displayHands(jsonData);
         socket.emit('aiPlay', tableID);
     } else if (jsonData.game_phase == "END") {
+        updateTricksTaken(jsonData.NS_tricks, jsonData.EW_tricks);
         removeHands();
         removeTrickArea();
         displayEndGame(jsonData);
