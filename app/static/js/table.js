@@ -236,6 +236,14 @@ function buildPlayArea() {
     playArea.appendChild(clientTeam);
     playArea.appendChild(oppTeam);
 
+    // const leaveTableDiv = document.createElement("div");
+    // const leaveTable = document.createElement("button");
+    // leaveTable.setAttribute('id', 'leaveTable');
+    // leaveTable.onclick = function(event){window.location.href = '/leaveTable';}
+    // leaveTable.innerText = "Leave Table";
+    // leaveTableDiv.appendChild(leaveTable);
+    // document.getElementById("table-info").appendChild(leaveTableDiv);
+
     // Add the play area into the game div
     document.getElementById("game").appendChild(playArea);
 }
@@ -882,6 +890,7 @@ socket.on('buildAuction', (response) => {
 });
   
 socket.on('usersReady', (response) => {
+    document.getElementById("leaveTable").setAttribute("value", "Close Table");
     document.getElementById("ready-info").remove();
 });
 

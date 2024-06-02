@@ -20,8 +20,8 @@ import time
 '''
 session has several fields:
     username: website username
-    currentTable: the table the user is currently at, if there is one (whether they are in_game or not)
-    userPosition: the seat the user is currently at in their table (whether they are in_game or not)
+    currentTable: the table the user is currently at, if there is one (whether they are in game or not)
+    userPosition: the seat the user is currently at in their table (whether they are in game or not)
 '''
 
 app = Flask(__name__, static_url_path='/static')
@@ -101,11 +101,10 @@ def home(error=None):
     #     socketio.emit('testoutput', f'home current game is {Server.active_tables[table_id].current_game}')
     
     # check whether the player is at a table, then check whether that table has started a game
-    in_game = (table_id != None) and (Server.active_tables[table_id].current_game != None)
     if error == None:
-        return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=in_game)
+        return render_template("home.html", app_data=app_data, current_user=session['username'])
     else:
-        return render_template("home.html", app_data=app_data, current_user=session['username'], in_game=in_game, error=error)
+        return render_template("home.html", app_data=app_data, current_user=session['username'], error=error)
 
 # @app.route('/rejoinTable')
 # def rejoin_table():
