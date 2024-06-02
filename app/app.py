@@ -105,16 +105,6 @@ def home(error=None):
     else:
         return render_template("home.html", app_data=app_data, current_user=session['username'], error=error)
 
-# @app.route('/rejoinTable')
-# def rejoin_table():
-#     table_id = session['currentTable']
-#     try:
-#         Server.active_tables[table_id]
-#     except:
-#         error = "whoopsie doopsie the table's gone TODO"
-#         return redirect('/home/' + error) # not sure we should call kill table here, maybe redirect to home?
-#     return redirect('/table/' + table_id)
-
 @app.route('/chat')
 def chat():
     return render_template("chat.html", app_data=app_data, current_user=session['username'])
