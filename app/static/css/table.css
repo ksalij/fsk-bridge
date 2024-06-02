@@ -564,7 +564,7 @@ input#leaveTable {
     cursor: pointer;
     padding: 1vh 1vh;
     font-size: 2vh;
-    margin: 10px;
+    margin: 10px auto;
     display: block;
 }
 
