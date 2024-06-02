@@ -258,7 +258,7 @@ img {
     transform: rotate(-90deg);
     display: flex;
     flex-direction: column;
-    /* align-items: center; */
+    align-items: center;
     justify-content: space-between;
 }
 
