@@ -1,3 +1,7 @@
+'''
+File to convert bridgeHand objects to be read into a neural network for leading.
+'''
+
 from bridge.linparse import *
 from tensorflow import keras
 import numpy as np
@@ -8,6 +12,7 @@ SUIT_VALUES = {"C": 0, "D": 1, "H": 2, "S": 3, "N": 4}
 
 # 35(auction NS) + 35(auction EW) + 52(hand), 52(opening lead)
 def vectorize_for_lead(bridge_hand, leader):
+    '''Create a bit-vector for a leading neural net input from a bridgeHand object'''
     auction = vectorize_auction(bridge_hand)
     hand = vectorize_hand(bridge_hand, leader)
     return auction[0] + auction[1] + auction[2] + auction[3] + hand
