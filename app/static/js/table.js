@@ -10,7 +10,7 @@ const SEATMAP = {
     Switch a user with a seat, occupied or unoccupied.
 
     Parameters:
-    - direction, the seat which the user wants to switch to
+      - direction, the seat which the user wants to switch to
 
     Functionality:
       - set the display style of each cardImage element to be "inline" (from "none")
@@ -22,11 +22,39 @@ function switchSeat(direction) {
     clientDirection = direction;
 }
 
+/*
+    Adds buttons to the game board allowing the client to change their seat.
+
+    Parameters:
+      - players, a dictionary with each key being a table direction and having the value of the player at that seat
+      - readyUsers, a list of the users at the table who are ready to play
+
+    Functionality:
+      - for each seat: 
+          - create a <p> element listing who's in that seat (client, other user, or none) and, when applicable, their ready status
+          - if it has an unready user or no user, create a button that allows the client to take that seat
+          - add these items to a wrapper div
+          - add the wrapper div to the appropriate .hands div on the game board
+      - rewrite the seat direction labels on the table based on the client's direction
+*/
 function addSwitchSeatButtons(players, readyUsers) {
     console.log("clientDir: " + clientDirection);
     const clientTeam = document.getElementById("client-team-hands");
     const oppTeam = document.getElementById("opp-team-hands");
 
+    // padding divs for spacing between seat divs
+    const oppTeamPadding = document.createElement('div');
+    oppTeamPadding.setAttribute('class', 'switch-seat-div');
+    oppTeamPadding.setAttribute('id', 'switch-seat-padding');
+
+    const clientTeamPadding = document.createElement('div');
+    clientTeamPadding.setAttribute('class', 'switch-seat-div');
+    clientTeamPadding.setAttribute('id', 'switch-seat-padding');
+
+    let oppTeamCount = 0;
+    let clientTeamCount = 0;
+  
+    // make a dictionary with seat directions as keys and the div for placing the buttons for that seat as values
     let directions = {};
     if (clientDirection == "E" || clientDirection == "W") {
         directions = {"E": clientTeam, "S": oppTeam, "W": clientTeam, "N": oppTeam};
@@ -39,7 +67,6 @@ function addSwitchSeatButtons(players, readyUsers) {
     for (let i = 0; i < 4; i++) {
         let dir = directionOrder[(i + SEATMAP[clientDirection]) % 4];
         const resident = players[dir];
-
         const seatDiv = document.createElement("div");
         seatDiv.setAttribute("class", "switch-seat-div");
 
@@ -60,6 +87,7 @@ function addSwitchSeatButtons(players, readyUsers) {
         if (resident != username && !readyUsers.includes(username) && !readyUsers.includes(resident)) {
             const switchButton = document.createElement("button");
             // button.setAttribute("class", "switch-seat-button");
+            switchButton.setAttribute("class", "seat-buttons");
             switchButton.setAttribute("onclick", `switchSeat("${dir}")`);
             if (!resident) {
                 switchButton.innerHTML = "Take " + dir + " seat";
@@ -78,14 +106,21 @@ function addSwitchSeatButtons(players, readyUsers) {
         }
 
         directions[dir].appendChild(seatDiv);
-    }
 
-    // const directionDivs = [
-    //     document.getElementById("bottom-dir"),
-    //     document.getElementById("left-dir"),
-    //     document.getElementById("top-dir"),
-    //     document.getElementById("right-dir")
-    // ];
+        // puts a padding div in between the two seat divs
+        if (directions[dir] == oppTeam) {
+            oppTeamCount = oppTeamCount + 1;
+        }
+        if (directions[dir] == clientTeam) {
+            clientTeamCount = clientTeamCount + 1;
+        }
+        if (oppTeamCount == 1) {
+            oppTeam.appendChild(oppTeamPadding);
+        }
+        if (clientTeamCount == 1) {
+            clientTeam.appendChild(clientTeamPadding);
+        }
+    }
 
     const directionDivs = document.querySelectorAll(".direction");
 
@@ -94,17 +129,21 @@ function addSwitchSeatButtons(players, readyUsers) {
     }
 }
 
-function seatRobot(dir){
-    console.log("seat robot");
-    socket.emit("addRobot", tableID, dir);
-}
-
 /*
     Remove all seat switching related items from the page.
     Syntax sourced from this stackoverflow answer: https://stackoverflow.com/a/57547187
 */
 function removeSwitchSeatButtons() {
     document.querySelectorAll(".switch-seat-div").forEach(e => e.remove());
+}
+
+
+/*
+    Seat a robot at the table.
+*/
+function seatRobot(dir){
+    console.log("seat robot");
+    socket.emit("addRobot", tableID, dir);
 }
 
 /*
@@ -207,10 +246,8 @@ function buildPlayArea() {
 
     const clientTeam = document.createElement("div");
     clientTeam.setAttribute("class", "client-team");
-    // clientTeam.setAttribute("id", "client-team-cards");
     const oppTeam = document.createElement("div");
     oppTeam.setAttribute("class", "opp-team");
-    // oppTeam.setAttribute("id", "opp-team-cards");
 
     // create divs to organize the individual cards
     const clientCard = document.createElement("div");
@@ -436,7 +473,6 @@ function displayAuction(bids, dealer, direction, vulnerability){
 
 function clearBids() {
     console.log('Clearing Bids');
-    // document.getElementById("bidding").innerHTML = "";
     const bidding = document.getElementById("bidding");
 
     if (bidding) {
@@ -544,10 +580,8 @@ function buildTrickArea() {
 
     const clientTeam = document.createElement("div");
     clientTeam.setAttribute("class", "client-team");
-    // clientTeam.setAttribute("id", "client-team-cards");
     const oppTeam = document.createElement("div");
     oppTeam.setAttribute("class", "opp-team");
-    // oppTeam.setAttribute("id", "opp-team-cards");
 
     // create divs to organize the individual cards
     const clientCard = document.createElement("div");
@@ -826,8 +860,6 @@ socket.emit('userJoined', username, tableID); //window.location.pathname.split("
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
-    // socket.emit('joinRoom', window.location.pathname.substring(7));
-    // socket.emit('hasGameStarted', window.location.pathname.substring(7));
     socket.emit('joinRoom', tableID);
     socket.emit('hasGameStarted', tableID);
 
@@ -892,14 +924,9 @@ socket.on('buildAuction', (response) => {
 });
   
 socket.on('usersReady', (response) => {
+    document.getElementById("leaveTable").setAttribute("value", "Close Table");
     document.getElementById("ready-info").remove();
 });
-
-// socket.on('closeTable', (tableID) => {
-//     console.log('close table!!');
-//     socket.emit('tableClosed', tableID);
-//     window.location.href = '/home';
-// });
 
 socket.on('killTable', (tableID) => {
     console.log('kill table!!');
