@@ -80,13 +80,6 @@ function addSwitchSeatButtons(players, readyUsers) {
         directions[dir].appendChild(seatDiv);
     }
 
-    // const directionDivs = [
-    //     document.getElementById("bottom-dir"),
-    //     document.getElementById("left-dir"),
-    //     document.getElementById("top-dir"),
-    //     document.getElementById("right-dir")
-    // ];
-
     const directionDivs = document.querySelectorAll(".direction");
 
     for (let i = 0; i < 4; i++) {
@@ -207,10 +200,8 @@ function buildPlayArea() {
 
     const clientTeam = document.createElement("div");
     clientTeam.setAttribute("class", "client-team");
-    // clientTeam.setAttribute("id", "client-team-cards");
     const oppTeam = document.createElement("div");
     oppTeam.setAttribute("class", "opp-team");
-    // oppTeam.setAttribute("id", "opp-team-cards");
 
     // create divs to organize the individual cards
     const clientCard = document.createElement("div");
@@ -235,14 +226,6 @@ function buildPlayArea() {
     // Add the new structures into the play area div
     playArea.appendChild(clientTeam);
     playArea.appendChild(oppTeam);
-
-    // const leaveTableDiv = document.createElement("div");
-    // const leaveTable = document.createElement("button");
-    // leaveTable.setAttribute('id', 'leaveTable');
-    // leaveTable.onclick = function(event){window.location.href = '/leaveTable';}
-    // leaveTable.innerText = "Leave Table";
-    // leaveTableDiv.appendChild(leaveTable);
-    // document.getElementById("table-info").appendChild(leaveTableDiv);
 
     // Add the play area into the game div
     document.getElementById("game").appendChild(playArea);
@@ -444,7 +427,6 @@ function displayAuction(bids, dealer, direction, vulnerability){
 
 function clearBids() {
     console.log('Clearing Bids');
-    // document.getElementById("bidding").innerHTML = "";
     const bidding = document.getElementById("bidding");
 
     if (bidding) {
@@ -552,10 +534,8 @@ function buildTrickArea() {
 
     const clientTeam = document.createElement("div");
     clientTeam.setAttribute("class", "client-team");
-    // clientTeam.setAttribute("id", "client-team-cards");
     const oppTeam = document.createElement("div");
     oppTeam.setAttribute("class", "opp-team");
-    // oppTeam.setAttribute("id", "opp-team-cards");
 
     // create divs to organize the individual cards
     const clientCard = document.createElement("div");
@@ -825,8 +805,6 @@ socket.emit('userJoined', username, tableID); //window.location.pathname.split("
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
     console.log('Socket Connected & Room Joined');
-    // socket.emit('joinRoom', window.location.pathname.substring(7));
-    // socket.emit('hasGameStarted', window.location.pathname.substring(7));
     socket.emit('joinRoom', tableID);
     socket.emit('hasGameStarted', tableID);
 
@@ -893,12 +871,6 @@ socket.on('usersReady', (response) => {
     document.getElementById("leaveTable").setAttribute("value", "Close Table");
     document.getElementById("ready-info").remove();
 });
-
-// socket.on('closeTable', (tableID) => {
-//     console.log('close table!!');
-//     socket.emit('tableClosed', tableID);
-//     window.location.href = '/home';
-// });
 
 socket.on('killTable', (tableID) => {
     console.log('kill table!!');

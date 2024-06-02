@@ -61,7 +61,6 @@ def hash(password: str, b_salt: bytes) -> bytes:
     sha256 = hashlib.sha256()
 
     b_password = password.encode()
-    #b_salt = salt.encode()
 
     sha256.update(b_password)
     sha256.update(b_salt)
