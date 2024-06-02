@@ -1,3 +1,7 @@
+'''
+File to convert bridgeHand objects to be read into a neural network for bidding.
+'''
+
 from bridge.linparse import *
 from tensorflow import keras
 import numpy as np
@@ -9,6 +13,7 @@ REV_SUIT_VALUES = {0: "C", 1: "D", 2: "H", 3: "S", 4: "N"}
 
 # 35(auction NS) + 35(auction EW) + 52(hand), 35(bid)
 def vectorize_for_bid(bridge_hand, ai_player):
+    '''Create a bit-vector for a bidding neural net input from a bridgeHand object'''
     auction = vectorize_auction(bridge_hand, ai_player)
     hand = vectorize_hand(bridge_hand, ai_player)
     return auction[0] + auction[1] + auction[2] + auction[3] + hand

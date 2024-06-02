@@ -1,3 +1,8 @@
+'''
+File to convert bridgeHand objects to be read into a neural network for play.
+'''
+
+
 from bridge.linparse import *
 from tensorflow import keras
 import numpy as np
@@ -13,6 +18,7 @@ REV_CARDMAP = {2:'2', 3:'3', 4:'4', 5:'5', 6:'6', 7:'7', 8:'8', 9:'9', 10:'T', 1
 
 # 4(dealer) + 4(player position) + 52(player hand) + 35(auction N) + 35(auction S) + 35(auction E) + 35(auction W) +  4(dummy position) + 52(Dummy Hand) + 884(tricks)
 def vectorize(bridge_hand, AI_player):
+    '''Create a bit-vector for a play neural net input from a bridgeHand object'''
     dealer = vectorize_pos(bridge_hand.dealer)
     player_pos = vectorize_pos(AI_player)
     player_hand = vectorize_hand(bridge_hand.hands[AI_player])
