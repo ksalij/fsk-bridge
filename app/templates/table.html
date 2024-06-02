@@ -42,20 +42,9 @@
             <p>EW Tricks:</p>
             <p id="EW-tricks" class="tricks-taken">0</p>
         </div>
-        <div id="last-trick">Last Trick:</div>
-        {% if in_game %}
-
-        <form action="/leaveTable">
-            <input type="submit" id="leaveTable" value="Close Table"/>
-        </form>
-
-        {% else %}
-
         <form action="/leaveTable">
             <input type="submit" id="leaveTable" value="Leave Table"/>
         </form>
-
-        {% endif %}
     </div>
     <div id="game-border">
         <div id="game">
@@ -87,5 +76,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
