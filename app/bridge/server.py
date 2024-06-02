@@ -7,7 +7,6 @@ from bridge.AI_player import *
 from tensorflow import keras
 from bridge.AI_bidder import *
 from bridge.AI_leader import *
-import sys
 
 
 DEALER_MAP = {'S':1, 'W':2, 'N':3, 'E':4}
@@ -406,9 +405,14 @@ class Game:
         if self.game_phase == "PLAY" and len(self.current_bridgehand.play) > 0:
                 display_dummy = True
 
+        all_hands = {}
+        for direction in self.current_bridgehand.hands:
+            all_hands[direction] = [str(card) for card in self.current_bridgehand.hands[direction]]
+
         # info that varies based on the game phase
         if self.game_phase == 'END':
-            phase_data = {'bridgehand_lin': running_tables[self.table_id].linwrite()}
+            phase_data = {'bridgehand_lin': running_tables[self.table_id].linwrite(),
+                          'all_hands': all_hands}
 
         elif self.game_phase == 'AUCTION':
             phase_data = {'valid_bids': self.valid_bids}
@@ -599,6 +603,9 @@ class Table:
         return output
     
     def AI_select_card(self):
+        '''
+        Selects a card for the current AI player.
+        '''
         bridge_hand = self.current_game.current_bridgehand
         AI_player = self.current_game.current_player
         playable_cards = self.current_game.get_playable_cards()
@@ -617,6 +624,9 @@ class Table:
                 return card
             
     def AI_opening_lead(self):
+        '''
+        Selects a lead for the current AI player.
+        '''
         AI_player = self.current_game.current_player
         bridge_hand = self.current_game.current_bridgehand
         playable_cards = self.current_game.get_playable_cards()
@@ -635,6 +645,9 @@ class Table:
                 return card
     
     def AI_bid(self, ):
+        '''
+        Selects a bid for the current AI player.
+        '''
         AI_player = self.current_game.current_player
         bridge_hand = self.current_game.current_bridgehand
         valid_bids = self.current_game.valid_bids
