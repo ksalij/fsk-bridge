@@ -702,8 +702,6 @@ function updateTricksTaken(nsScore, ewScore) {
 */
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION" || (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false)) {
-        duringAuction = Boolean(true);
-
         displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
@@ -906,17 +904,13 @@ socket.on('buildGame', (jsonInput, player) => {
         } else if (jsonData.game_phase == "PLAY") {
             console.log("TRICK AREA SHOULD BE BUILT")
             buildTrickArea();
+        } else if (jsonData.game_phase == "END") {
+            displayEndGame();
+            return;
         }
         renderUpdate(jsonData);
     }
 });
-
-// socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
-//     username = your_user;
-//     tableID = your_table_id;
-//     clientDirection = your_direction;
-//     console.log("my local info");
-// });
 
 socket.on('updateUsers', (response, readyUsers) => {
     let players = JSON.parse(response); // list of players
