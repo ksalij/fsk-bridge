@@ -209,9 +209,28 @@ def joinTable(table_id):
     '''
     joins a user to a table
     '''
+    # Adding a check to see if the table is full
+    if has_game_started(table_id) or roomFull(table_id):
+        return redirect('/home/Table Full')
+    
     if not session.get('currentTable'):
         session['currentTable'] = table_id
     return redirect('/table')
+
+# Helper function which checks if a given table is full
+@socketio.on('roomFull')
+def roomFull(table_id):
+    try:
+        table = Server.active_tables[table_id]
+    except:
+        error = 'Table does not exist.'
+        return redirect('/home/' + error)
+    
+    roomFull = True
+    for player in table.players.values():
+        if player == None:
+            roomFull = False
+    return roomFull
 
 @app.route('/table')
 def table():
