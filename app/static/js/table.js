@@ -103,14 +103,15 @@ function addSwitchSeatButtons(players, readyUsers) {
                 switchButton.innerHTML = "Switch with " + resident;
             }
             seatDiv.appendChild(switchButton);
-
-            // Robot button
-            const robotButton = document.createElement("button");
-            robotButton.setAttribute("class", "robotButton");
-            robotButton.setAttribute("onclick", `seatRobot("${dir}")`);
-            robotButton.innerHTML = "Seat Robot";
-            seatDiv.appendChild(robotButton);
-            // End Robot button
+            if(!resident) {
+                // Robot button
+                const robotButton = document.createElement("button");
+                robotButton.setAttribute("class", "robotButton");
+                robotButton.setAttribute("onclick", `seatRobot("${dir}")`);
+                robotButton.innerHTML = "Seat Robot";
+                seatDiv.appendChild(robotButton);
+                // End Robot button
+            }
         }
 
         directions[dir].appendChild(seatDiv);
@@ -519,7 +520,7 @@ function clearBids() {
     Display the bids a player can make.
 */
 function displayBids(validBids){
-    if (!validBids){
+    if (!validBids || document.getElementById("bidding")){
         return;
     }
     console.log('Displaying Bids');
@@ -702,6 +703,8 @@ function updateTricksTaken(nsScore, ewScore) {
 */
 function renderUpdate(jsonData) {
     if (jsonData.game_phase == "AUCTION" || (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false)) {
+        duringAuction = Boolean(true);
+
         displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
@@ -904,13 +907,17 @@ socket.on('buildGame', (jsonInput, player) => {
         } else if (jsonData.game_phase == "PLAY") {
             console.log("TRICK AREA SHOULD BE BUILT")
             buildTrickArea();
-        } else if (jsonData.game_phase == "END") {
-            displayEndGame();
-            return;
         }
         renderUpdate(jsonData);
     }
 });
+
+// socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
+//     username = your_user;
+//     tableID = your_table_id;
+//     clientDirection = your_direction;
+//     console.log("my local info");
+// });
 
 socket.on('updateUsers', (response, readyUsers) => {
     let players = JSON.parse(response); // list of players
