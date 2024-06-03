@@ -105,16 +105,6 @@ def home(error=None):
     else:
         return render_template("home.html", app_data=app_data, current_user=session['username'], error=error)
 
-# @app.route('/rejoinTable')
-# def rejoin_table():
-#     table_id = session['currentTable']
-#     try:
-#         Server.active_tables[table_id]
-#     except:
-#         error = "whoopsie doopsie the table's gone TODO"
-#         return redirect('/home/' + error) # not sure we should call kill table here, maybe redirect to home?
-#     return redirect('/table/' + table_id)
-
 @app.route('/chat')
 def chat():
     return render_template("chat.html", app_data=app_data, current_user=session['username'])
@@ -131,6 +121,9 @@ def logout():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = ''
+    if session.get('username') is not None:
+        return redirect('/home')
+
     if request.method == 'POST':
         user_username = request.form['username']
         user_password = request.form['password']
@@ -157,6 +150,9 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if session.get('username') is not None:
+        return redirect('/home')
+
     if request.method == 'POST':
         user_username = request.form['username']
         user_password = request.form['password']
@@ -191,10 +187,29 @@ def openTable():
 
 @app.route('/joinTable/<table_id>')
 def joinTable(table_id):
-    socketio.emit('testoutput', f"JOIN TABLE {table_id}")
-    if not session.get('currentTable'):
-        session['currentTable'] = table_id
-    return redirect('/table')
+    # Adding a check to see if the table is full
+    if has_game_started(table_id) or roomFull(table_id):
+        return redirect('/home/Table Full')
+    else:
+        socketio.emit('testoutput', f"JOIN TABLE {table_id}")
+        if not session.get('currentTable'):
+            session['currentTable'] = table_id
+        return redirect('/table')
+
+# Helper function which checks if a given table is full
+@socketio.on('roomFull')
+def roomFull(table_id):
+    try:
+        table = Server.active_tables[table_id]
+    except:
+        error = 'Table does not exist.'
+        return redirect('/home/' + error)
+    
+    roomFull = True
+    for player in table.players.values():
+        if player == None:
+            roomFull = False
+    return roomFull
 
 @app.route('/table')
 def table():

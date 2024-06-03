@@ -165,9 +165,10 @@ img {
     width: 5%;
     height: 5%;
     background-color: beige;
-    border: inherit;
+    border: none;
     z-index: 5;
     display: flex;
+    color: black;
 }
 
 .direction p {
@@ -257,7 +258,7 @@ img {
     transform: rotate(-90deg);
     display: flex;
     flex-direction: column;
-    /* align-items: center; */
+    align-items: center;
     justify-content: space-between;
 }
 
@@ -543,6 +544,11 @@ input#leaveTable {
     color: white;
     border: none;
     border-radius: 10px;
+    transition-duration: 0.5s;
+}
+
+input#leaveTable:hover {
+    opacity: 80%;
 }
 
 #last-trick {
@@ -608,5 +614,3 @@ input#leaveTable {
     /* flex-grow: 4; */
     height: 80vh;
 }
-
-
