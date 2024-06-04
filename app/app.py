@@ -332,7 +332,6 @@ def get_image_urls():
     image_folder = 'static/cardimages/'  # Your image folder path
     image_list = os.listdir(image_folder)
     # Prepend the static URL to each filename
-    print(image_list, file=sys.stderr)
     image_urls = [url_for('static', filename=filename) for filename in image_list]
     return jsonify(image_urls)
 

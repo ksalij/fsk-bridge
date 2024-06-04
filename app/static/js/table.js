@@ -92,7 +92,6 @@ function addSwitchSeatButtons(players, readyUsers) {
 
         if (resident != username && !readyUsers.includes(username) && !readyUsers.includes(resident)) {
             const switchButton = document.createElement("button");
-            // button.setAttribute("class", "switch-seat-button");
             switchButton.setAttribute("class", "seat-buttons");
             switchButton.setAttribute("onclick", `switchSeat("${dir}")`);
             if (!resident) {
@@ -191,7 +190,6 @@ function cardPlayed(username, value) {
 */
 function buildHand(handDiv, hand, playableCards, seat, playingSeat, clientSeat, dummySeat, dummyUser) {
     for (let i = 0; i < hand.length; i++) {
-        //TODO load hand
         const card = buildCard(hand[i]);
 
         // If constructing the current player's hand, add the current-turn attribute to the cards.
@@ -514,6 +512,7 @@ function clearBids() {
     Display the bids a player can make.
 */
 function displayBids(validBids){
+    // Don't display bids if there are no valid bids (ie it isn't your turn to bid), or if the bids are already displaying (a bug which we couldn't fix as it was too late in the project)
     if (!validBids || document.getElementById("bidding")){
         return;
     }
