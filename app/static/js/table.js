@@ -25,7 +25,6 @@ const suitSymbolMap = {
       - change the display button to a hide button
 */
 function switchSeat(direction) {
-    console.log("direction");
     socket.emit('switchSeat', direction, username);
     clientDirection = direction;
 }
@@ -46,7 +45,6 @@ function switchSeat(direction) {
       - rewrite the seat direction labels on the table based on the client's direction
 */
 function addSwitchSeatButtons(players, readyUsers) {
-    console.log("clientDir: " + clientDirection);
     const clientTeam = document.getElementById("client-team-hands");
     const oppTeam = document.getElementById("opp-team-hands");
 
@@ -151,7 +149,6 @@ function removeSwitchSeatButtons() {
     Seat a robot at the table.
 */
 function seatRobot(dir){
-    console.log("seat robot");
     socket.emit("addRobot", tableID, dir);
 }
 
@@ -360,7 +357,6 @@ function removeHands() {
 function readyUp() {
     // Notify the server that the username is ready
     socket.emit('ready', tableID, username);
-    console.log(`emitted to socket: ready, ${tableID}, ${username}`);
 
     // Change the ready button
     const readyButton = document.getElementById("ready-button");
@@ -400,7 +396,6 @@ function readyDown() {
     Build a structure that will contain the auction.
 */
 function buildAuctionStructure(){
-    console.log("this is called");
     const gameDiv = document.getElementById("game");
     const auctionContainer = document.createElement("div");
     auctionContainer.setAttribute("class", "auctionContainer");
@@ -496,7 +491,6 @@ function displayAuction(bids, dealer, direction, vulnerability){
     Remove the bidding area.
 */
 function clearBids() {
-    console.log('Clearing Bids');
     const bidding = document.getElementById("bidding");
 
     if (bidding) {
@@ -523,7 +517,6 @@ function displayBids(validBids){
     if (!validBids || document.getElementById("bidding")){
         return;
     }
-    console.log('Displaying Bids');
     const gameDiv = document.getElementById("game");
     const bidding = document.createElement("div");
     bidding.setAttribute("id", "bidding");
@@ -708,16 +701,10 @@ function renderUpdate(jsonData) {
         displayHands(jsonData);
         displayAuction(jsonData.bids, jsonData.dealer, jsonData.your_direction, jsonData.vulnerability);
         if (jsonData.current_player == jsonData.your_direction) {
-            console.log(jsonData.current_player);
-            console.log(jsonData.your_direction);
-            console.log("displaying");
             displayBids(jsonData.valid_bids);
         }
         else {
             socket.emit('aiBid', username);
-            console.log(jsonData.current_player);
-            console.log(jsonData.your_direction);
-            console.log("clear");
             clearBids();
         }
         if (jsonData.game_phase == "PLAY" && jsonData.display_dummy == false){
@@ -889,7 +876,6 @@ socket.emit('userJoined', username, tableID); //window.location.pathname.split("
 
 // Socket stuff. Someone with more knowledge should comment this.
 socket.on('connect', (arg, callback) => {
-    console.log('Socket Connected & Room Joined');
     socket.emit('joinRoom', tableID);
     socket.emit('hasGameStarted', tableID);
 
@@ -900,24 +886,14 @@ socket.on('buildGame', (jsonInput, player) => {
         buildHands();
         jsonData = JSON.parse(jsonInput);
         document.getElementById('ready-info').remove();
-        console.log("buildGame")
         if (jsonData.game_phase == "AUCTION") {
-            console.log('AUCTION SHOULD BE BUILT')
             buildAuctionStructure();
         } else if (jsonData.game_phase == "PLAY") {
-            console.log("TRICK AREA SHOULD BE BUILT")
             buildTrickArea();
         }
         renderUpdate(jsonData);
     }
 });
-
-// socket.on('yourLocalInfo', (your_user, your_table_id, your_direction) => {
-//     username = your_user;
-//     tableID = your_table_id;
-//     clientDirection = your_direction;
-//     console.log("my local info");
-// });
 
 socket.on('updateUsers', (response, readyUsers) => {
     let players = JSON.parse(response); // list of players
@@ -938,12 +914,7 @@ socket.on('requestGameState', (response) => {
 
 socket.on('gameState', (jsonInput) => {
     jsonData = JSON.parse(jsonInput);
-    console.log(jsonData);
     renderUpdate(jsonData);
-});
-
-socket.on('readyInfo', (data) => {
-    console.log(data);
 });
 
 socket.on('buildAuction', (response) => {
@@ -959,14 +930,9 @@ socket.on('usersReady', (response) => {
 });
 
 socket.on('killTable', (tableID) => {
-    console.log('kill table!!');
     window.location.href = '/killTable/' + tableID;
 });
 
 socket.on('redirectHome', (error) => {
     window.location.href = '/home/' + error;
   });
-
-socket.on('testoutput', (response) => {
-    console.log("test: " + response);
-})

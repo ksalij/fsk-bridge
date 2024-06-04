@@ -446,7 +446,6 @@ def populate_chat():
 
 @socketio.on('userJoined')
 def user_joined(user, table_id):
-    #socketio.emit('testoutput', 'userJoined')
     join_room(table_id)
     Server.table_chat[session['currentTable']].append("enter/" + "→ " + user + " has joined the room")
     emit('updateChat', ('enter', "→ " + user  + ' has joined the room'), to=table_id)
@@ -488,16 +487,9 @@ def AI_bid(user):
 @socketio.on('connect')
 def connect():
     Server.client_count += 1
-    socketio.emit('testoutput', f"connect called {session.get('username')}")
     if session.get('currentTable'):
-    #     socketio.emit('testoutput', 'joined room here 2')
-    #     # table = Server.active_tables[session['currentTable']]
-    #     # table.connected_players.append(session['username'])
         join_room(session['currentTable'])
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    #for key, value in Server.message_history.items():
-    #    if key != session['username']:
-    #        emit('updateChat', (key, value), to=request.sid)
 
 @socketio.on('disconnect')
 def disconnect():
@@ -545,16 +537,12 @@ def store_finished_game(table_id, lin_file):
 
 @socketio.on('hasGameStarted')
 def has_game_started(table_id):
-    socketio.emit('testoutput', "hasgamestarted called")
     if table_id not in Server.active_tables:
-        socketio.emit('testoutput', "no table")
         return False
     elif Server.active_tables[table_id].current_game == None:
-        socketio.emit('testoutput', "current_game is none")
         return False
     else:
         json = Server.active_tables[table_id].current_game.get_json(session['username'])
-        socketio.emit('testoutput', 'hasGameStarted currentGame not none', to=table_id)
         socketio.emit('buildGame', (json, session['username']), to=request.sid)
         return True
 
