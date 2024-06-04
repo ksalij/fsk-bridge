@@ -25,14 +25,17 @@ fsk-bridge/
 │   │   - the Flask server for the application (big file)
 │   │   - services webpages, manages active tables, and provides API and socket endpoints to the front-end
 │   ├── bridge/
-│   │   - contains the game logic for playing a bridge game/table
+│   │   - contains the game logic for playing a bridge game/table as well as the AI files
+|   |   ├── AI_bidder.py
+|   |   ├── AI_leader.py
+|   |   ├── AI_player.py
+|   |   ├── arbitrary_card.keras
+|   |   ├── bid_net.keras
 │   │   ├── linparse.py
-│   │   ├── linwrite.py
+|   |   ├── opening_lead.keras
 │   │   ├── score.py
-│   │   ├── server.py (big file)
-│   │   └── test.py
-│   ├── lin/
-│   │   └── example.lin
+│   │   └── server.py (big file)
+|   |       - contains all of the architecture storing the table and game info
 │   ├── static/
 │   │   - contains the static files served to a client by Flask (as requested)
 │   │   ├── cardimages/
@@ -75,13 +78,13 @@ fsk-bridge/
 │   │           - used to style the login and register forms
 │   └── templates/
 │       - contains the html Jinja templates served by Flask
-│       ├── chat.html
-│       │   - creates the chat structural html
 │       ├── home.html
 │       │   - the home page
-│       │   - allows a user to make a new table, join an existing table with a table ID, or rejoin a table in-progress
+│       │   - allows a user to make a new table or join an existing table with a table ID
 │       ├── layout.html
 │       │   - the base template for all other html files on the website
+│       ├── learn.html
+│       │   - the learn to play page
 │       ├── login.html
 │       │   - the login page
 │       ├── register.html
@@ -91,12 +94,9 @@ fsk-bridge/
 ├── compose.yaml
 │   - instructions to create all of the necessary Docker containers
 │   - used in the `docker compose` commands
-├── postgres/
-│   - contains files relevant to the construction and operation of the database
-│   - doesn't contain a Dockerfile because of how the service is integrated into compose.yaml
-│   └── init.sql
-│       - instructions for creating the tables in the database
-└── testingscript/
-    - script to help test gameplay functionality on the front-end
-    - likely deprecated
+└── postgres/
+    - contains files relevant to the construction and operation of the database
+    - doesn't contain a Dockerfile because of how the service is integrated into compose.yaml
+    └── init.sql
+        - instructions for creating the tables in the database
 ```
