@@ -5,6 +5,5 @@ socket.on('connect', (arg, callback) => {
 });
 
 socket.on('updateCount', (response) => {
-  console.log(response.count);
   document.getElementById('clients').innerHTML = "Clients: " + response.count;
 });
