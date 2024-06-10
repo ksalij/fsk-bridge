@@ -613,9 +613,9 @@ class Table:
         split_df = df['X'].str.split('')
         np_arr = np.array(split_df.values.tolist())
         np_arr = np_arr[:,1:-1]
-        X = np.split(np_arr.astype(int), [4, 8, 60, 95, 130, 165, 200, 204, 256], axis = 1)
+        X = np.split(np_arr.astype(int), [4, 8, 60, 95, 130, 165, 200, 204, 256, 464], axis = 1)
         input = list(map(tf.convert_to_tensor, X))
-        model = keras.models.load_model('bridge/arbitrary_card.keras', compile=False)
+        model = keras.models.load_model('bridge/arbitrary_card_reduced.keras', compile=False)
         results = (model.predict(input))
         pred_cards = np.argsort(results, axis = 1)[0][::-1]
         for candiadate in pred_cards:

@@ -8,6 +8,7 @@ from tensorflow import keras
 import numpy as np
 import tensorflow as tf
 import pandas as pd
+import sys
 
 SUIT_VALUES = {"C": 0, "D": 1, "H": 2, "S": 3, "N": 4}
 PLAYERS = {0:'E', 1:'S', 2:'W', 3:'N'}
@@ -26,7 +27,7 @@ def vectorize(bridge_hand, AI_player):
     dummy_pos = vectorize_pos(dummy)
     dummy_hand = vectorize_hand(bridge_hand.hands[dummy])
     auction = vectorize_auction(bridge_hand.bids, bridge_hand.dealer)
-    tricks = vectorize_tricks(bridge_hand.play, len(bridge_hand.play), len(bridge_hand.play[-1])-1)
+    tricks = vectorize_tricks(bridge_hand.play, 4*(len(bridge_hand.play) - 1) + len(bridge_hand.play[-1]) - 1, AI_player)
     return dealer + player_pos + player_hand + auction + dummy_pos + dummy_hand + tricks
 
 def vectorize_pos(pos):
@@ -34,21 +35,26 @@ def vectorize_pos(pos):
     d[PLAYER_MAP[pos]] = "1"
     return d
 
-def vectorize_tricks(play, tricks_played = 13, current_trick = 4):
-    tricks = []
+def vectorize_tricks(play, cards_played, current_player):
+    # 208(played cards) + 156(current trick)
+    partner_map = {"N": "S", "S": "N", "W":"E", "E":"W"}
+    opp_map = {"N": "EW", "S":"EW", "E":"NS", "W":"NS"}
+    prev_tricks = {"N": ["0"] * 52, "E": ["0"] * 52, "S": ["0"] * 52,"W": ["0"] * 52}
+    current_trick = ["0"] * 52 * 3
+    tricks_played = cards_played // 4
+    current_trick_num = cards_played % 4
     for i in range(tricks_played):
         leader = play[i]['lead']
-        cards_to_add = 4
-        if i == tricks_played - 1:
-            cards_to_add = current_trick
-        for j in range(cards_to_add):
-            card = play[i][PLAYERS[(PLAYER_MAP[leader] + j) % 4]]
-            rank = ["0"] * 13
-            rank[card.rank - 2] = "1"
-            suit = ["0"] * 4
-            suit[card.suit] = "1"
-            tricks += (suit + rank)
-    return tricks + ["0"] * (52 - ((tricks_played - 1)*4 + current_trick)) * 17
+        for j in range(4):
+            player = PLAYERS[(PLAYER_MAP[leader] + j) % 4]
+            card = play[i][player]
+            prev_tricks[player][card.suit * 13 + card.rank - 2] = "1"
+    for i in range(current_trick_num):
+        leader = play[tricks_played]['lead']
+        player = PLAYERS[(PLAYER_MAP[leader] + i) % 4]
+        card = play[tricks_played][player]
+        current_trick[(52 * i) + (card.suit * 13) + (card.rank - 2)] = "1"
+    return prev_tricks[current_player] + prev_tricks[partner_map[current_player]] + prev_tricks[opp_map[current_player][0]] + prev_tricks[opp_map[current_player][1]] + current_trick
 
 def vectorize_auction(bids, dealer):
     auction_N = ["0"] * 35
