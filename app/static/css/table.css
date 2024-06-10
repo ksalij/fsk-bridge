@@ -107,7 +107,7 @@ img {
     align-items: flex-start;
     justify-content: flex-start;
     /* flex-grow: 3; */
-    /* font-family: "Source Code Pro", monospace; */
+    font-family: system-ui;
     /* font-size: small; */
     /* border: 2px solid black; */
 }

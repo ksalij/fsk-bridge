@@ -1,16 +1,21 @@
+'''
+    Flask App for the Francis Scott Key (FSK) Bridge Card Game Web App
+    authors: Cecilia Ehrlichman, Cole Weinstein, Kiri Salij, Oliver Tuillo, Warren Kozak, Zev Goldhaber-Gordon
+
+    app.py
+    Contains flask API and socket endpoints for the website and connects to a postgresql database
+'''
+
+
 from flask import Flask, jsonify, url_for, render_template, send_from_directory, session, redirect, request
 from flask_socketio import SocketIO, emit, send 
 from flask_socketio import join_room, leave_room
 from bridge.server import Game, Table
 from _thread import *
 import psycopg2
-import random
 import json
-import requests
 import time
-import threading
 import sys
-import urllib
 import os
 import hashlib
 import binascii
@@ -29,7 +34,7 @@ app.secret_key = b'159151191247130924858171211'
 socketio = SocketIO(app)
 
 app_data = {
-    "name": "Formerly Peter's Starter Template for a Flask Web App (Now our project)",
+    "name": "FSK Bridge Game",
     "description": "A basic Flask app using bootstrap for layout",
     "author": "Peter Simeth",
     "html_title": "FSK Bridge",
@@ -37,6 +42,7 @@ app_data = {
     "keywords": "flask, webapp, bridge",
 }
 
+# postgres database connection
 conn = psycopg2.connect(
     host = 'db',
     port = '5432',
@@ -47,17 +53,25 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 
 class Server:
+    '''
+    Class that holds variables global to the entire app
+    '''
     client_count = 0
     client_list = {}
     active_tables = {}
     table_chat = {}
-    nextUserID = 0
-    store = {}
+    ready_users = {}
 
 def gen_salt(size: int) -> bytes:
+    '''
+    generates a salt for the hashed passwords
+    '''
     return binascii.hexlify(os.urandom(size))
 
 def hash(password: str, b_salt: bytes) -> bytes:
+    '''
+    hashes passwords+salt with SHA256 hashing algorithm
+    '''
     sha256 = hashlib.sha256()
 
     b_password = password.encode()
@@ -68,59 +82,62 @@ def hash(password: str, b_salt: bytes) -> bytes:
     return sha256.hexdigest().encode()
 
 def genUsers(table_id: str) -> str:
+    '''
+    generates a json dictionary of all of the users at a table_id
+    {direction: playername}
+    '''
     user_pos_dict = {"N": None, "E": None, "S": None, "W": None}
     for position,user in Server.active_tables[table_id].players.items():
         user_pos_dict[position] = user
-        # html += '<div id="user">{0}: {1}</div>'.format(position, user)
     return json.dumps(user_pos_dict)
-    # return html
 
 @app.route('/')
 def index():
+    '''
+    default / endpoint, redirects to home or login depending on whether you have logged in yet or not
+    '''
     if session.get('username') is not None:
-        # return 'Cannot sign in on multiple tabs'
         return redirect('/home')
     return redirect('/login')
 
 @app.route('/home/<error>')
 @app.route('/home')
 def home(error=None):
+    '''
+    the home page for a player once logged in. 
+    contains buttons for creating a new table or joining a table with a known table ID 
+    if you are currently at a table, you are redirected to that page
+    '''
     table_id = session.get('currentTable')
     if table_id:
         return redirect('/table')
-    socketio.emit('testoutput', f"table_id is {table_id}")
-    # try:
-    #     Server.active_tables[table_id]
-    # except:
-    #     socketio.emit('testoutput', "exception, no active table at table_id")
-    #     session['currentTable'] = None
-    #     session['userPosition'] = None
-    #     table_id = None
-    # if table_id != None:
-    #     socketio.emit('testoutput', f'home current game is {Server.active_tables[table_id].current_game}')
     
     # check whether the player is at a table, then check whether that table has started a game
     if error == None:
-        return render_template("home.html", app_data=app_data, current_user=session['username'])
+        return render_template("home.html", app_data=app_data)
     else:
-        return render_template("home.html", app_data=app_data, current_user=session['username'], error=error)
-
-@app.route('/chat')
-def chat():
-    return render_template("chat.html", app_data=app_data, current_user=session['username'])
+        return render_template("home.html", app_data=app_data, error=error)
 
 @app.route('/learn')
 def learn():
-    return render_template("learn.html", app_data=app_data, current_user=session['username'])
+    '''
+    learn to play page
+    '''
+    return render_template("learn.html", app_data=app_data)
 
 @app.route('/logout')
 def logout():
+   '''
+   clears all session variables in order to log a user out of the website
+   '''
    session.clear()
    return redirect('/')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = ''
+    '''
+    the user can log in, provided the have registered an account already
+    '''
     if session.get('username') is not None:
         return redirect('/home')
 
@@ -128,28 +145,30 @@ def login():
         user_username = request.form['username']
         user_password = request.form['password']
 
+        # queries the database for the password to check against what the user entered
         cur.execute("SELECT password,salt FROM users WHERE login= %s;", (user_username,))
         pass_info = cur.fetchone()
         if pass_info == None:
             error = "There is not a user with that login in our database."
             return render_template("login.html", app_data=app_data, error=error)
+        
         correct_pass, salt = tuple([item.tobytes() for item in pass_info])
 
         if hash(user_password, salt) == correct_pass:
-            if session.get('username') is not None:
-                if session['username'] == request.form['username']:
-                    error = "Already logged in as this user."
-            else:
-                session['username'] = request.form['username']
-                return redirect(url_for('home'))    
+            session['username'] = request.form['username']
+            return redirect(url_for('home'))    
         else:
             error = "Incorrect Password"
-            # return redirect('/test/' + user_password + '/' + correct_pass)
+            return render_template("login.html", app_data=app_data, error=error)
 
-    return render_template("login.html", app_data=app_data, error=error)
+    return render_template("login.html", app_data=app_data)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    '''
+    user can register account with a username and password
+    enters the information into the postgres database
+    '''
     if session.get('username') is not None:
         return redirect('/home')
 
@@ -174,11 +193,11 @@ def register():
 
 @app.route('/openTable')
 def openTable():
-    socketio.emit('testoutput', 'OPEN TABLE')
+    '''
+    creates a new table for 4 players to join
+    '''
     new_table = Table({'E' : None, 'S' : None, 'W' : None, 'N' : None})
     Server.active_tables[str(new_table.table_id)] = new_table
-    
-    # TODO replace clients list with database?
 
     Server.table_chat[str(new_table.table_id)] = []
     Server.table_chat[str(new_table.table_id)].append("id/" + str(new_table.table_id))
@@ -187,18 +206,37 @@ def openTable():
 
 @app.route('/joinTable/<table_id>')
 def joinTable(table_id):
-    # Adding a check to see if the table is full
-    if has_game_started(table_id) or roomFull(table_id):
-        return redirect('/home/Table Full')
-    else:
-        socketio.emit('testoutput', f"JOIN TABLE {table_id}")
-        if not session.get('currentTable'):
+    '''
+    joins a user to a table
+    '''
+    try:
+        Server.active_tables[table_id]
+    except:
+        error = 'There is no table with that ID.'
+        session['currentTable'] = None
+        session['userPosition'] = None
+        return redirect('/home/' + error)
+    
+    # check if the user was already at that table but the session variables got reset making the rejoin manually
+    for dir, name in Server.active_tables[table_id].players.items():
+        if name == session['username']:
+            session['userPosition'] = dir
             session['currentTable'] = table_id
-        return redirect('/table')
+            return redirect('/table')
 
-# Helper function which checks if a given table is full
+    # Adding a check to see if the table is full
+    if Server.active_tables[table_id].current_game != None or roomFull(table_id):
+        return redirect('/home/Table Full')
+    
+    if not session.get('currentTable'):
+        session['currentTable'] = table_id
+    return redirect('/table')
+
 @socketio.on('roomFull')
 def roomFull(table_id):
+    '''
+    Helper function which checks if a given table is full
+    '''
     try:
         table = Server.active_tables[table_id]
     except:
@@ -213,6 +251,9 @@ def roomFull(table_id):
 
 @app.route('/table')
 def table():
+    '''
+    adds the user to their currentTable, renders the table at their currentTable table ID
+    '''
     table_id = session['currentTable']
     try:
         Server.active_tables[table_id]
@@ -222,27 +263,25 @@ def table():
         session['userPosition'] = None
         return redirect('/home/' + error)
     
+    # if the game has not started yet, attempts to add the user to the table at a position
     if (table_id != None) and (Server.active_tables[table_id].current_game == None):    
-        socketio.emit('testoutput', "TABLE "+ str(table_id))
-        # session['currentTable'] = table_id
         Server.client_list[session['username']] = table_id
-        # socketio.emit('testoutput', 'player s!!! ' + str(Server.active_tables[table_id].players))
 
         for direction, player in Server.active_tables[table_id].players.items():
-            # socketio.emit('testoutput', direction)
-            # socketio.emit('testoutput', player)
             if player == session['username']:
-                socketio.emit('testoutput', 'hit hit ' + session['username'] + ' ' + player)
                 break
             elif player == None:
                 Server.active_tables[table_id].join_table(session['username'], direction)
                 session['userPosition'] = direction
                 break
-        socketio.emit('testoutput', 'players!!! ' + str(Server.active_tables[table_id].players))
     return render_template("table.html", app_data=app_data, table_id=session['currentTable'])
 
 @app.route('/leaveTable')
 def leave_table():
+    '''
+    removes a user from a table if game hasn't started, 
+    kills the table if game has started
+    '''
     table_id = session.get('currentTable')
     try:
         table = Server.active_tables[table_id]
@@ -250,16 +289,17 @@ def leave_table():
         error = 'Table does not exist.'
         return redirect('/home/' + error)
 
-    socketio.emit('testoutput', f'current game is {table.current_game}')
-    # chat stuff
+    # emits to chat that the user has left
     Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
     socketio.emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), to=table_id)   
-    
-    # removes user from table
-    table.leave_table(session['userPosition'])
-    
-    socketio.emit('testoutput', 'after ' + str(Server.active_tables[table_id].players))
-    user_unready(table_id, session['username'])
+
+    # removes user from table if not a spectator
+    if session.get('userPosition') != None: 
+        table.leave_table(session['userPosition'])
+        user_unready(table_id, session['username'])
+    else:
+        session['currentTable'] = None
+        return redirect('/home/You have left spectating this table.')
     session['currentTable'] = None
     session['userPosition'] = None
 
@@ -268,31 +308,30 @@ def leave_table():
         if player != None:
             roomEmpty = False
 
+    # if the game has started or it hasn't at the room is empty, kill the table for everyone
     if table.current_game != None or (table.current_game == None and roomEmpty):
         Server.active_tables[table_id].players = {'N': None, 'S': None, 'E': None, 'W': None}
         socketio.emit('killTable', str(table_id), to=table_id)
         del Server.active_tables[table_id]
-        del ready_users[table_id]
+        del Server.ready_users[table_id]
     return redirect('/home/Table Closed')
 
 @app.route('/killTable/<table_id>')
 def kill_table(table_id):
     '''
-    called when the kill table button is pressed. Only can happen after the game has begun
+    removes a user from their table
     '''
-    if session.get('currentTable'):
-        socketio.emit('testoutput', 'kill_table')
-        # socketio.emit('closeTable', table_id, to=table_id)
+    if session.get('currentTable') == table_id:
         session['currentTable'] = None
         session['userPosition'] = None
-    return redirect('/home/Table Closed')
+        return redirect('/home/Table Closed')
+    return redirect('/table')
 
 @app.route('/getimages')
 def get_image_urls():
     image_folder = 'static/cardimages/'  # Your image folder path
     image_list = os.listdir(image_folder)
     # Prepend the static URL to each filename
-    print(image_list, file=sys.stderr)
     image_urls = [url_for('static', filename=filename) for filename in image_list]
     return jsonify(image_urls)
 
@@ -306,114 +345,124 @@ def give_favicon():
 
 @socketio.on('joinRoom')
 def put_user_in_room(table_id):
+    '''
+    adds user to socket room, sets up ready_users, and sets up seat buttons
+    '''
     if table_id not in Server.active_tables:
         error = 'The table you are at is no longer active'
-        socketio.emit('testoutput', 'NO TABBLE WIH ID IN JOINROMM')
         socketio.emit('redirectHome', error, to=request.sid)
         return
-        # return redirect('/home/' + error)
-    socketio.emit('testoutput', f"user {session['username']}, table_id {table_id}, position: {session['userPosition']}")
+    
     join_room(table_id)
-    socketio.emit("yourLocalInfo", (session['username'], table_id, session['userPosition']), to=request.sid)
-    socketio.emit('testoutput', 'joined room 1')
-    if table_id not in ready_users:
-        ready_users[table_id] = set()
-    # Server.active_tables[table_id].players.values()[:-1]
+
+    if table_id not in Server.ready_users:
+        Server.ready_users[table_id] = set()
+
     if Server.active_tables[table_id].current_game == None:
-        socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+        socketio.emit("updateUsers", (genUsers(table_id), list(Server.ready_users[table_id])), to=table_id)
 
 @socketio.on('addRobot')
 def put_robot_in_room(table_id, dir):
-    if table_id not in ready_users:
-        ready_users[table_id] = set()
+    '''
+    adds a robot/AI player to the table at dir
+    '''
+    if table_id not in Server.ready_users:
+        Server.ready_users[table_id] = set()
     Server.client_list["Robot" + dir] = table_id
     Server.active_tables[table_id].players[dir] = "Robot" + dir
-    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+    socketio.emit("updateUsers", (genUsers(table_id), list(Server.ready_users[table_id])), to=table_id)
     user_ready(table_id, "Robot" + dir)
 
-ready_users = {}
 @socketio.on('ready')
 def user_ready(table_id, user):
-    ready_users[table_id].add(user)
+    '''
+    indicates that the user is ready to start the game.
+    if this is the fourth player to ready, game starts
+    '''
+    Server.ready_users[table_id].add(user)
    
+    # prints to chat
     Server.table_chat[session['currentTable']].append("enter/" + user + " is ready to play!")
     emit('updateChat', ('enter', user  + ' is ready to play!'), to=table_id)
 
-    # socketio.emit("readyInfo", list(ready_users[table_id]), to=request.sid)
-    print("\n\n\n{} ready\n{}\n\n\n".format(user, ready_users[table_id]))
-    if len(ready_users[table_id]) == 4 or Server.active_tables[table_id].game_count > 0:
+    # starts new game if 4 users are ready or if one user hits ready and games have already been played before
+    if len(Server.ready_users[table_id]) == 4 or Server.active_tables[table_id].game_count > 0:
         emit('usersReady', to=table_id)
         emit('buildAuction', to=table_id)
         emit('requestGameState', to=table_id)
         Server.active_tables[table_id].new_game()
         if "Robot" in Server.active_tables[table_id].current_game.current_player:
             bid = Server.active_tables[table_id].AI_bid()
-            send_new_game(user, bid)
+            send_bid(user, bid)
 
     else:
-        socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+        socketio.emit("updateUsers", (genUsers(table_id), list(Server.ready_users[table_id])), to=table_id)
 
 @socketio.on('unready')
 def user_unready(table_id, user):
-    if table_id in ready_users.keys() and user in ready_users[table_id]:
-        ready_users[table_id].remove(user)
+    '''
+    unreadys a user from a table and updates the other players' buttons
+    '''
+    if table_id in Server.ready_users.keys() and user in Server.ready_users[table_id]:
+        Server.ready_users[table_id].remove(user)
 
+    # prints to chat
     Server.table_chat[session['currentTable']].append("leave/" + user + " is not ready to play")
     socketio.emit('updateChat', ('leave', user  + ' is not ready to play'), to=table_id)
 
-    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+    socketio.emit("updateUsers", (genUsers(table_id), list(Server.ready_users[table_id])), to=table_id)
 
 @socketio.on('cardPlayed')
-# user is a username
-def handle_message(user, card):
+def card_played(user, card):
+    '''
+    plays the specified card if valid
+    '''
     table_id = Server.client_list[user]
     played_card = None
     played_card = bridge.linparse.convert_card(card[1] + card[0])
     user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
-    if not Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
-        emit('isCardGood', (False, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
-        print('bad card')
-    else:
-        emit('isCardGood', (True, Server.active_tables[table_id].current_game.get_json(user)), to=request.sid)
-        print('good card')
+    if Server.active_tables[table_id].current_game.play_card(user_dir, played_card):
         # When the server wants to send each player their json, it asks every player in the room to request the json from the server
         emit('requestGameState', to=table_id)
 
 @socketio.on('aiPlay')
 def AI_play(table_id):
+    '''
+    chooses a card for and AI/robot player to play
+    '''
     Table = Server.active_tables[table_id]
     dummy = Table.current_game.get_partner(Table.current_game.current_bridgehand.declarer)
-    if ('Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_player] and not Table.current_game.current_player == dummy ) or (Table.current_game.current_player == dummy and 'Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_bridgehand.declarer]):
+    if ('Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_player] and not Table.current_game.current_player == dummy ) or \
+       (Table.current_game.current_player == dummy and 'Robot' in Table.current_game.current_bridgehand.players[Table.current_game.current_bridgehand.declarer]):
         if len(Table.current_game.current_bridgehand.play) == 0:
             card = Table.AI_opening_lead()
         else:
             card = Table.AI_select_card()
-        handle_message(Table.current_game.current_bridgehand.players[Table.current_game.current_player], [card.rankname, card.suitname])
+        card_played(Table.current_game.current_bridgehand.players[Table.current_game.current_player], [card.rankname, card.suitname])
         time.sleep(.75)
-
-# The server then responds to each player asking with the json
-@socketio.on('updateGameState')
-def broadcast_gamestate(user):
-    table_id = Server.client_list[user]
-    game_state = Server.active_tables[table_id].current_game.get_json(user)
-    emit('gameState', game_state, to=request.sid)
 
 @socketio.on('sendMessage')
 def send_message(user, message, game_room):
+    '''
+    sends a message in chat as user
+    '''
     Server.table_chat[session['currentTable']].append(user + "/" + message)
     emit('updateChat', (user, message), to=game_room)
-    #emit('updateChat', (user, message), broadcast=True)
-    print(game_room, file=sys.stderr)
 
 @socketio.on('populateChat')
 def populate_chat():
+    '''
+    populates the chat in a room with all previous message when room is reloaded or new player joins
+    '''
     for message in Server.table_chat[session['currentTable']]:
         split = message.split("/")
         emit('updateChat', (split[0], split[1]), to=request.sid)
 
 @socketio.on('userJoined')
 def user_joined(user, table_id):
-    #socketio.emit('testoutput', 'userJoined')
+    '''
+    joins a user to the socket room at the table_id
+    '''
     join_room(table_id)
     Server.table_chat[session['currentTable']].append("enter/" + "→ " + user + " has joined the room")
     emit('updateChat', ('enter', "→ " + user  + ' has joined the room'), to=table_id)
@@ -423,16 +472,19 @@ def user_joined(user, table_id):
 def update_game_state(user):
     '''
     Update the whole game state
-    his should be called from the client table whenever a change is made to the table
+    Get the data from the server and format it for the specific clients
+    Send it to each client based on their player id/position
+    this function is called from requestGameState
     '''
-    # Get the data from the server and format it for the specific clients
-    # Send it to each client based on their player id/position
     game = Server.active_tables[Server.client_list[user]].current_game
     json = game.get_json(user)
     emit('gameState', json, to=request.sid)
 
 @socketio.on('sendBid')
-def send_new_game(user, bid):
+def send_bid(user, bid):
+    '''
+    user makes a bid at the table
+    '''
     table_id = Server.client_list[user]
     game = Server.active_tables[table_id].current_game
     user_dir = {player: dir for dir, player in Server.active_tables[table_id].current_game.current_bridgehand.players.items()}[user]
@@ -442,59 +494,48 @@ def send_new_game(user, bid):
 
 @socketio.on('aiBid')
 def AI_bid(user):
+    '''
+    robot/Ai user chooses a bid to play and then bids it
+    '''
     table_id = Server.client_list[user]
     current_player_name = Server.active_tables[table_id].current_game.current_bridgehand.players[Server.active_tables[table_id].current_game.current_player]
     phase = Server.active_tables[table_id].current_game.game_phase
     if "Robot" in current_player_name:
         if phase == "AUCTION":
             bid = Server.active_tables[table_id].AI_bid()
-            send_new_game(current_player_name, bid)
+            send_bid(current_player_name, bid)
             time.sleep(.75)
 
-# Count the number of connected clients
 @socketio.on('connect')
 def connect():
+    '''
+    connect is called when the page is loaded or reloaded, 
+    keeps track of the number of clients currently connected to the server
+    rejoins the socket room if they are currently at a table
+    '''
     Server.client_count += 1
-    socketio.emit('testoutput', f"connect called {session.get('username')}")
     if session.get('currentTable'):
-    #     socketio.emit('testoutput', 'joined room here 2')
-    #     # table = Server.active_tables[session['currentTable']]
-    #     # table.connected_players.append(session['username'])
         join_room(session['currentTable'])
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    #for key, value in Server.message_history.items():
-    #    if key != session['username']:
-    #        emit('updateChat', (key, value), to=request.sid)
 
 @socketio.on('disconnect')
 def disconnect():
     '''
-    Called each time a tab is left or reloaded (double check)
+    disconnect is called each time a tab is left, closed, or reloaded
+    automatically removes the user from their socket rooms
     '''
     Server.client_count -= 1
     emit('updateCount', {'count' : Server.client_count}, broadcast=True)
-    socketio.emit('testoutput', 'disconnect called ' + str(session['username']))
     
     if session.get('currentTable') in Server.active_tables:
         Server.table_chat[session['currentTable']].append("leave/" + "← " + session['username'] + " has left the room")
         socketio.emit('updateChat', ('leave', "← " + session['username'] + ' has left the room'), to=session['currentTable'])
-        
-# @socketio.on('tableClosed')
-# def table_closed(closed_table_id):
-#     '''
-#     sent to all users at a table when the table is closed, sets the session variables
-#     and removes the user from the table
-#     '''
-#     table_id = session['currentTable']
-#     socketio.emit('testoutput', 'table closed is ' + str(closed_table_id))
-#     if (table_id == closed_table_id):
-#         Server.active_tables[table_id].leave_table(session['userPosition'])
-#         session['currentTable'] = None
-#         session['userPosition'] = None
-#         leave_room(table_id)
 
 @socketio.on('switchSeat')
 def switch_seat(direction, user):
+    '''
+    allows a user to switch seats (positions) at the table with someone else
+    '''
     table_id = Server.client_list[user]
     temp_player = Server.active_tables[table_id].players[direction]
     temp_direction = session['userPosition']
@@ -502,7 +543,7 @@ def switch_seat(direction, user):
     Server.active_tables[table_id].players[direction] = user
     Server.active_tables[table_id].players[temp_direction] = temp_player
     emit("seatSwitched", (temp_player, temp_direction), to=table_id)
-    socketio.emit("updateUsers", (genUsers(table_id), list(ready_users[table_id])), to=table_id)
+    socketio.emit("updateUsers", (genUsers(table_id), list(Server.ready_users[table_id])), to=table_id)
 
 
 @socketio.on('updateSeatSession')
@@ -512,6 +553,12 @@ def update_seat_session(player, new_direction):
 
 @socketio.on('storeFinishedGame')
 def store_finished_game(table_id, lin_file):
+    '''
+    given a lin file, stores that game in the database if it doesn't already exist
+
+    tables: keeps track of the 4 people at a table and which position they were at
+    games: keeps track of the table_id and game number the game stored in the lin file was played at
+    '''
     table = Server.active_tables[table_id]
     players = table.players
     game_num = table.game_count
@@ -527,17 +574,17 @@ def store_finished_game(table_id, lin_file):
 
 @socketio.on('hasGameStarted')
 def has_game_started(table_id):
-    socketio.emit('testoutput', "hasgamestarted called")
+    '''
+    checks whether the game has started yet or not.
+    if so, builds the elements needed to see what the game currently looks like
+    '''
     if table_id not in Server.active_tables:
-        socketio.emit('testoutput', "no table")
         return False
     elif Server.active_tables[table_id].current_game == None:
-        socketio.emit('testoutput', "current_game is none")
         return False
     else:
         json = Server.active_tables[table_id].current_game.get_json(session['username'])
-        socketio.emit('testoutput', 'hasGameStarted currentGame not none', to=table_id)
-        socketio.emit('buildGame', (json, session['username']), to=table_id)
+        socketio.emit('buildGame', (json, session['username']), to=request.sid)
         return True
 
 if __name__ == '__main__':
