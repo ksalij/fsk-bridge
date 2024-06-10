@@ -6,6 +6,14 @@ const SEATMAP = {
     "N" : 3
 };
 
+const suitSymbolMap = {
+    'C': '\u2663', 
+    'D': '\u2666', 
+    'H': '\u2665', 
+    'S': '\u2660', 
+    'N': 'NT'
+};
+
 /*
     Switch a user with a seat, occupied or unoccupied.
 
@@ -722,7 +730,7 @@ function renderUpdate(jsonData) {
             clearAuction();
             removeAuction();
             buildTrickArea();
-            document.getElementById("contract-value").innerHTML = jsonData.contract;
+            document.getElementById("contract-value").innerHTML = jsonData.contract[0] + suitSymbolMap[jsonData.contract[1]];
         }
         updateTricksTaken(jsonData.NS_tricks, jsonData.EW_tricks);
         displayHands(jsonData);
